@@ -1,8 +1,13 @@
 import type { Icons } from "@/components/shared/icons";
-import { researchers, roles } from "@/config/constants";
+import { researchers } from "@/config/constants";
+import { events, partners, presenterRoles, roles } from "@/config/enums";
 import { notifications, users } from "@/db/schema";
 
-export type Role = (typeof roles)[number];
+export type Role = typeof roles.type;
+export type Partner = typeof partners.type;
+export type Event = typeof events.type;
+export type PresenterRole = typeof presenterRoles.type;
+
 export type Researcher = (typeof researchers)[number];
 
 export type User = typeof users.$inferSelect;

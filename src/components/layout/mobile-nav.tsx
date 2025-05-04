@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelRightDashed } from "lucide-react";
-import type { User } from "next-auth";
+import { User } from "next-auth";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
@@ -34,14 +34,13 @@ function MobileNav({ user, ...props }: MobileNavProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger className="hover:cursor-pointer" asChild>
+      <SheetTrigger className="hover:cursor-pointer" asChild {...props}>
         <Button
           size="icon"
           className={cn(
             "size-8 rounded-sm md:hidden bg-brand",
             user ? "ring-2 ring-ring" : ""
           )}
-          {...props}
         >
           {user ? (
             <UserAvatar user={user} className="rounded-lg" />

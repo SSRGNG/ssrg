@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: "Video Contents",
 };
 
-export default function Home() {
+export default function Video() {
   return <Page>Video Contents</Page>;
 }

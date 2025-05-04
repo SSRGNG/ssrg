@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "Community Development",
 };
 
-export default function Home() {
+export default function CommunityDevelopment() {
   return (
     <Page>
       <Hero />

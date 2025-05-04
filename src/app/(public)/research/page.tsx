@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: appConfig.description,
 };
 
-export default function Home() {
+export default function Research() {
   return (
     <Page>
       <Hero />

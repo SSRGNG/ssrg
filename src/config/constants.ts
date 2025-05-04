@@ -15,9 +15,6 @@ export const links = {
 export const PASSWORD_KEY_LENGTH = 64;
 export const PIN_KEY_LENGTH = 32;
 
-export const roles = ["admin", "researcher", "member"] as const;
-// Consider adding "research_lead" or "project_manager" if needed
-
 export const keywords = [
   appFullName,
   appName,
@@ -44,7 +41,7 @@ export const user: AuthUser = {
 export const appNav: AppNavItem[] = [
   {
     title: "Dashboard",
-    href: "/app",
+    href: "/portal",
     description: "Comprehensive overview of research projects and key metrics",
     roles: ["admin", "researcher", "member"],
     icon: "dashboard",
@@ -52,7 +49,7 @@ export const appNav: AppNavItem[] = [
   },
   {
     title: "Research Projects",
-    href: "/app/projects",
+    href: "/portal/projects",
     description: "Current and past research initiatives",
     roles: ["admin", "researcher"],
     icon: "research",
@@ -60,7 +57,7 @@ export const appNav: AppNavItem[] = [
   },
   {
     title: "Publications",
-    href: "/app/publications",
+    href: "/portal/publications",
     description: "Research papers, reports, and findings",
     roles: ["admin", "researcher", "member"],
     icon: "publications",
@@ -68,7 +65,7 @@ export const appNav: AppNavItem[] = [
   },
   {
     title: "Data Repository",
-    href: "/app/data",
+    href: "/portal/data",
     description: "Access research datasets and resources",
     roles: ["admin", "researcher"],
     icon: "database",
@@ -76,14 +73,14 @@ export const appNav: AppNavItem[] = [
   },
   {
     title: "Administration",
-    href: "/app/admin",
+    href: "/portal/admin",
     description: "System configuration and user management",
     roles: ["admin"],
     icon: "admin",
     items: [
       {
         title: "User Management",
-        href: "/app/admin/users",
+        href: "/portal/admin/users",
         description: "Manage user accounts and permissions",
         roles: ["admin"],
         icon: "user",
@@ -91,7 +88,7 @@ export const appNav: AppNavItem[] = [
       },
       {
         title: "Research Teams",
-        href: "/app/admin/teams",
+        href: "/portal/admin/teams",
         description: "Organize researchers into project teams",
         roles: ["admin"],
         icon: "people",
@@ -99,7 +96,7 @@ export const appNav: AppNavItem[] = [
       },
       {
         title: "System Settings",
-        href: "/app/admin/settings",
+        href: "/portal/admin/settings",
         description: "Configure platform preferences",
         roles: ["admin"],
         icon: "settings",
@@ -113,14 +110,14 @@ export const auth = {
   title: `Research Portal Access`,
   description: "Sign in to access research tools and resources",
   signin: {
-    title: `Researcher Login`,
+    title: `Sign In`,
     description: "Access your research account",
     href: "/auth/sign-in",
   },
   signup: {
-    title: `Join Our Research Community`,
-    description: "Register as a researcher or collaborator",
-    href: "/career/sign-up",
+    title: `Sign Up`,
+    description: "Register an account to be part of the community",
+    href: "/careers/sign-up",
   },
   signout: {
     title: "Sign Out",
@@ -168,13 +165,13 @@ export const userNav: Record<string, Omit<UserNavItem, "cmd">> = {
   },
   p: {
     title: "My Profile",
-    href: "/app/profile",
+    href: "/portal/profile",
     icon: "user",
     roles: ["researcher", "member", "admin"],
   },
   d: {
     title: "Research Dashboard",
-    href: "/app",
+    href: "/portal",
     icon: "dashboard",
     roles: ["researcher", "admin"],
   },
@@ -343,13 +340,29 @@ export const footerNav: NavItem[] = [
         items: [],
       },
       {
-        title: "Partners",
-        href: "/about/partners",
+        title: "Researcher Portal",
+        href: "/portal",
         description:
-          "Current academic institutions, government agencies, and NGOs we collaborate with, including partnership history and joint projects.",
-        icon: "partners",
+          "Secure access point for researchers to manage projects, publications, and collaboration activities.",
+        icon: "logo",
         items: [],
       },
+      // {
+      //   title: "Careers",
+      //   href: "/careers",
+      //   description:
+      //     "Job openings, research positions, fellowship opportunities, and information about working with our research group.",
+      //   icon: "briefcase",
+      //   items: [],
+      // },
+      // {
+      //   title: "Partners",
+      //   href: "/about/partners",
+      //   description:
+      //     "Current academic institutions, government agencies, and NGOs we collaborate with, including partnership history and joint projects.",
+      //   icon: "partners",
+      //   items: [],
+      // },
     ],
   },
   {

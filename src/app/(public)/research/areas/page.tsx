@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Research Areas",
 };
 
-export default function Home() {
+export default function Areas() {
   return (
     <Page>
       <Hero />

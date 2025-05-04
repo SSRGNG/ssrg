@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: "Academic Publications",
 };
 
-export default function Home() {
+export default function Academic() {
   return <Page>Academic Publications</Page>;
 }

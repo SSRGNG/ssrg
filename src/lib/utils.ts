@@ -166,3 +166,32 @@ export const getResearchersByArea = (areaTitle: string) => {
 export const featuredResearchers = researchers.filter(
   (researcher) => researcher.featured === true
 );
+
+// export function createEnum<const T extends readonly [string, ...string[]]>(
+//   values: T
+// ) {
+//   const schema = z.enum(values);
+//   return Object.assign(schema, {
+//     values,
+//     type: null as unknown as z.infer<typeof schema>,
+//   });
+// }
+
+// 🧠 Super smart createEnum
+// export function createEnum<const Values extends readonly [string, ...string[]]>(
+//   values: Values
+// ) {
+//   const schema = z.enum(values);
+//   type EnumType = Values[number];
+//   return { schema, type: null as unknown as EnumType };
+// }
+
+export function createEnum<const T extends [string, ...string[]]>(
+  ...values: T
+) {
+  return {
+    values,
+    schema: z.enum(values),
+    type: null as unknown as T[number],
+  };
+}

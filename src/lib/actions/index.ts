@@ -1,13 +1,24 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { revalidatePath } from "next/cache";
 
 import { signIn, signOut } from "@/auth";
+import { db } from "@/db";
+import {
+  partners,
+  researcherEducation,
+  researcherExpertise,
+  researchers,
+  users,
+} from "@/db/schema";
 import { getUserByEmail } from "@/lib/queries/user";
-import { verifyPassword } from "@/lib/utils";
+import { hashPassword, verifyPassword } from "@/lib/utils";
 import {
   type CredentialsPayload,
   credentialsSchema,
+  type SignupPayload,
+  signupSchema,
 } from "@/lib/validations/auth";
 
 export const signinCredential = async (input: CredentialsPayload) => {
@@ -24,6 +35,124 @@ export const signinCredential = async (input: CredentialsPayload) => {
     throw error;
   }
 };
+
+export async function createUser(formData: SignupPayload) {
+  try {
+    // Validate the incoming data
+    const parsedResult = signupSchema.safeParse(formData);
+
+    if (!parsedResult.success) {
+      return {
+        error: "Invalid input",
+        details: parsedResult.error.format(),
+      };
+    }
+
+    const {
+      role,
+      title,
+      bio,
+      x,
+      orcid,
+      expertise,
+      education,
+      organization,
+      logo,
+      website,
+      description,
+      partnerType,
+      ...userData
+    } = parsedResult.data;
+
+    // Check if email already exists
+    const existingUser = await db.query.users.findFirst({
+      where: (model, { eq }) => eq(model.email, userData.email),
+    });
+
+    if (existingUser) {
+      return { error: "Email already in use" };
+    }
+
+    const hashedPassword = await hashPassword(userData.password);
+
+    // Start a transaction
+    const result = await db.transaction(async (tx) => {
+      const [user] = await tx
+        .insert(users)
+        .values({
+          email: userData.email,
+          name: userData.name,
+          image: userData.image || null,
+          password: hashedPassword,
+          affiliation: userData.affiliation || null,
+          role,
+        })
+        .returning();
+
+      const userId = user.id;
+
+      if (role === "researcher" && title && bio) {
+        const [researcher] = await tx
+          .insert(researchers)
+          .values({
+            userId,
+            title,
+            bio,
+            x: x || null,
+            orcid: orcid || null,
+            featured: false,
+          })
+          .returning();
+
+        const researcherId = researcher.id;
+
+        if (expertise?.length) {
+          await tx.insert(researcherExpertise).values(
+            expertise.map(({ expertise, order }) => ({
+              researcherId,
+              expertise,
+              order,
+            }))
+          );
+        }
+
+        if (education?.length) {
+          await tx.insert(researcherEducation).values(
+            education.map(({ education, order }) => ({
+              researcherId,
+              education,
+              order,
+            }))
+          );
+        }
+      } else if (role === "partner" && organization && partnerType) {
+        await tx.insert(partners).values({
+          name: organization,
+          logo: logo || null,
+          website: website || null,
+          description: description || `Partner organization: ${organization}`,
+          partnerType,
+          featured: false,
+        });
+      }
+
+      return { userId };
+    });
+
+    // Revalidate any pages that might need to reflect this change
+    revalidatePath("/auth/signin");
+
+    return {
+      success: true,
+      userId: result.userId,
+    };
+  } catch (error) {
+    console.error("Signup error:", error);
+    return {
+      error: "Internal server error",
+    };
+  }
+}
 
 export const unAuthenticate = async () => {
   try {

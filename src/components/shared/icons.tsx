@@ -1,9 +1,11 @@
 import {
   AccessibilityIcon,
   AwardIcon,
+  BadgeAlertIcon,
   BookIcon,
   BookOpenIcon,
   BoxIcon,
+  BriefcaseBusinessIcon,
   ChartGanttIcon,
   ChevronRightIcon,
   ChevronsUpDownIcon,
@@ -51,7 +53,9 @@ import {
 export const Icons = {
   accessibility: AccessibilityIcon,
   admin: ShieldHalfIcon,
+  alert: BadgeAlertIcon,
   award: AwardIcon,
+  briefcase: BriefcaseBusinessIcon,
   caseStudy: BookOpenIcon,
   collaborate: GitMergeIcon,
   community: HeartHandshakeIcon,

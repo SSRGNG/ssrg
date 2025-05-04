@@ -5,7 +5,7 @@ import { appConfig } from "@/config";
  * Authentication required
  * @type {string[]}
  */
-export const protectedRoutes = ["/app", "/admin"];
+export const protectedRoutes = ["/portal", "/admin"];
 
 /**
  * Array of routes that are used for authentication

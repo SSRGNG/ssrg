@@ -45,7 +45,7 @@ export const appConfig = {
   entry: {
     title: `Researcher Portal`,
     description: "Your personalized research workspace",
-    href: "/app",
+    href: "/portal",
   },
   support: {
     request: {

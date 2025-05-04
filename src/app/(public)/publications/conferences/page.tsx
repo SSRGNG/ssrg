@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: "Conferences",
 };
 
-export default function Home() {
+export default function Conferences() {
   return <Page>Conferences</Page>;
 }

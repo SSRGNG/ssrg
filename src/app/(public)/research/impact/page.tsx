@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   title: "Impacts",
 };
 
-export default function Home() {
+export default function Impacts() {
   return <Page>Impacts</Page>;
 }

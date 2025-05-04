@@ -4,13 +4,16 @@ import { Adapter } from "next-auth/adapters";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
+import Resend from "next-auth/providers/resend";
 
 import { appConfig } from "@/config";
 import { auth_db } from "@/db";
+import { users } from "@/db/schema";
 import { env } from "@/env";
 import { authWithCredentials } from "@/lib/actions";
 import { getUserById } from "@/lib/queries/user";
 import type { Role } from "@/types";
+import { eq } from "drizzle-orm";
 
 type AddOns = {
   role: Role;
@@ -48,7 +51,17 @@ export const {
     error: appConfig.auth.error.href,
     signOut: appConfig.auth.signout.href,
   },
+  events: {
+    linkAccount: async ({ user }) => {
+      if (!user.id) return;
+      await auth_db
+        .update(users)
+        .set({ emailVerified: new Date() })
+        .where(eq(users.id, user.id));
+    },
+  },
   providers: [
+    Resend({ from: env.EMAIL_FROM }),
     Credentials({
       authorize: async (credentials) => {
         try {

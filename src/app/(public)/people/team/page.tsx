@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Research Team",
 };
 
-export default function Home() {
+export default function Team() {
   return (
     <Page>
       <Featured />

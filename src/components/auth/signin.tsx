@@ -8,12 +8,12 @@ import {
 import { appConfig } from "@/config";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentProps<typeof Card>;
+type Props = React.ComponentPropsWithoutRef<typeof Card>;
 
 function Signin({ className, ...props }: Props) {
   return (
     <Card className={cn("border-none shadow-none", className)} {...props}>
-      <CardHeader className="space-y-1">
+      <CardHeader>
         <CardTitle>{appConfig.auth.signin.title}</CardTitle>
         <CardDescription>{appConfig.auth.signin.description}</CardDescription>
       </CardHeader>

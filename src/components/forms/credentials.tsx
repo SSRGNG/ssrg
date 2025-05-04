@@ -22,7 +22,7 @@ import {
   type CredentialsPayload,
 } from "@/lib/validations/auth";
 
-type Props = React.ComponentProps<"form">;
+type Props = React.ComponentPropsWithoutRef<"form">;
 
 const defaultValues: CredentialsPayload = {
   password: "",
@@ -80,7 +80,7 @@ function Credentials({ className, ...props }: Props) {
               ) : (
                 <FormLabel>Password</FormLabel>
               )}
-              <FormControl className="bg-rose-300">
+              <FormControl>
                 <PasswordInput placeholder="********" {...field} />
               </FormControl>
             </FormItem>
