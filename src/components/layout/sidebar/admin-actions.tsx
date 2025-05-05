@@ -20,13 +20,13 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { env } from "@/env";
 import { cn } from "@/lib/utils";
 import { ActionKey } from "@/types";
 
 // Import existing forms
 import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { UserSignup } from "@/components/forms/user-signup";
-import { env } from "@/env";
 
 type AdminActionsProps = {
   type: string;
@@ -120,7 +120,7 @@ function AdminActions({ type, actionKey, label, isMobile }: AdminActionsProps) {
         <DrawerHeader className="text-left">
           <DrawerTitle>{label}</DrawerTitle>
         </DrawerHeader>
-        <div className="px-4">
+        <div className="px-4 pr-2 overflow-auto">
           <FormComponent setIsOpen={setOpen} />
         </div>
         <DrawerFooter className="pt-2">
@@ -142,11 +142,13 @@ function AdminActions({ type, actionKey, label, isMobile }: AdminActionsProps) {
           {label}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[70vw]">
         <DialogHeader>
           <DialogTitle>{label}</DialogTitle>
         </DialogHeader>
-        <FormComponent setIsOpen={setOpen} />
+        <div className="sm:max-h-[70vh] overflow-auto">
+          <FormComponent setIsOpen={setOpen} />
+        </div>
       </DialogContent>
     </Dialog>
   );

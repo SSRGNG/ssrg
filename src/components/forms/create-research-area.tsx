@@ -537,17 +537,14 @@ function CreateResearchArea({ setIsOpen, className, ...props }: Props) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Button
-            type="button"
-            // onClick={() => router.push("/admin/research-areas")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" variant={"brand"} isPending={isPending}>
-            Create Research Area
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          variant={"brand"}
+          className="w-full"
+          isPending={isPending}
+        >
+          Create Research Area
+        </Button>
       </form>
     </Form>
   );
@@ -567,53 +564,3 @@ function IconPreview({ iconName }: { iconName: IconName }) {
 }
 
 export { CreateResearchArea };
-
-// const data = {
-//   title: "Community Development",
-//   icon: "users",
-//   image: "/images/research/communities.webp",
-//   description:
-//     "Investigating models of community-led development and governance to strengthen social cohesion and resilience.",
-//   detail:
-//     "Communities are often best positioned to identify their needs and develop contextually appropriate solutions. Our research explores how to effectively support community agency while addressing structural barriers. Through collaborative methodologies, we document successful approaches to community empowerment that can be adapted and scaled across different contexts.",
-//   href: "/research/areas/community-development",
-//   linkText: "Explore Community Development Research",
-//   questions: [
-//     {
-//       question:
-//         "How can participatory governance models improve community outcomes?",
-//       order: 0,
-//     },
-//     {
-//       question:
-//         "What factors contribute to sustainable community-led initiatives?",
-//       order: 1,
-//     },
-//   ],
-//   methods: [
-//     {
-//       title: "Participatory Action Research",
-//       description:
-//         "We engage community members as co-researchers throughout the research process, ensuring studies address community-identified priorities and build local research capacity.",
-//       order: 0,
-//     },
-//     {
-//       title: "Social Network Analysis",
-//       description:
-//         "We map relationships between community stakeholders to understand information flows, resource distribution, and power dynamics that affect community development outcomes.",
-//       order: 1,
-//     },
-//   ],
-//   findings: [
-//     {
-//       finding:
-//         "Community-led initiatives show greater sustainability when they include robust local governance structures and transparent decision-making processes",
-//       order: 0,
-//     },
-//     {
-//       finding:
-//         "Digital tools can significantly enhance participation in community planning, particularly among traditionally underrepresented groups",
-//       order: 1,
-//     },
-//   ],
-// };

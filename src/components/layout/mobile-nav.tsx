@@ -71,7 +71,11 @@ function MobileNav({ user, ...props }: MobileNavProps) {
           </SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-4.5rem)] h-[calc(100svh-4.5rem)] px-2">
-          <MainNav items={items} pathname={pathname} setIsOpen={setIsOpen} />
+          <MainNav
+            items={[...items, ...items]}
+            pathname={pathname}
+            setIsOpen={setIsOpen}
+          />
         </ScrollArea>
       </SheetContent>
     </Sheet>
