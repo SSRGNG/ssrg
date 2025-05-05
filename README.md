@@ -30,6 +30,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [x] Implement responsive layout and routing
 - [x] Create reusable `Section`, `Shell`, and `Page` components
 - [x] Use `cva` for layout variants
+- [x] Add auth and update Next.js to 15.3.1
 
 ### Pages
 - [x] Homepage
