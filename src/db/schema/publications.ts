@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -9,13 +9,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import {
-  publicationAuthors,
-  researchAreaPublications,
-  researchAreas,
-  researchers,
-  users,
-} from "@/db/schema";
+import { users } from "@/db/schema";
 
 // Publication type enum to better categorize publications
 // export const publicationTypeEnum = pgEnum("publication_type", [
@@ -81,46 +75,4 @@ export const publications = pgTable(
     //   sql`${t.link} IS NULL OR ${t.link} ~* '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'`
     // ),
   ]
-);
-
-// Relations
-export const publicationsRelations = relations(
-  publications,
-  ({ many, one }) => ({
-    authors: many(publicationAuthors),
-    createdBy: one(users, {
-      fields: [publications.creatorId],
-      references: [users.id],
-      relationName: "creator",
-    }),
-    researchAreas: many(researchAreaPublications),
-  })
-);
-
-export const publicationAuthorsRelations = relations(
-  publicationAuthors,
-  ({ one }) => ({
-    publication: one(publications, {
-      fields: [publicationAuthors.publicationId],
-      references: [publications.id],
-    }),
-    researcher: one(researchers, {
-      fields: [publicationAuthors.researcherId],
-      references: [researchers.id],
-    }),
-  })
-);
-
-export const researchAreaPublicationsRelations = relations(
-  researchAreaPublications,
-  ({ one }) => ({
-    area: one(researchAreas, {
-      fields: [researchAreaPublications.researchAreaId],
-      references: [researchAreas.id],
-    }),
-    publication: one(publications, {
-      fields: [researchAreaPublications.publicationId],
-      references: [publications.id],
-    }),
-  })
 );

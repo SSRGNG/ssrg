@@ -1,5 +1,6 @@
 import { Icons } from "@/components/shared/icons";
 import {
+  actions,
   appName,
   appNav,
   auth,
@@ -86,6 +87,7 @@ export const appConfig = {
   mainNav,
   appNav,
   navSecondary,
+  actions,
   userNav: mapUserNav(userNav) satisfies UserNavItem[],
   footerNav,
   social: {

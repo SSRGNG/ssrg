@@ -42,6 +42,7 @@ function Credentials({ className, ...props }: Props) {
     startTransition(async () => {
       try {
         await signinCredential(data);
+        form.reset();
       } catch (err) {
         catchError(err);
       }
@@ -51,7 +52,7 @@ function Credentials({ className, ...props }: Props) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("space-y-6", className)}
+        className={cn("space-y-4", className)}
         {...props}
       >
         <FormField

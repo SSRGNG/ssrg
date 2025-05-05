@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -9,7 +9,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { partnerProjects } from "@/db/schema";
 import { Partner } from "@/types";
 
 export const partners = pgTable(
@@ -71,8 +70,3 @@ export const scholarships = pgTable(
     // ),
   ]
 );
-
-// Relations
-export const partnersRelations = relations(partners, ({ many }) => ({
-  projects: many(partnerProjects),
-}));

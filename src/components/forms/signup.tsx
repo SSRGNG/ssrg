@@ -36,7 +36,9 @@ import { partners, roles } from "@/config/enums";
 import { catchError, cn } from "@/lib/utils";
 import { type SignupPayload, signupSchema } from "@/lib/validations/auth";
 
-type Props = React.ComponentPropsWithoutRef<"form">;
+type Props = React.ComponentPropsWithoutRef<"form"> & {
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
 const defaultValues: SignupPayload = {
   role: "member",
@@ -47,7 +49,7 @@ const defaultValues: SignupPayload = {
   affiliation: "",
 };
 
-function Signup({ className, ...props }: Props) {
+function Signup({ setIsOpen, className, ...props }: Props) {
   const [isPending, startTransition] = React.useTransition();
   const [expertiseFields, setExpertiseFields] = React.useState([
     { expertise: "", order: 0 },
@@ -105,6 +107,9 @@ function Signup({ className, ...props }: Props) {
         // const result = await createUser(data);
         // if (result.error) throw new Error(result.error);
         toast.success("Your account has been created");
+        if (setIsOpen) {
+          setIsOpen(false);
+        }
       } catch (err) {
         catchError(err);
       }

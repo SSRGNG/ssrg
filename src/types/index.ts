@@ -1,5 +1,5 @@
 import type { Icons } from "@/components/shared/icons";
-import { researchers } from "@/config/constants";
+import { actions, researchers } from "@/config/constants";
 import { events, partners, presenterRoles, roles } from "@/config/enums";
 import { notifications, users } from "@/db/schema";
 
@@ -77,17 +77,25 @@ export type CardItem = {
   icon: Icons;
 };
 
-export type ActionItem = {
-  title: string;
-  href: string;
-  roles: Role[];
-  icon: Icons;
-  items: Omit<ActionItem, "items">[];
-  options?: {
-    view: string;
-    edit: string;
-  };
-};
+type ExtractOptionKeys<T> = T extends { items: Array<{ options: infer O }> }
+  ? keyof O extends string
+    ? keyof O
+    : never
+  : never;
+
+export type ActionItem = typeof actions;
+export type ActionKey = ExtractOptionKeys<ActionItem>;
+// export type ActionItem = {
+//   title: string;
+//   href: string;
+//   roles: Role[];
+//   icon: Icons;
+//   items: Omit<ActionItem, "items">[];
+//   options?: {
+//     view: string;
+//     edit: string;
+//   };
+// };
 
 export type DataTableOption = {
   label: string;

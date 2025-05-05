@@ -1,6 +1,7 @@
 import { Credentials } from "@/components/forms/credentials";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -12,12 +13,14 @@ type Props = React.ComponentPropsWithoutRef<typeof Card>;
 
 function Signin({ className, ...props }: Props) {
   return (
-    <Card className={cn("border-none shadow-none", className)} {...props}>
+    <Card className={cn("gap-5", className)} {...props}>
       <CardHeader>
         <CardTitle>{appConfig.auth.signin.title}</CardTitle>
         <CardDescription>{appConfig.auth.signin.description}</CardDescription>
       </CardHeader>
-      <Credentials className="px-6" />
+      <CardContent>
+        <Credentials />
+      </CardContent>
     </Card>
   );
 }

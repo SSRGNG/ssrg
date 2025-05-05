@@ -12,7 +12,7 @@ type Props = React.ComponentPropsWithoutRef<typeof Card>;
 
 function Signout({ className, ...props }: Props) {
   return (
-    <Card className={cn("border-none shadow-none", className)} {...props}>
+    <Card className={cn("gap-5", className)} {...props}>
       <CardHeader>
         <CardTitle>{appConfig.auth.signout.title}</CardTitle>
         <CardDescription>{appConfig.auth.signout.description}</CardDescription>

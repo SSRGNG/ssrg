@@ -26,13 +26,13 @@ function SignoutButton({ className, ...props }: Props) {
   };
   return (
     <CardContent
-      className={cn("flex items-center gap-3", className)}
+      className={cn("flex items-center gap-4", className)}
       {...props}
     >
       <Button
         variant="secondary"
         onClick={() => router.back()}
-        className="w-full text-sm"
+        className="flex-1 text-sm"
       >
         Go Back
         <span className="sr-only">Previous page</span>
@@ -40,7 +40,7 @@ function SignoutButton({ className, ...props }: Props) {
       <Button
         onClick={handleSignOut}
         isPending={isPending}
-        className="w-full text-sm"
+        className="flex-1 text-sm"
       >
         {appConfig.auth.signout.title}
         <span className="sr-only">{appConfig.auth.signout.title}</span>

@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -99,22 +99,3 @@ export const notifications = pgTable("notifications", {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
-
-// Relations
-export const eventsRelations = relations(events, ({ many }) => ({
-  presenters: many(eventPresenters),
-}));
-
-export const eventPresentersRelations = relations(
-  eventPresenters,
-  ({ one }) => ({
-    event: one(events, {
-      fields: [eventPresenters.eventId],
-      references: [events.id],
-    }),
-    researcher: one(researchers, {
-      fields: [eventPresenters.researcherId],
-      references: [researchers.id],
-    }),
-  })
-);

@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -8,12 +8,6 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-
-import {
-  projectCategories,
-  researchAreaPublications,
-  researcherAreas,
-} from "@/db/schema";
 
 // Research areas
 export const researchAreas = pgTable(
@@ -129,44 +123,4 @@ export const researchFrameworks = pgTable(
     //   sql`${t.href} ~* '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$' OR ${t.href} ~* '^\/[a-zA-Z0-9\/_-]*$'`
     // ),
   ]
-);
-
-// Relations
-export const researchAreasRelations = relations(researchAreas, ({ many }) => ({
-  questions: many(researchAreaQuestions),
-  methods: many(researchAreaMethods),
-  findings: many(researchAreaFindings),
-  researchers: many(researcherAreas),
-  publications: many(researchAreaPublications),
-  projects: many(projectCategories),
-}));
-
-export const researchAreaQuestionsRelations = relations(
-  researchAreaQuestions,
-  ({ one }) => ({
-    area: one(researchAreas, {
-      fields: [researchAreaQuestions.researchAreaId],
-      references: [researchAreas.id],
-    }),
-  })
-);
-
-export const researchAreaMethodsRelations = relations(
-  researchAreaMethods,
-  ({ one }) => ({
-    area: one(researchAreas, {
-      fields: [researchAreaMethods.researchAreaId],
-      references: [researchAreas.id],
-    }),
-  })
-);
-
-export const researchAreaFindingsRelations = relations(
-  researchAreaFindings,
-  ({ one }) => ({
-    area: one(researchAreas, {
-      fields: [researchAreaFindings.researchAreaId],
-      references: [researchAreas.id],
-    }),
-  })
 );

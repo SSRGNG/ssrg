@@ -32,7 +32,9 @@ import { createUser } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 import { signupSchema, type SignupPayload } from "@/lib/validations/auth";
 
-type Props = React.ComponentPropsWithoutRef<"form">;
+type Props = React.ComponentPropsWithoutRef<"form"> & {
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
 const defaultValues: SignupPayload = {
   name: "",
@@ -56,7 +58,7 @@ const defaultValues: SignupPayload = {
   // logo: "",
 };
 
-function UserSignup({ className, ...props }: Props) {
+function UserSignup({ setIsOpen, className, ...props }: Props) {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
 
@@ -100,6 +102,9 @@ function UserSignup({ className, ...props }: Props) {
         toast.success("Success", {
           description: "Your account has been created successfully!",
         });
+        if (setIsOpen) {
+          setIsOpen(false);
+        }
         router.push("/");
       } catch (error) {
         console.error("Failed to create account:", error);

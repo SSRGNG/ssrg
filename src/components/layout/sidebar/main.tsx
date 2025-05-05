@@ -69,7 +69,7 @@ function Main({ items, user, ...props }: Props) {
 
   return (
     <SidebarGroup {...props}>
-      <SidebarGroupLabel>App</SidebarGroupLabel>
+      <SidebarGroupLabel>Portal</SidebarGroupLabel>
       <SidebarMenu>
         {processedNavMain.map((item) => {
           if (isRoleAllowed(item.roles, user.role)) {

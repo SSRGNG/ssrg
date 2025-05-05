@@ -39,7 +39,9 @@ import {
   createResearchAreaSchema,
 } from "@/lib/validations/research-area";
 
-type Props = React.ComponentPropsWithoutRef<"form">;
+type Props = React.ComponentPropsWithoutRef<"form"> & {
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+};
 type IconName = keyof typeof Icons;
 
 const iconNames = Object.keys(Icons) as IconName[];
@@ -57,7 +59,7 @@ const defaultValues: CreateResearchAreaPayload = {
   findings: [{ finding: "", order: 0 }],
 };
 
-function CreateResearchArea({ className, ...props }: Props) {
+function CreateResearchArea({ setIsOpen, className, ...props }: Props) {
   const [isPending, startTransition] = React.useTransition();
   const [open, setOpen] = React.useState(false);
 
@@ -108,6 +110,9 @@ function CreateResearchArea({ className, ...props }: Props) {
         toast.success("Success", {
           description: "Research area created successfully!",
         });
+        if (setIsOpen) {
+          setIsOpen(false);
+        }
       } catch (error) {
         console.error("Failed to create research area:", error);
         toast.error("Error", {

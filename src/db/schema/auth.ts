@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -13,7 +13,6 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
-import { publications, researchers } from "@/db/schema";
 import { Role } from "@/types";
 
 export const users = pgTable(
@@ -117,36 +116,3 @@ export const authenticators = pgTable(
     index("authenticators_user_id_idx").on(authenticator.userId),
   ]
 );
-
-// Relations
-export const authRelations = relations(users, ({ one, many }) => ({
-  researcher: one(researchers, {
-    fields: [users.id],
-    references: [researchers.userId],
-  }),
-  createdPublications: many(publications, {
-    relationName: "creator",
-  }),
-  accounts: many(accounts),
-  sessions: many(sessions),
-  authenticators: many(authenticators),
-}));
-
-export const accountRelations = relations(accounts, ({ one }) => ({
-  user: one(users, {
-    fields: [accounts.userId],
-    references: [users.id],
-  }),
-}));
-export const sessionRelations = relations(sessions, ({ one }) => ({
-  user: one(users, {
-    fields: [sessions.userId],
-    references: [users.id],
-  }),
-}));
-export const authenticatorRelations = relations(authenticators, ({ one }) => ({
-  user: one(users, {
-    fields: [authenticators.userId],
-    references: [users.id],
-  }),
-}));

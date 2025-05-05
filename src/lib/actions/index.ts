@@ -28,7 +28,7 @@ export const signinCredential = async (input: CredentialsPayload) => {
   try {
     await signIn("credentials", {
       ...parsedCredentials.data,
-      redirectTo: "/",
+      // redirectTo: "/",
     });
   } catch (error) {
     if (error instanceof AuthError) return error.message;
@@ -156,7 +156,8 @@ export async function createUser(formData: SignupPayload) {
 
 export const unAuthenticate = async () => {
   try {
-    await signOut({ redirectTo: "/" });
+    await signOut();
+    // await signOut({ redirectTo: "/" });
   } catch (error) {
     if (error instanceof AuthError) return error.message;
     throw error;

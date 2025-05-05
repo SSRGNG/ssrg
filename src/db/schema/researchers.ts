@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -11,13 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import {
-  projects,
-  publicationAuthors,
-  researchAreas,
-  researcherAreas,
-  users,
-} from "@/db/schema";
+import { users } from "@/db/schema";
 
 // Main researcher profile
 export const researchers = pgTable(
@@ -79,54 +73,4 @@ export const researcherEducation = pgTable(
     // Index for ordering
     index("researcher_education_order_idx").on(t.researcherId, t.order),
   ]
-);
-
-// Relations
-export const researchersRelations = relations(researchers, ({ one, many }) => ({
-  user: one(users, {
-    fields: [researchers.userId],
-    references: [users.id],
-  }),
-  expertise: many(researcherExpertise),
-  education: many(researcherEducation),
-
-  areas: many(researcherAreas),
-  publications: many(publicationAuthors),
-  leadProjects: many(projects, {
-    relationName: "lead",
-  }),
-}));
-
-export const researcherExpertiseRelations = relations(
-  researcherExpertise,
-  ({ one }) => ({
-    researcher: one(researchers, {
-      fields: [researcherExpertise.researcherId],
-      references: [researchers.id],
-    }),
-  })
-);
-
-export const researcherEducationRelations = relations(
-  researcherEducation,
-  ({ one }) => ({
-    researcher: one(researchers, {
-      fields: [researcherEducation.researcherId],
-      references: [researchers.id],
-    }),
-  })
-);
-
-export const researcherAreasRelations = relations(
-  researcherAreas,
-  ({ one }) => ({
-    researcher: one(researchers, {
-      fields: [researcherAreas.researcherId],
-      references: [researchers.id],
-    }),
-    area: one(researchAreas, {
-      fields: [researcherAreas.areaId],
-      references: [researchAreas.id],
-    }),
-  })
 );

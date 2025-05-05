@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   index,
   pgTable,
@@ -8,13 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import {
-  partnerProjects,
-  partners,
-  projectCategories,
-  researchAreas,
-  researchers,
-} from "@/db/schema";
+import { researchers } from "@/db/schema";
 
 // Projects table
 export const projects = pgTable(
@@ -44,43 +38,4 @@ export const projects = pgTable(
     //   sql`${t.href} ~* '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$' OR ${t.href} ~* '^\/[a-zA-Z0-9\/_-]*$'`
     // ),
   ]
-);
-
-// Relations
-export const projectsRelations = relations(projects, ({ many, one }) => ({
-  leadResearcher: one(researchers, {
-    fields: [projects.leadResearcherId],
-    references: [researchers.id],
-    relationName: "lead",
-  }),
-  categories: many(projectCategories),
-  partners: many(partnerProjects),
-}));
-
-export const projectCategoriesRelations = relations(
-  projectCategories,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectCategories.projectId],
-      references: [projects.id],
-    }),
-    area: one(researchAreas, {
-      fields: [projectCategories.areaId],
-      references: [researchAreas.id],
-    }),
-  })
-);
-
-export const partnerProjectsRelations = relations(
-  partnerProjects,
-  ({ one }) => ({
-    partner: one(partners, {
-      fields: [partnerProjects.partnerId],
-      references: [partners.id],
-    }),
-    project: one(projects, {
-      fields: [partnerProjects.projectId],
-      references: [projects.id],
-    }),
-  })
 );

@@ -6,3 +6,5 @@ export * from "@/db/schema/projects";
 export * from "@/db/schema/publications";
 export * from "@/db/schema/research";
 export * from "@/db/schema/researchers";
+
+export * from "@/db/schema/relations";

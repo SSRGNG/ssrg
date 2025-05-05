@@ -1,5 +1,12 @@
 import { AuthUser } from "@/auth";
-import type { AppNavItem, NavItem, SocialItem, UserNavItem } from "@/types";
+import { Icons } from "@/components/shared/icons";
+import type {
+  AppNavItem,
+  NavItem,
+  Role,
+  SocialItem,
+  UserNavItem,
+} from "@/types";
 import { ChartLine, HandHeart, Users2 } from "lucide-react";
 
 export const appName = "SSRG";
@@ -71,39 +78,6 @@ export const appNav: AppNavItem[] = [
     icon: "database",
     items: [],
   },
-  {
-    title: "Administration",
-    href: "/portal/admin",
-    description: "System configuration and user management",
-    roles: ["admin"],
-    icon: "admin",
-    items: [
-      {
-        title: "User Management",
-        href: "/portal/admin/users",
-        description: "Manage user accounts and permissions",
-        roles: ["admin"],
-        icon: "user",
-        items: [],
-      },
-      {
-        title: "Research Teams",
-        href: "/portal/admin/teams",
-        description: "Organize researchers into project teams",
-        roles: ["admin"],
-        icon: "people",
-        items: [],
-      },
-      {
-        title: "System Settings",
-        href: "/portal/admin/settings",
-        description: "Configure platform preferences",
-        roles: ["admin"],
-        icon: "settings",
-        items: [],
-      },
-    ],
-  },
 ];
 
 export const auth = {
@@ -163,23 +137,17 @@ export const userNav: Record<string, Omit<UserNavItem, "cmd">> = {
     icon: "admin",
     roles: ["admin"],
   },
-  p: {
-    title: "My Profile",
-    href: "/portal/profile",
-    icon: "user",
-    roles: ["researcher", "member", "admin"],
-  },
   d: {
-    title: "Research Dashboard",
+    title: "Research Portal",
     href: "/portal",
     icon: "dashboard",
-    roles: ["researcher", "admin"],
+    roles: ["researcher", "admin", "affiliate"],
   },
   q: {
     title: auth.signout.title,
     href: auth.signout.href,
     icon: "signout",
-    roles: ["researcher", "admin", "member"],
+    roles: ["researcher", "admin", "member", "affiliate", "partner"],
   },
 };
 
@@ -459,6 +427,55 @@ export const footerNav: NavItem[] = [
     ],
   },
 ];
+
+export const actions = {
+  title: "Administration",
+  href: "/admin",
+  roles: ["admin"] as Role[],
+  icon: "admin" as Icons,
+  items: [
+    {
+      title: "Core Features",
+      href: "/admin/core",
+      roles: ["admin"] as Role[],
+      icon: "research" as Icons,
+      options: {
+        area: "Create Research Area",
+        framework: "Create Research Framework",
+        methodology: "Create Research Methodology",
+        project: "Create Project",
+      },
+    },
+    {
+      title: "User Management",
+      href: "/admin/users",
+      roles: ["admin"] as Role[],
+      icon: "user" as Icons,
+      options: {
+        user: "Create User",
+      },
+    },
+    {
+      title: "Research Team",
+      href: "/admin/teams",
+      roles: ["admin"] as Role[],
+      icon: "people" as Icons,
+      options: {
+        partner: "Manage Partners & Collaborators",
+      },
+    },
+    {
+      title: "System Settings",
+      href: "/admin/settings",
+      roles: ["admin"] as Role[],
+      icon: "settings" as Icons,
+      options: {
+        event: "Add Events or Webinars",
+        newsletter: "Manage Newsletter Subscribers",
+      },
+    },
+  ],
+};
 
 export const navSecondary: Required<SocialItem>[] = [
   {
