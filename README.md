@@ -31,6 +31,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [x] Create reusable `Section`, `Shell`, and `Page` components
 - [x] Use `cva` for layout variants
 - [x] Add auth and update Next.js to 15.3.1
+- [ ] Build admin pages
 
 ### Pages
 - [x] Homepage
@@ -38,7 +39,8 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [x] Research Areas (with Tabs for projects)
 - [ ] Publications
 - [ ] Contact / Join the Network
-- [ ] About SSRG
+- [x] About SSRG
+- [ ] Admin features & pages
 
 ### Features
 - [x] Tabbed interface for research areas
