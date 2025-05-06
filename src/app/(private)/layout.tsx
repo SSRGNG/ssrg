@@ -4,7 +4,7 @@ import * as React from "react";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/sidebar/header";
 // import { Crumb } from "@/components/shared/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { appConfig } from "@/config";
 import { getCachedSession } from "@/lib/queries/auth";
@@ -16,17 +16,17 @@ export default async function PrivateLayout({
   const user = session?.user;
   if (!user) redirect(appConfig.auth.signin.href);
 
-  console.log({ user });
+  // console.log({ user });
 
   return (
     <SidebarProvider>
       <AppSidebar user={user} />
       <SidebarInset>
         <Header>
-          <Separator
+          {/* <Separator
             orientation="vertical"
-            className="data-[orientation=vertical]:h-4 -ml-1.5"
-          />
+            className="data-[orientation=vertical]:h-4"
+          /> */}
           {/* <Crumb appItems={appConfig.appNav} settings={appConfig.actions} /> */}
         </Header>
         {children}

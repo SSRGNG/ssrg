@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
@@ -89,8 +89,12 @@ export async function createResearchArea(data: CreateResearchAreaPayload) {
       return researchArea;
     });
 
-    // Revalidate the research areas tag
+    // Revalidate the research areas tag & paths
     revalidateTag("cached-research-areas");
+    revalidatePath("/");
+    revalidatePath("/research");
+    revalidatePath("/research/areas");
+    revalidatePath("/admin/core");
 
     return {
       success: true,

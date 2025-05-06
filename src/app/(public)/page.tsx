@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function Home() {
   const areas = await getFormattedResearchAreas();
 
-  console.log({ areas });
+  // console.log({ areas });
   return (
     <Page>
       <Hero />

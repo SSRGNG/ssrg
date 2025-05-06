@@ -25,6 +25,7 @@ import { ActionKey } from "@/types";
 
 import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { UserSignup } from "@/components/forms/user-signup";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type AdminActionsProps = {
   actionKey: string;
@@ -101,10 +102,12 @@ function AdminActions({ actionKey, label, isMobile }: AdminActionsProps) {
         <DialogHeader>
           <DialogTitle>{label}</DialogTitle>
         </DialogHeader>
-        <FormComponent
-          setIsOpen={setOpen}
-          className="sm:max-h-[70vh] overflow-auto"
-        />
+        <ScrollArea className="sm:max-h-[70vh]">
+          <FormComponent
+            setIsOpen={setOpen}
+            // className="sm:max-h-[70vh] overflow-auto"
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

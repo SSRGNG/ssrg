@@ -14,7 +14,7 @@ function Header({ children, className, ...props }: Props) {
       )}
       {...props}
     >
-      <SidebarTrigger className="-ml-1.5" />
+      <SidebarTrigger className="border" />
       {children}
     </header>
   );

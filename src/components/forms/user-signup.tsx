@@ -91,7 +91,7 @@ function UserSignup({ setIsOpen, className, ...props }: Props) {
   function onSubmit(data: SignupPayload) {
     startTransition(async () => {
       try {
-        console.log({ data });
+        // console.log({ data });
         const result = await createUser(data);
 
         if (result.error) {
@@ -218,10 +218,8 @@ function UserSignup({ setIsOpen, className, ...props }: Props) {
                   // onValueChange={field.onChange}
                   onValueChange={(value) => {
                     field.onChange(value);
-                    console.log({ value });
+                    // console.log({ value });
                     console.log(form.formState.errors);
-                    // form.setValue("role", value)
-                    // setSelectedRole(value);
 
                     // Reset role-specific fields when changing roles
                     if (value !== "researcher") {

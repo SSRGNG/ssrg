@@ -1,7 +1,7 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { signIn, signOut } from "@/auth";
 import { db } from "@/db";
@@ -185,3 +185,7 @@ export const authWithCredentials = async (
 
   return user;
 };
+
+export async function invalidateCache(tag: string) {
+  revalidateTag(tag);
+}
