@@ -1,5 +1,7 @@
-// app/actions/research-area.ts
 "use server";
+
+import { revalidateTag } from "next/cache";
+import { z } from "zod";
 
 import { auth } from "@/auth";
 import { db } from "@/db";
@@ -14,8 +16,6 @@ import {
   createResearchAreaSchema,
   type CreateResearchAreaPayload,
 } from "@/lib/validations/research-area";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
 
 export async function createResearchArea(data: CreateResearchAreaPayload) {
   try {
@@ -89,9 +89,8 @@ export async function createResearchArea(data: CreateResearchAreaPayload) {
       return researchArea;
     });
 
-    // Revalidate the research areas path
-    revalidatePath("/admin/research-areas");
-    revalidatePath("/research");
+    // Revalidate the research areas tag
+    revalidateTag("cached-research-areas");
 
     return {
       success: true,

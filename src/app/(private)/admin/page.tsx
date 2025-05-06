@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import * as React from "react";
+
+import { Page } from "@/components/shell";
 
 export const metadata: Metadata = {
-  title: `
-  Admin`,
+  title: `Admin`,
 };
 
-export default function Page() {
+export default function Admin() {
   return (
-    <main>
-      <h2>Admin</h2>
-    </main>
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <Page variant={"portal"}>
+        <h2>Admin</h2>
+      </Page>
+    </React.Suspense>
   );
 }

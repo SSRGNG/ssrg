@@ -9,12 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { research_areas } from "@/config/constants";
+import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<typeof Section>;
+type Props = React.ComponentPropsWithoutRef<typeof Section> & {
+  research_areas: ResearchAreasData;
+};
 
-function ResearchAreas({ className, ...props }: Props) {
+function ResearchAreas({ research_areas, className, ...props }: Props) {
   return (
     <Section
       padding={"medium"}
@@ -30,18 +32,18 @@ function ResearchAreas({ className, ...props }: Props) {
       <div className="grid gap-4 xs:grid-cols-2 md:grid-cols-3">
         {research_areas.map((area, i) => (
           <Card
-            key={area.title}
+            key={area?.title}
             className={cn("gap-2.5", i === 2 && "xs:col-span-2 md:col-span-1")}
           >
             <CardHeader className={cn("gap-0")}>
-              <CardTitle>{area.title}</CardTitle>
+              <CardTitle>{area?.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{area.description}</p>
+              <p className="text-muted-foreground">{area?.description}</p>
             </CardContent>
             <CardFooter>
               <Link
-                href={area.href}
+                href={area?.href || ""}
                 className={cn(
                   buttonVariants({
                     variant: "link",

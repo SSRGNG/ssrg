@@ -1,6 +1,7 @@
 import "server-only";
 
 import { eq } from "drizzle-orm";
+import { unstable_cache as cache } from "next/cache";
 
 import { db } from "@/db";
 import {
@@ -64,231 +65,409 @@ export type ResearchAreaOutput = {
 
 // 1. Get a researcher with the provided researcherId
 export async function getResearcher(researcherId: string) {
-  const researcher = await db.query.researchers.findFirst({
-    where: eq(researchers.id, researcherId),
-    with: {
-      user: true,
-      expertise: {
-        orderBy: (expertise, { asc }) => [asc(expertise.order)],
-      },
-      education: {
-        orderBy: (education, { asc }) => [asc(education.order)],
-      },
-      areas: {
-        with: {
-          area: true,
+  try {
+    const researcher = await db.query.researchers.findFirst({
+      where: eq(researchers.id, researcherId),
+      with: {
+        user: true,
+        expertise: {
+          orderBy: (expertise, { asc }) => [asc(expertise.order)],
+        },
+        education: {
+          orderBy: (education, { asc }) => [asc(education.order)],
+        },
+        areas: {
+          with: {
+            area: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return researcher;
+    // Handle not found case
+    if (!researcher) {
+      throw new Error(`Researcher with ID ${researcherId} not found`);
+    }
+
+    return researcher;
+  } catch (error) {
+    console.error(`Failed to fetch researcher ${researcherId}:`, error);
+    throw error; // Re-throw to allow caller to handle
+  }
 }
 
 export async function getResearchers() {
-  const researcherData = await db.query.researchers.findMany({
-    with: {
-      user: {
-        columns: {
-          id: true,
-          name: true,
-          email: true,
-          affiliation: true,
-          image: true,
+  try {
+    const researcherData = await db.query.researchers.findMany({
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            affiliation: true,
+            image: true,
+          },
+        },
+        expertise: {
+          orderBy: (expertise, { asc }) => [asc(expertise.order)],
+        },
+        education: {
+          orderBy: (education, { asc }) => [asc(education.order)],
+        },
+        areas: {
+          with: {
+            area: true,
+          },
         },
       },
-      expertise: {
-        orderBy: (expertise, { asc }) => [asc(expertise.order)],
-      },
-      education: {
-        orderBy: (education, { asc }) => [asc(education.order)],
-      },
-      areas: {
-        with: {
-          area: true,
-        },
-      },
-    },
-    // orderBy: (researchers, { asc }) => [asc(researchers.createdAt)],
-  });
+      // orderBy: (researchers, { asc }) => [asc(researchers.createdAt)],
+    });
 
-  const formattedResearchers = await Promise.all(
-    researcherData.map(async (researcher) => {
-      // Get publications
-      const publicationsData = await db.query.publicationAuthors.findMany({
-        where: eq(publicationAuthors.researcherId, researcher.id),
-        with: {
-          publication: true,
-        },
-        orderBy: (pa, { desc }) => [desc(pa.order)],
-      });
+    const researcherPromises = researcherData.map(async (researcher) => {
+      try {
+        // Get publications
+        const publicationsData = await db.query.publicationAuthors.findMany({
+          where: eq(publicationAuthors.researcherId, researcher.id),
+          with: {
+            publication: true,
+          },
+          orderBy: (pa, { desc }) => [desc(pa.order)],
+        });
 
-      const publicationTitles = publicationsData.map((pa) => {
-        const pub = pa.publication;
-        let title = pub.title;
-        if (pub.publicationDate) {
-          const year = new Date(pub.publicationDate).getFullYear();
-          title += ` (${year})`;
-        }
-        return title;
-      });
+        const publicationTitles = publicationsData.map((pa) => {
+          const pub = pa.publication;
+          let title = pub.title;
+          if (pub.publicationDate) {
+            const year = new Date(pub.publicationDate).getFullYear();
+            title += ` (${year})`;
+          }
+          return title;
+        });
 
-      // Get projects
-      const projectsData = await db.query.projects.findMany({
-        where: eq(projects.leadResearcherId, researcher.id),
-      });
+        // Get projects
+        const projectsData = await db.query.projects.findMany({
+          where: eq(projects.leadResearcherId, researcher.id),
+        });
 
-      const projectTitles = projectsData.map((project) => project.title);
+        const projectTitles = projectsData.map((project) => project.title);
 
-      // Get research areas
-      const researchAreaTitles = researcher.areas.map(
-        (area) => area.area.title
-      );
+        // Get research areas
+        const researchAreaTitles = researcher.areas.map(
+          (area) => area.area.title
+        );
 
-      // Format contact info
-      const contact = {
-        email: researcher.user.email,
-        orcid: researcher.orcid || undefined,
-        twitter: researcher.x ? `@${researcher.x.replace("@", "")}` : undefined,
-      };
+        // Format contact info
+        const contact = {
+          email: researcher.user.email,
+          orcid: researcher.orcid || undefined,
+          twitter: researcher.x
+            ? `@${researcher.x.replace("@", "")}`
+            : undefined,
+        };
 
-      // Return formatted data
-      return {
-        id: researcher.id,
-        name: researcher.user.name,
-        title: researcher.title,
-        image: researcher.user.image || "/images/placeholder.webp",
-        areas: researchAreaTitles,
-        bio: researcher.bio,
-        expertise: researcher.expertise.map((e) => e.expertise),
-        education: researcher.education.map((e) => e.education),
-        publications: publicationTitles,
-        projects: projectTitles,
-        contact,
-        featured: researcher.featured,
-      };
-    })
-  );
+        // Return formatted data
+        return {
+          id: researcher.id,
+          name: researcher.user.name,
+          title: researcher.title,
+          image: researcher.user.image || "/images/placeholder.webp",
+          areas: researchAreaTitles,
+          bio: researcher.bio,
+          expertise: researcher.expertise.map((e) => e.expertise),
+          education: researcher.education.map((e) => e.education),
+          publications: publicationTitles,
+          projects: projectTitles,
+          contact,
+          featured: researcher.featured,
+        };
+      } catch (error) {
+        console.error(`Error processing researcher ${researcher.id}:`, error);
+        return null; // Or handle this error differently
+      }
+    });
 
-  return formattedResearchers;
+    // Wait for all researcher processing and filter out nulls
+    const formattedResearchers = (await Promise.all(researcherPromises)).filter(
+      Boolean
+    );
+
+    // Handle not found case
+    if (formattedResearchers.length === 0) {
+      console.warn(`Researchers were not found`);
+    }
+
+    return formattedResearchers;
+  } catch (error) {
+    console.error("Failed to fetch researchers:", error);
+    throw error; // Or return a fallback value
+  }
 }
 
 export async function getFormattedResearchAreas() {
-  // Get all research areas with their relations
-  const researchAreaData = await db.query.researchAreas.findMany({
-    with: {
-      questions: {
-        orderBy: (q, { asc }) => [asc(q.order)],
-      },
-      methods: {
-        orderBy: (m, { asc }) => [asc(m.order)],
-      },
-      findings: {
-        orderBy: (f, { asc }) => [asc(f.order)],
-      },
-      publications: {
-        with: {
-          publication: true,
+  try {
+    // Get all research areas with their relations
+    const researchAreaData = await db.query.researchAreas.findMany({
+      with: {
+        questions: {
+          orderBy: (q, { asc }) => [asc(q.order)],
         },
-        orderBy: (p, { asc }) => [asc(p.order)],
+        methods: {
+          orderBy: (m, { asc }) => [asc(m.order)],
+        },
+        findings: {
+          orderBy: (f, { asc }) => [asc(f.order)],
+        },
+        publications: {
+          with: {
+            publication: true,
+          },
+          orderBy: (p, { asc }) => [asc(p.order)],
+        },
       },
-    },
-  });
+    });
 
-  // Format the research areas
-  const formattedResearchAreas = await Promise.all(
-    researchAreaData.map(async (area) => {
-      // Format publications with author information
-      const formattedPublications = await Promise.all(
-        area.publications.map(async (pub) => {
-          // Get authors for this publication
-          const authorData = await db.query.publicationAuthors.findMany({
-            where: eq(publicationAuthors.publicationId, pub.publication.id),
-            with: {
-              researcher: {
-                with: {
-                  user: {
-                    columns: {
-                      name: true,
+    // Process each research area with error handling
+    const researchAreaPromises = researchAreaData.map(async (area) => {
+      try {
+        // Format publications with author information
+        const publicationPromises = area.publications.map(async (pub) => {
+          try {
+            // Get authors for this publication
+            const authorData = await db.query.publicationAuthors.findMany({
+              where: eq(publicationAuthors.publicationId, pub.publication.id),
+              with: {
+                researcher: {
+                  with: {
+                    user: {
+                      columns: {
+                        name: true,
+                      },
                     },
                   },
                 },
               },
-            },
-            orderBy: (pa, { asc }) => [asc(pa.order)],
-          });
+              orderBy: (pa, { asc }) => [asc(pa.order)],
+            });
 
-          // Format author names (Last, F. & Last, F.)
-          const authorNames = authorData.map((author) => {
-            const fullName = author.researcher.user.name;
-            const nameParts = fullName.split(" ");
-            const lastName = nameParts[nameParts.length - 1];
-            const firstInitial = nameParts[0][0];
-            return `${lastName}, ${firstInitial}.`;
-          });
+            // Format author names (Last, F. & Last, F.)
+            const authorNames = authorData.map((author) => {
+              const fullName = author.researcher.user.name;
+              const nameParts = fullName.split(" ");
+              const lastName = nameParts[nameParts.length - 1];
+              const firstInitial = nameParts[0][0];
+              return `${lastName}, ${firstInitial}.`;
+            });
 
-          // Join authors with & for last author
-          let authorText = "";
-          if (authorNames.length === 1) {
-            authorText = authorNames[0];
-          } else if (authorNames.length === 2) {
-            authorText = `${authorNames[0]} & ${authorNames[1]}`;
-          } else {
-            const lastAuthor = authorNames.pop();
-            authorText = `${authorNames.join(", ")} & ${lastAuthor}`;
+            // Join authors with & for last author
+            let authorText = "";
+            if (authorNames.length === 1) {
+              authorText = authorNames[0];
+            } else if (authorNames.length === 2) {
+              authorText = `${authorNames[0]} & ${authorNames[1]}`;
+            } else {
+              const lastAuthor = authorNames.pop();
+              authorText = `${authorNames.join(", ")} & ${lastAuthor}`;
+            }
+
+            // Get year from publication date
+            let year = "";
+            if (pub.publication.publicationDate) {
+              year = new Date(pub.publication.publicationDate)
+                .getFullYear()
+                .toString();
+            }
+
+            // Create formatted publication
+            return {
+              title: pub.publication.title,
+              authors: authorText,
+              journal: pub.publication.journal || "Journal not specified",
+              year,
+              volume: pub.publication.volume || "",
+              pages: pub.publication.pages || "",
+              link: `/publications/academic/${pub.publication.id}`,
+            };
+          } catch (error) {
+            console.error(
+              `Error processing publication ${pub.publication.id}:`,
+              error
+            );
+            return null;
           }
+        });
 
-          // Get year from publication date
-          let year = "";
-          if (pub.publication.publicationDate) {
-            year = new Date(pub.publication.publicationDate)
-              .getFullYear()
-              .toString();
-          }
+        // Wait for all publication promises and filter out any nulls
+        const formattedPublications = (
+          await Promise.all(publicationPromises)
+        ).filter(Boolean);
 
-          // Create formatted publication
-          return {
-            title: pub.publication.title,
-            authors: authorText,
-            journal: pub.publication.journal || "Journal not specified",
-            year,
-            volume: pub.publication.volume || "",
-            pages: pub.publication.pages || "",
-            link: `/publications/academic/${pub.publication.id}`,
-          };
-        })
-      );
+        // Format methods
+        const formattedMethods = area.methods.map((method) => ({
+          title: method.title,
+          description: method.description,
+        }));
 
-      // Format methods
-      const formattedMethods = area.methods.map((method) => ({
-        title: method.title,
-        description: method.description,
-      }));
+        // Prepare URL-friendly slug from the title
+        const slug = area.title.toLowerCase().replace(/\s+/g, "-");
+        const href = `/research/areas/${slug}`;
 
-      // Prepare URL-friendly slug from the title
-      const slug = area.title.toLowerCase().replace(/\s+/g, "-");
-      const href = `/research/areas/${slug}`;
+        // Return formatted research area
+        return {
+          title: area.title,
+          icon: area.icon,
+          image: area.image,
+          description: area.description,
+          detail: area.detail,
+          questions: area.questions.map((q) => q.question),
+          methods: formattedMethods,
+          findings: area.findings.map((f) => f.finding),
+          publications: formattedPublications,
+          href,
+          linkText: `Explore ${area.title} Research`,
+        };
+      } catch (error) {
+        console.error(`Error processing research area ${area.id}:`, error);
+        return null;
+      }
+    });
 
-      // Return formatted research area
-      return {
-        title: area.title,
-        icon: area.icon,
-        image: area.image,
-        description: area.description,
-        detail: area.detail,
-        sub: area.detail, // Using 'detail' as 'sub' since it's not in the database schema
-        questions: area.questions.map((q) => q.question),
-        methods: formattedMethods,
-        findings: area.findings.map((f) => f.finding),
-        publications: formattedPublications,
-        href,
-        linkText: `Explore ${area.title} Research`,
-      };
-    })
-  );
+    // Wait for all research area promises and filter out any nulls
+    const formattedResearchAreas = (
+      await Promise.all(researchAreaPromises)
+    ).filter(Boolean);
 
-  return formattedResearchAreas;
+    // Throw error if no research areas were found after processing
+    // if (formattedResearchAreas.length === 0) {
+    //   throw new Error("No research areas were found after processing");
+    // }
+    if (formattedResearchAreas.length === 0) {
+      console.warn("No research areas were found after processing.");
+    }
+
+    return formattedResearchAreas;
+  } catch (error) {
+    console.error("Failed to fetch research areas:", error);
+    throw error; // Re-throw to prevent caching an error state
+  }
 }
+
+// export async function getFormattedResearchAreas() {
+//   // Get all research areas with their relations
+//   const researchAreaData = await db.query.researchAreas.findMany({
+//     with: {
+//       questions: {
+//         orderBy: (q, { asc }) => [asc(q.order)],
+//       },
+//       methods: {
+//         orderBy: (m, { asc }) => [asc(m.order)],
+//       },
+//       findings: {
+//         orderBy: (f, { asc }) => [asc(f.order)],
+//       },
+//       publications: {
+//         with: {
+//           publication: true,
+//         },
+//         orderBy: (p, { asc }) => [asc(p.order)],
+//       },
+//     },
+//   });
+
+//   // Format the research areas
+//   const formattedResearchAreas = await Promise.all(
+//     researchAreaData.map(async (area) => {
+//       // Format publications with author information
+//       const formattedPublications = await Promise.all(
+//         area.publications.map(async (pub) => {
+//           // Get authors for this publication
+//           const authorData = await db.query.publicationAuthors.findMany({
+//             where: eq(publicationAuthors.publicationId, pub.publication.id),
+//             with: {
+//               researcher: {
+//                 with: {
+//                   user: {
+//                     columns: {
+//                       name: true,
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//             orderBy: (pa, { asc }) => [asc(pa.order)],
+//           });
+
+//           // Format author names (Last, F. & Last, F.)
+//           const authorNames = authorData.map((author) => {
+//             const fullName = author.researcher.user.name;
+//             const nameParts = fullName.split(" ");
+//             const lastName = nameParts[nameParts.length - 1];
+//             const firstInitial = nameParts[0][0];
+//             return `${lastName}, ${firstInitial}.`;
+//           });
+
+//           // Join authors with & for last author
+//           let authorText = "";
+//           if (authorNames.length === 1) {
+//             authorText = authorNames[0];
+//           } else if (authorNames.length === 2) {
+//             authorText = `${authorNames[0]} & ${authorNames[1]}`;
+//           } else {
+//             const lastAuthor = authorNames.pop();
+//             authorText = `${authorNames.join(", ")} & ${lastAuthor}`;
+//           }
+
+//           // Get year from publication date
+//           let year = "";
+//           if (pub.publication.publicationDate) {
+//             year = new Date(pub.publication.publicationDate)
+//               .getFullYear()
+//               .toString();
+//           }
+
+//           // Create formatted publication
+//           return {
+//             title: pub.publication.title,
+//             authors: authorText,
+//             journal: pub.publication.journal || "Journal not specified",
+//             year,
+//             volume: pub.publication.volume || "",
+//             pages: pub.publication.pages || "",
+//             link: `/publications/academic/${pub.publication.id}`,
+//           };
+//         })
+//       );
+
+//       // Format methods
+//       const formattedMethods = area.methods.map((method) => ({
+//         title: method.title,
+//         description: method.description,
+//       }));
+
+//       // Prepare URL-friendly slug from the title
+//       const slug = area.title.toLowerCase().replace(/\s+/g, "-");
+//       const href = `/research/areas/${slug}`;
+
+//       // Return formatted research area
+//       return {
+//         title: area.title,
+//         icon: area.icon,
+//         image: area.image,
+//         description: area.description,
+//         detail: area.detail,
+//         sub: area.detail, // Using 'detail' as 'sub' since it's not in the database schema
+//         questions: area.questions.map((q) => q.question),
+//         methods: formattedMethods,
+//         findings: area.findings.map((f) => f.finding),
+//         publications: formattedPublications,
+//         href,
+//         linkText: `Explore ${area.title} Research`,
+//       };
+//     })
+//   );
+
+//   return formattedResearchAreas;
+// }
 // 2. Get all featured researchers with their user info
 export async function getFeaturedResearchers() {
   const featuredResearchers = await db.query.researchers.findMany({
@@ -521,56 +700,21 @@ export async function searchResearchers(searchTerm: string) {
 
   return uniqueResults;
 }
-// export async function getResearcherr(researcherId: string) {
-//   const session = await auth();
-//   if (!session || session.user.role !== 'admin') return null;
 
-//   const userId = session.user.id;
-//   return await cache(
-//     async () => {
-//       try {
-//         const results = await db
-//           .select({
-//             id: researchers.id,
-//             name: users.name,
-//             title: researchers.title,
-//             email: users.email,
-//             image: users.image,
-//             role: userRoles.role,
-//           })
-//           .from(researchers)
-//           .leftJoin(users, eq(users.id, researchers.userId))
-//           .where(eq(researchers.id, researcherId))
-//           .execute();
+export const getCachedResearches = cache(
+  async () => getResearchers(),
+  ["cached-researchers"],
+  { revalidate: 60 * 60 * 72 } // 72 hours
+);
 
-//         if (results.length === 0) return null;
+export const getCachedResearcher = cache(
+  async (researcherId: string) => getResearcher(researcherId),
+  ["cached-researcher"],
+  { revalidate: 60 * 60 * 24 } // 24 hours
+);
 
-//         // Extract basic user data (same across all results)
-//         const userData = {
-//           id: results[0].id,
-//           name: results[0].name,
-//           email: results[0].email,
-//           image: results[0].image,
-//         };
-
-//         // Get all non-null roles
-//         const roles = results
-//           .map((r) => r.role)
-//           .filter((role): role is Role => !!role);
-
-//         return {
-//           ...userData,
-//           roles,
-//         };
-//       } catch (error) {
-//         console.error(`Error fetching user with id: ${userId}`, error);
-//         return null;
-//       }
-//     },
-//     [`user:${userId}`], // More specific cache key format
-//     {
-//       tags: [`user:${userId}`, "users"], // Both specific and general tags
-//       revalidate: 60 * 60 * 12, // 12 hours
-//     }
-//   )();
-// }
+export const getCachedResearchAreas = cache(
+  async () => getFormattedResearchAreas(),
+  ["cached-research-areas"],
+  { revalidate: 60 * 60 * 72 } // 72 hours
+);

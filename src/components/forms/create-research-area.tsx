@@ -156,7 +156,7 @@ function CreateResearchArea({ setIsOpen, className, ...props }: Props) {
               render={({ field, fieldState }) => (
                 <FormItem>
                   <ErrorTitle fieldState={fieldState} title="Icon" />
-                  <Popover open={open} onOpenChange={setOpen}>
+                  <Popover modal open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button

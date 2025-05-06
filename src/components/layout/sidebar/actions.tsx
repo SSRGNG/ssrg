@@ -66,7 +66,6 @@ function Actions({ actions, className, ...props }: Props) {
                     {optionKeys.map((key) => (
                       <DropdownMenuItem asChild key={key}>
                         <AdminActions
-                          type={item.title}
                           actionKey={key}
                           label={item.options[key] || key}
                           isMobile={isMobile}
