@@ -4,7 +4,7 @@ import * as React from "react";
 import { Page } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getFormattedResearchAreas } from "@/lib/queries/admin";
+import { getCachedResearchAreas } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Admin() {
-  const areas = await getFormattedResearchAreas();
+  const areas = await getCachedResearchAreas();
 
   // console.log({ areas });
   return (

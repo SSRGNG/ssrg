@@ -3,6 +3,11 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { unstable_cache as cache } from "next/cache";
 
+import {
+  CACHED_RESEARCH_AREAS,
+  CACHED_RESEARCHER,
+  CACHED_RESEARCHERS,
+} from "@/config/constants";
 import { db } from "@/db";
 import {
   projects,
@@ -703,18 +708,20 @@ export async function searchResearchers(searchTerm: string) {
 
 export const getCachedResearches = cache(
   async () => getResearchers(),
-  ["cached-researchers"],
-  { revalidate: 60 * 60 * 72 } // 72 hours
+  [CACHED_RESEARCHERS],
+  { tags: [CACHED_RESEARCHERS], revalidate: 60 * 60 * 72 } // 72 hours
 );
 
-export const getCachedResearcher = cache(
-  async (researcherId: string) => getResearcher(researcherId),
-  ["cached-researcher"],
-  { revalidate: 60 * 60 * 24 } // 24 hours
-);
+export async function getCachedResearcher(researcherId: string) {
+  return await cache(
+    async () => getResearcher(researcherId),
+    [CACHED_RESEARCHER],
+    { tags: [`${CACHED_RESEARCHER}-${researcherId}`], revalidate: 60 * 60 * 24 } // 24 hours
+  )();
+}
 
 export const getCachedResearchAreas = cache(
   async () => getFormattedResearchAreas(),
-  ["cached-research-areas"],
-  { revalidate: 60 * 60 * 72 } // 72 hours
+  [CACHED_RESEARCH_AREAS],
+  { tags: [CACHED_RESEARCH_AREAS], revalidate: 60 * 60 * 72 } // 72 hours
 );

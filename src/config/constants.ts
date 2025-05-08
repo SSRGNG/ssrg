@@ -22,6 +22,10 @@ export const links = {
 export const PASSWORD_KEY_LENGTH = 64;
 export const PIN_KEY_LENGTH = 32;
 
+export const CACHED_RESEARCH_AREAS = "cached-research-areas";
+export const CACHED_RESEARCHERS = "cached-researchers";
+export const CACHED_RESEARCHER = "cached-researcher";
+
 export const keywords = [
   appFullName,
   appName,
