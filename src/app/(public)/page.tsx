@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import * as React from "react";
 
 import { Page } from "@/components/shell";
-import { Featured } from "@/components/views/home/featured";
-import { Hero } from "@/components/views/home/hero";
-import { Metrics } from "@/components/views/home/metrics";
-import { Newsletter } from "@/components/views/home/newsletter";
-import { ResearchAreas } from "@/components/views/home/research-areas";
-import { Testimonials } from "@/components/views/home/testimonials";
+import {
+  Featured,
+  Hero,
+  Metrics,
+  Newsletter,
+  ResearchAreas,
+  Testimonials,
+} from "@/components/views/home";
 import { appConfig } from "@/config";
 import { getCachedResearchAreas } from "@/lib/queries/admin";
 
