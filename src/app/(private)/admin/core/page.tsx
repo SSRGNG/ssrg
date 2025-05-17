@@ -1,46 +1,46 @@
 import type { Metadata } from "next";
 import * as React from "react";
 
-import { Page } from "@/components/shell";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCachedResearchAreas } from "@/lib/queries/admin";
-import { cn } from "@/lib/utils";
+import { Icons } from "@/components/shared/icons";
+import { Shell } from "@/components/shell";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResearchAreas } from "@/components/views/admin/core";
 
 export const metadata: Metadata = {
   title: `Core Features`,
 };
 
-export default async function Admin() {
-  const areas = await getCachedResearchAreas();
-
-  // console.log({ areas });
+const core_features = [
+  { title: "Research Areas", icon: "focusAreas" as Icons },
+  { title: "Frameworks", icon: "ethics" as Icons },
+  { title: "Methodologies", icon: "methods" as Icons },
+  { title: "Projects", icon: "projects" as Icons },
+];
+export default function Admin() {
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
-      <Page variant={"portal"}>
-        {areas.length !== 0 && (
-          <Card className={cn("gap-3.5")}>
-            <CardHeader className={cn("gap-0")}>
-              <CardTitle>Research Areas</CardTitle>
-            </CardHeader>
-            <CardContent
-              className={cn("grid gap-4 xs:grid-cols-2 md:grid-cols-3")}
-            >
-              {areas.map((area, i) => (
-                <div key={i} className="border rounded-xl p-4">
-                  <h4>{area?.title}</h4>
-                  <p className="line-clamp-3 my-2.5 text-muted-foreground text-sm">
-                    {area?.description}
-                  </p>
-                  <Button variant={"secondary"} disabled size={"sm"}>
-                    Edit
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-      </Page>
-    </React.Suspense>
+    <Shell variant={"portal"}>
+      <Tabs defaultValue={core_features[0].title}>
+        <TabsList className="flex flex-wrap justify-start gap-1.5 w-full">
+          {core_features.map((framework) => {
+            const Icon = Icons[framework.icon];
+            return (
+              <TabsTrigger
+                key={framework.title}
+                value={framework.title}
+                className="group"
+              >
+                <Icon strokeWidth={1.5} />
+                <span className="hidden group-data-[state=active]:inline md:inline">
+                  {framework.title}
+                </span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+        <React.Suspense fallback={<p>Loading research areas</p>}>
+          <ResearchAreas value={core_features[0].title} />
+        </React.Suspense>
+      </Tabs>
+    </Shell>
   );
 }

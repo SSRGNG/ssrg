@@ -68,7 +68,7 @@ export const {
           const user = await authWithCredentials(credentials);
           return user;
         } catch (error) {
-          console.log({ error });
+          // console.log({ error });
           return null;
         }
       },

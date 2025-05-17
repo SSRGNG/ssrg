@@ -106,7 +106,7 @@ function Footer({ className, ...props }: Props) {
             />
             <span>All rights reserved</span>
           </div>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center gap-1">
             {appConfig.navSecondary.slice(1).map((item) => {
               const { href, title, icon, external } = item;
               const Icon = Icons[icon];

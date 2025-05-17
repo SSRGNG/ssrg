@@ -3,9 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, PlusCircle, Trash2 } from "lucide-react";
 import * as React from "react";
-import { ControllerFieldState, useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { ErrorTitle } from "@/components/forms/error-title";
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,14 +23,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -38,32 +32,30 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminAreasData } from "@/lib/actions/queries";
+import { updateResearchArea } from "@/lib/actions/research-areas";
 import { cn } from "@/lib/utils";
 import {
-  type ResearchArea,
   type UpdateResearchAreaPayload,
   updateResearchAreaSchema,
 } from "@/lib/validations/research-area";
 
+type Area = AdminAreasData[number];
 type Props = React.ComponentPropsWithoutRef<"form"> & {
-  researchArea: ResearchArea & {
-    questions?: Array<{ question: string; order: number; id?: string }>;
-    methods?: Array<{
-      title: string;
-      description: string;
-      order: number;
-      id?: string;
-    }>;
-    findings?: Array<{ finding: string; order: number; id?: string }>;
-    publications?: Array<{ publicationId: string; order: number; id?: string }>;
-  };
+  researchArea: Area;
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type IconName = keyof typeof Icons;
 
 const iconNames = Object.keys(Icons) as IconName[];
 
-function UpdateResearchArea({ className, researchArea, ...props }: Props) {
+function UpdateResearchArea({
+  setIsOpen,
+  className,
+  researchArea,
+  ...props
+}: Props) {
   const [isPending, startTransition] = React.useTransition();
   const [open, setOpen] = React.useState(false);
 
@@ -124,17 +116,20 @@ function UpdateResearchArea({ className, researchArea, ...props }: Props) {
   function onSubmit(data: UpdateResearchAreaPayload) {
     startTransition(async () => {
       try {
-        console.log({ data });
-        // const result = await updateResearchArea(researchArea.id, data);
+        // console.log({ data });
+        const result = await updateResearchArea(researchArea.id, data);
 
-        // if (result.error) {
-        //   toast.error("Error", { description: result.error });
-        //   return;
-        // }
+        if (result.error) {
+          toast.error("Error", { description: result.error });
+          return;
+        }
 
         toast.success("Success", {
           description: "Research area updated successfully!",
         });
+        if (setIsOpen) {
+          setIsOpen(false);
+        }
       } catch (error) {
         console.error("Failed to update research area:", error);
         toast.error("Error", {
@@ -179,7 +174,7 @@ function UpdateResearchArea({ className, researchArea, ...props }: Props) {
               render={({ field, fieldState }) => (
                 <FormItem>
                   <ErrorTitle fieldState={fieldState} title="Icon" />
-                  <Popover open={open} onOpenChange={setOpen}>
+                  <Popover modal open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -627,17 +622,14 @@ function UpdateResearchArea({ className, researchArea, ...props }: Props) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Button
-            type="button"
-            // onClick={() => router.push("/admin/research-areas")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" variant={"brand"} isPending={isPending}>
-            Update Research Area
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          variant={"brand"}
+          className="w-full"
+          isPending={isPending}
+        >
+          Update Research Area
+        </Button>
       </form>
     </Form>
   );
@@ -652,27 +644,6 @@ function IconPreview({ iconName }: { iconName: IconName }) {
       </span>{" "}
       {iconName}
     </div>
-  );
-}
-
-function ErrorTitle({
-  fieldState,
-  title,
-}: {
-  fieldState: ControllerFieldState;
-  title: string;
-}) {
-  return fieldState.error ? (
-    <HoverCard>
-      <HoverCardTrigger>
-        <Icons.alert strokeWidth={1.5} className="size-3.5 text-destructive" />
-      </HoverCardTrigger>
-      <HoverCardContent>
-        <FormMessage />
-      </HoverCardContent>
-    </HoverCard>
-  ) : (
-    <FormLabel>{title}</FormLabel>
   );
 }
 

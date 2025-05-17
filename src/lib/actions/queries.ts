@@ -1,7 +1,11 @@
 "use server";
 
-import { getCachedResearchAreas } from "@/lib/queries/admin";
+import {
+  getFormattedResearchAreas,
+  getResearchAreas,
+} from "@/lib/queries/admin";
 
 export type ResearchAreasData = Awaited<
-  ReturnType<typeof getCachedResearchAreas>
+  ReturnType<typeof getFormattedResearchAreas>
 >;
+export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;

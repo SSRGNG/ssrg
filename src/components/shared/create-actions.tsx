@@ -1,12 +1,12 @@
 "use client";
 
-import { GitBranchPlus } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -15,33 +15,52 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { cn } from "@/lib/utils";
 import { ActionKey } from "@/types";
 
 import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { UserSignup } from "@/components/forms/user-signup";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { appConfig } from "@/config";
 
-type AdminActionsProps = {
-  actionKey: string;
-  label: string;
+type CreateActionsProps = React.PropsWithChildren & {
+  actionKey: ActionKey;
+  label?: string;
   isMobile: boolean;
 };
 
 type FormComponentProps = React.ComponentPropsWithoutRef<"form"> & {
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
-// type FormComponentProps = {
-//   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-// };
 
-function AdminActions({ actionKey, label, isMobile }: AdminActionsProps) {
+function CreateActions({
+  actionKey,
+  label,
+  isMobile,
+  children,
+}: CreateActionsProps) {
   const [open, setOpen] = React.useState(false);
+
+  const getActionLabel = React.useCallback(() => {
+    if (label) return label;
+
+    // Search for the label in the app config
+    for (const item of appConfig.actions.items) {
+      if (item.options && actionKey in item.options) {
+        return item.options[actionKey];
+      }
+    }
+
+    // Fallback to capitalized action key
+    return actionKey.charAt(0).toUpperCase() + actionKey.slice(1);
+  }, [actionKey, label]);
+
+  const actionLabel = getActionLabel();
 
   const formMappings: Record<
     ActionKey,
@@ -57,23 +76,18 @@ function AdminActions({ actionKey, label, isMobile }: AdminActionsProps) {
     newsletter: () => null,
   };
 
-  const FormComponent = formMappings[actionKey as ActionKey];
+  const description = `You are creating a new ${actionKey}`;
+  const FormComponent = formMappings[actionKey];
 
   return isMobile ? (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={cn("w-full justify-start text-xs")}
-        >
-          <GitBranchPlus className="size-4 text-muted-foreground" />
-          {label}
-        </Button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>{label}</DrawerTitle>
+          <DrawerTitle>{actionLabel}</DrawerTitle>
+          <DrawerDescription className="sr-only">
+            {description}
+          </DrawerDescription>
         </DrawerHeader>
         <FormComponent
           setIsOpen={setOpen}
@@ -88,30 +102,20 @@ function AdminActions({ actionKey, label, isMobile }: AdminActionsProps) {
     </Drawer>
   ) : (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={cn("w-full justify-start text-xs")}
-        >
-          <GitBranchPlus className="size-4 text-muted-foreground" />
-          {label}
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[70vw]">
         <DialogHeader>
-          <DialogTitle>{label}</DialogTitle>
+          <DialogTitle>{actionLabel}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {description}
+          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="sm:max-h-[70vh]">
-          <FormComponent
-            setIsOpen={setOpen}
-            // className="sm:max-h-[70vh] overflow-auto"
-          />
+          <FormComponent setIsOpen={setOpen} />
         </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
 
-AdminActions.displayName = "AdminActions";
-export { AdminActions };
+export { CreateActions };

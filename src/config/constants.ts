@@ -23,8 +23,14 @@ export const PASSWORD_KEY_LENGTH = 64;
 export const PIN_KEY_LENGTH = 32;
 
 export const CACHED_RESEARCH_AREAS = "cached-research-areas";
+export const CACHED_FORMATTED_RESEARCH_AREAS =
+  "cached-formatted-research-areas";
+
 export const CACHED_RESEARCHERS = "cached-researchers";
+export const CACHED_FORMATTED_RESEARCHERS = "cached-formatted-researchers";
+
 export const CACHED_RESEARCHER = "cached-researcher";
+export const CACHED_FORMATTED_RESEARCHER = "cached-formatted-researcher";
 
 export const keywords = [
   appFullName,

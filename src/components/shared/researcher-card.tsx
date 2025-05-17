@@ -61,7 +61,7 @@ function ResearcherCard({ researcher, idx, className, ...props }: Props) {
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             {researcher.contact.twitter && (
               <a
                 href={`https://x.com/${researcher.contact.twitter.replace(

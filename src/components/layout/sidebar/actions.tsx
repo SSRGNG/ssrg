@@ -1,7 +1,10 @@
 "use client";
 
-import { AdminActions } from "@/components/layout/sidebar/admin-actions";
+import { GitBranchPlus, MoreHorizontal } from "lucide-react";
+
+import { CreateActions } from "@/components/shared/create-actions";
 import { Icons } from "@/components/shared/icons";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +22,6 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { ActionItem, ActionKey } from "@/types";
-import { MoreHorizontal } from "lucide-react";
 
 type Props = React.ComponentProps<typeof SidebarGroup> & {
   actions: ActionItem;
@@ -51,7 +53,7 @@ function Actions({ actions, className, ...props }: Props) {
                 </a>
               </SidebarMenuButton>
               {optionKeys.length > 0 && (
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuAction showOnHover>
                       <MoreHorizontal />
@@ -65,11 +67,20 @@ function Actions({ actions, className, ...props }: Props) {
                   >
                     {optionKeys.map((key) => (
                       <DropdownMenuItem asChild key={key}>
-                        <AdminActions
+                        <CreateActions
                           actionKey={key}
-                          label={item.options[key] || key}
                           isMobile={isMobile}
-                        />
+                          label={item.options[key]}
+                        >
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="w-full justify-start text-xs"
+                          >
+                            <GitBranchPlus className="text-muted-foreground" />
+                            {item.options[key] || key}
+                          </Button>
+                        </CreateActions>
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -82,60 +93,5 @@ function Actions({ actions, className, ...props }: Props) {
     </SidebarGroup>
   );
 }
-
-// function Actions({ actions, className, ...props }: Props) {
-//   const { isMobile } = useSidebar();
-
-//   return (
-//     <SidebarGroup
-//       className={cn("group-data-[collapsible=icon]:hidden", className)}
-//       {...props}
-//     >
-//       <SidebarGroupLabel>{actions.title}</SidebarGroupLabel>
-//       <SidebarMenu>
-//         {actions.items.map((item) => {
-//           const Icon = Icons[item.icon];
-
-//           return (
-//             <SidebarMenuItem key={item.title}>
-//               <SidebarMenuButton asChild size="sm">
-//                 <a href={item.href}>
-//                   {item.icon && <Icon />}
-//                   <span>{item.title}</span>
-//                 </a>
-//               </SidebarMenuButton>
-
-//               {item.options && (
-//                 <DropdownMenu>
-//                   <DropdownMenuTrigger asChild>
-//                     <SidebarMenuAction showOnHover>
-//                       <MoreHorizontal />
-//                       <span className="sr-only">More</span>
-//                     </SidebarMenuAction>
-//                   </DropdownMenuTrigger>
-//                   <DropdownMenuContent
-//                     className="w-64"
-//                     side={isMobile ? "bottom" : "right"}
-//                     align={isMobile ? "end" : "start"}
-//                   >
-//                     {Object.entries(item.options).map(([key, label]) => (
-//                       <DropdownMenuItem asChild key={key}>
-//                         <AdminActionDialog
-//                           type={key} // This should match the `switch` in your CreateAction component
-//                           label={label}
-//                           isMobile={isMobile}
-//                         />
-//                       </DropdownMenuItem>
-//                     ))}
-//                   </DropdownMenuContent>
-//                 </DropdownMenu>
-//               )}
-//             </SidebarMenuItem>
-//           );
-//         })}
-//       </SidebarMenu>
-//     </SidebarGroup>
-//   );
-// }
 
 export { Actions };
