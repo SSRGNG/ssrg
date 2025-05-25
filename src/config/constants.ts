@@ -1,5 +1,9 @@
 import { AuthUser } from "@/auth";
 import { Icons } from "@/components/shared/icons";
+import {
+  CreateFrameworkPayload,
+  CreateMethodologyPayload,
+} from "@/lib/validations/research";
 import type {
   AppNavItem,
   NavItem,
@@ -31,6 +35,10 @@ export const CACHED_FORMATTED_RESEARCHERS = "cached-formatted-researchers";
 
 export const CACHED_RESEARCHER = "cached-researcher";
 export const CACHED_FORMATTED_RESEARCHER = "cached-formatted-researcher";
+
+export const CACHED_RESEARCH_FRAMEWORKS = "cached-research-frameworks";
+export const CACHED_RESEARCH_METHODOLOGIES = "cached-research-methodologies";
+export const CACHED_PROJECTS = "cached-projects";
 
 export const keywords = [
   appFullName,
@@ -505,6 +513,65 @@ export const navSecondary: Required<SocialItem>[] = [
     href: links.x,
     icon: "x",
     external: true,
+  },
+];
+
+// Sample methodologies for quick start
+export const sampleMethodologies: CreateMethodologyPayload[] = [
+  {
+    title: "Participatory Action Research (PAR)",
+    description:
+      "A collaborative approach that involves stakeholders as co-researchers, emphasizing immediate application of findings to create social change while building local capacity.",
+    order: 1,
+  },
+  {
+    title: "Community-Based Participatory Research (CBPR)",
+    description:
+      "Research conducted in partnership with communities, ensuring studies address community-identified problems and priorities through collaborative decision-making.",
+    order: 2,
+  },
+  {
+    title: "Mixed-Methods Sequential Explanatory Design",
+    description:
+      "Combines quantitative data collection followed by qualitative research to provide comprehensive understanding of complex social phenomena.",
+    order: 3,
+  },
+  {
+    title: "Ethnographic Field Studies",
+    description:
+      "In-depth qualitative research involving prolonged engagement with communities to understand cultural contexts and lived experiences.",
+    order: 4,
+  },
+  {
+    title: "Longitudinal Cohort Studies",
+    description:
+      "Research design that follows the same group of participants over extended periods to track changes and measure long-term social impact.",
+    order: 5,
+  },
+  {
+    title: "Digital Ethnography",
+    description:
+      "Contemporary research method analyzing online communities and digital interactions to understand modern social phenomena and communication patterns.",
+    order: 6,
+  },
+];
+
+export const sampleFrameworks: CreateFrameworkPayload[] = [
+  {
+    title: "Theory of Change Framework",
+    description:
+      "A comprehensive planning tool that explains how activities are understood to produce outcomes...",
+    order: 0,
+    href: "https://www.theoryofchange.org/what-is-theory-of-change/",
+    linkText: "Learn About Theory of Change",
+  },
+  {
+    title: "Logic Model Framework",
+    description:
+      "A systematic visual representation of the logical relationships between resources, activities, outputs, and outcomes...",
+    order: 1,
+    href: "https://www.cdc.gov/evaluation/logicmodels/index.htm",
+    linkText: "CDC Logic Model Guide",
   },
 ];
 

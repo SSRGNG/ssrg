@@ -4,7 +4,12 @@ import * as React from "react";
 import { Icons } from "@/components/shared/icons";
 import { Shell } from "@/components/shell";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResearchAreas } from "@/components/views/admin/core";
+import {
+  Projects,
+  ResearchAreas,
+  ResearchFrameworks,
+  ResearchMethodologies,
+} from "@/components/views/admin/core";
 
 export const metadata: Metadata = {
   title: `Core Features`,
@@ -39,6 +44,15 @@ export default function Admin() {
         </TabsList>
         <React.Suspense fallback={<p>Loading research areas</p>}>
           <ResearchAreas value={core_features[0].title} />
+        </React.Suspense>
+        <React.Suspense fallback={<p>Loading research frameworks</p>}>
+          <ResearchFrameworks value={core_features[1].title} />
+        </React.Suspense>
+        <React.Suspense fallback={<p>Loading research methodologies</p>}>
+          <ResearchMethodologies value={core_features[2].title} />
+        </React.Suspense>
+        <React.Suspense fallback={<p>Loading projects</p>}>
+          <Projects value={core_features[3].title} />
         </React.Suspense>
       </Tabs>
     </Shell>

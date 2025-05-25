@@ -1,0 +1,1 @@
+DROP INDEX "frameworks_unique_title";

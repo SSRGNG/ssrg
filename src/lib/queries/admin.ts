@@ -7,7 +7,10 @@ import {
   CACHED_FORMATTED_RESEARCH_AREAS,
   CACHED_FORMATTED_RESEARCHER,
   CACHED_FORMATTED_RESEARCHERS,
+  CACHED_PROJECTS,
   CACHED_RESEARCH_AREAS,
+  CACHED_RESEARCH_FRAMEWORKS,
+  CACHED_RESEARCH_METHODOLOGIES,
 } from "@/config/constants";
 import { db } from "@/db";
 import {
@@ -63,6 +66,78 @@ export async function getResearchAreas(limit = 10, offset = 0) {
       },
     },
     limit,
+    offset,
+  });
+}
+export async function getResearchFrameworks(limit = Infinity, offset = 0) {
+  return await db.query.researchFrameworks.findMany({
+    columns: {
+      id: true,
+      title: true,
+      description: true,
+      href: true,
+      linkText: true,
+    },
+    orderBy: (f, { asc }) => [asc(f.order)],
+    limit: limit === Infinity ? undefined : limit,
+    offset,
+  });
+}
+export async function getResearchMethodologies(limit = Infinity, offset = 0) {
+  return await db.query.researchMethodologies.findMany({
+    columns: {
+      id: true,
+      title: true,
+      description: true,
+    },
+    orderBy: (f, { asc }) => [asc(f.order)],
+    limit: limit === Infinity ? undefined : limit,
+    offset,
+  });
+}
+export async function getProjects(limit = Infinity, offset = 0) {
+  return await db.query.projects.findMany({
+    columns: {
+      id: true,
+      title: true,
+      description: true,
+    },
+    with: {
+      leadResearcher: {
+        columns: {
+          bio: true,
+          featured: true,
+          id: true,
+          orcid: true,
+          title: true,
+        },
+        with: {
+          user: {
+            columns: {
+              name: true,
+              affiliation: true,
+              email: true,
+              image: true,
+              id: true,
+            },
+          },
+          education: {
+            columns: {
+              education: true,
+              order: true,
+            },
+          },
+          expertise: {
+            columns: {
+              expertise: true,
+              order: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: (f, { asc }) => [asc(f.created_at)],
+    limit: limit === Infinity ? undefined : limit,
     offset,
   });
 }
@@ -583,10 +658,6 @@ export async function getFormattedResearchAreas() {
             description: method.description,
           }));
 
-          // Prepare URL-friendly slug from the title
-          const slug = area.title.toLowerCase().replace(/\s+/g, "-");
-          const href = `/research/areas/${slug}`;
-
           // Return formatted research area
           return {
             title: area.title,
@@ -598,7 +669,7 @@ export async function getFormattedResearchAreas() {
             methods: formattedMethods,
             findings: area.findings.map((f) => f.finding),
             publications: formattedPublications,
-            href,
+            href: area.href,
             linkText: `Explore ${area.title} Research`,
           };
         } catch (error) {
@@ -875,4 +946,22 @@ export const getCachedResearchAreas = cache(
   async () => getFormattedResearchAreas(),
   [CACHED_FORMATTED_RESEARCH_AREAS],
   { tags: [CACHED_FORMATTED_RESEARCH_AREAS], revalidate: 60 * 60 * 72 } // 72 hours
+);
+
+export const getCachedResearchFrameworks = cache(
+  async () => getResearchFrameworks(),
+  [CACHED_RESEARCH_FRAMEWORKS],
+  { tags: [CACHED_RESEARCH_FRAMEWORKS], revalidate: 60 * 60 * 72 } // 72 hours
+);
+
+export const getCachedResearchMethodologies = cache(
+  async () => getResearchMethodologies(),
+  [CACHED_RESEARCH_METHODOLOGIES],
+  { tags: [CACHED_RESEARCH_METHODOLOGIES], revalidate: 60 * 60 * 72 } // 72 hours
+);
+
+export const getCachedProjects = cache(
+  async () => getProjects(),
+  [CACHED_PROJECTS],
+  { tags: [CACHED_PROJECTS], revalidate: 60 * 60 * 72 } // 72 hours
 );

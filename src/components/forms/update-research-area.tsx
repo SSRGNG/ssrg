@@ -51,9 +51,9 @@ type IconName = keyof typeof Icons;
 const iconNames = Object.keys(Icons) as IconName[];
 
 function UpdateResearchArea({
+  researchArea,
   setIsOpen,
   className,
-  researchArea,
   ...props
 }: Props) {
   const [isPending, startTransition] = React.useTransition();

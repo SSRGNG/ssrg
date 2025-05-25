@@ -1,0 +1,2 @@
+CREATE INDEX "research_methodologies_lower_title_idx" ON "research_methodologies" USING btree (LOWER(TRIM("title")));--> statement-breakpoint
+ALTER TABLE "research_frameworks" ADD CONSTRAINT "research_frameworks_href_unique" UNIQUE("href");

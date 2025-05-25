@@ -1,5 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { RAreasDataTable } from "@/components/views/admin/core/ui-tables/r-areas-data-table";
+import { RAreasDataTable } from "@/components/views/admin/core/ui-tables";
 import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 

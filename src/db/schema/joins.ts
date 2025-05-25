@@ -17,9 +17,9 @@ import {
 
 // Publication authors junction table
 export const publicationAuthors = pgTable(
-  "publication_authors",
+  "pub_authors",
   {
-    publicationId: uuid("publication_id")
+    publicationId: uuid("pub_id")
       .notNull()
       .references(() => publications.id, { onDelete: "cascade" }),
     researcherId: uuid("researcher_id")
@@ -36,12 +36,12 @@ export const publicationAuthors = pgTable(
 
 // Research area publications junction table
 export const researchAreaPublications = pgTable(
-  "research_area_publications",
+  "area_pubs",
   {
-    researchAreaId: uuid("research_area_id")
+    researchAreaId: uuid("area_id")
       .notNull()
       .references(() => researchAreas.id, { onDelete: "cascade" }),
-    publicationId: uuid("publication_id")
+    publicationId: uuid("pub_id")
       .notNull()
       .references(() => publications.id, { onDelete: "cascade" }),
     order: integer("order").notNull(),
@@ -54,9 +54,9 @@ export const researchAreaPublications = pgTable(
 
 // Project categories junction table
 export const projectCategories = pgTable(
-  "project_categories",
+  "proj_areas",
   {
-    projectId: uuid("project_id")
+    projectId: uuid("proj_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     areaId: uuid("area_id")
@@ -65,24 +65,24 @@ export const projectCategories = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.areaId] }),
-    index("project_categories_area_idx").on(t.areaId),
+    index("proj_areas_area_idx").on(t.areaId),
   ]
 );
 
 // Project partners junction table
 export const partnerProjects = pgTable(
-  "partner_projects",
+  "partner_projs",
   {
     partnerId: uuid("partner_id")
       .notNull()
       .references(() => partners.id, { onDelete: "cascade" }),
-    projectId: uuid("project_id")
+    projectId: uuid("proj_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
   },
   (t) => [
     primaryKey({ columns: [t.partnerId, t.projectId] }),
-    index("partner_projects_project_idx").on(t.projectId),
+    index("partner_projs_proj_idx").on(t.projectId),
   ]
 );
 

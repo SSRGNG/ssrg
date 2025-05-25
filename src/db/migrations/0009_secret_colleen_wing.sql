@@ -1,0 +1,1 @@
+ALTER TABLE "frameworks" ADD CONSTRAINT "frameworks_title_unique" UNIQUE("title");

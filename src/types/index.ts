@@ -1,7 +1,12 @@
 import type { Icons } from "@/components/shared/icons";
 import { actions, researchers } from "@/config/constants";
 import { events, partners, presenterRoles, roles } from "@/config/enums";
-import { notifications, users } from "@/db/schema";
+import {
+  notifications,
+  researchFrameworks,
+  researchMethodologies,
+  users,
+} from "@/db/schema";
 
 export type Role = typeof roles.type;
 export type Partner = typeof partners.type;
@@ -12,6 +17,8 @@ export type Researcher = (typeof researchers)[number];
 
 export type User = typeof users.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type ResearchMethodology = typeof researchMethodologies.$inferSelect;
+export type ResearchFramework = typeof researchFrameworks.$inferSelect;
 
 export type ServerResponse = {
   status: "error" | "success";

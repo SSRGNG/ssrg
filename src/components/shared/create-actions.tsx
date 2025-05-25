@@ -24,6 +24,8 @@ import {
 import { ActionKey } from "@/types";
 
 import { CreateResearchArea } from "@/components/forms/create-research-area";
+import { CreateResearchFrameworks } from "@/components/forms/create-research-frameworks";
+import { CreateResearchMethodologies } from "@/components/forms/create-research-methodologies";
 import { UserSignup } from "@/components/forms/user-signup";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { appConfig } from "@/config";
@@ -68,8 +70,8 @@ function CreateActions({
   > = {
     area: CreateResearchArea,
     user: UserSignup,
-    framework: () => null,
-    methodology: () => null,
+    framework: CreateResearchFrameworks,
+    methodology: CreateResearchMethodologies,
     project: () => null,
     partner: () => null,
     event: () => null,

@@ -1,0 +1,1 @@
+CREATE INDEX "research_frameworks_lower_title_idx" ON "research_frameworks" USING btree (LOWER(TRIM("title")));

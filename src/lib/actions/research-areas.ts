@@ -1,5 +1,6 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -22,7 +23,6 @@ import {
   updateResearchAreaSchema,
   type CreateResearchAreaPayload,
 } from "@/lib/validations/research-area";
-import { eq } from "drizzle-orm";
 
 export async function createResearchArea(data: CreateResearchAreaPayload) {
   try {

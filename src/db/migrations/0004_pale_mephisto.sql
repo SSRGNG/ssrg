@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "research_frameworks_title_unique" ON "research_frameworks" USING btree (LOWER(TRIM("title")));--> statement-breakpoint
+CREATE UNIQUE INDEX "research_methodologies_title_unique" ON "research_methodologies" USING btree (LOWER(TRIM("title")));
