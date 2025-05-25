@@ -1,6 +1,7 @@
 "use client";
 
 import { GitBranchPlus, MoreHorizontal } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { CreateActions } from "@/components/shared/create-actions";
 import { Icons } from "@/components/shared/icons";
@@ -28,6 +29,7 @@ type Props = React.ComponentProps<typeof SidebarGroup> & {
 };
 
 function Actions({ actions, className, ...props }: Props) {
+  const pathname = usePathname();
   const { isMobile } = useSidebar();
 
   return (
@@ -46,7 +48,14 @@ function Actions({ actions, className, ...props }: Props) {
 
           return (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild size={"sm"}>
+              <SidebarMenuButton
+                asChild
+                size={"sm"}
+                className={cn(
+                  item.href === pathname &&
+                    "bg-sidebar-accent text-sidebar-accent-foreground"
+                )}
+              >
                 <a href={item.href}>
                   {item.icon && <Icon />}
                   <span>{item.title}</span>

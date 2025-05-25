@@ -117,45 +117,6 @@ function MainNav({
               {item.title}
             </NavLink>
           )}
-          {/* {item.items.length === 0 ? (
-            <NavLink
-              key={parentKey}
-              href={item.href}
-              pathname={pathname}
-              setIsOpen={setIsOpen}
-            >
-              <NavIcon icon={item.icon} />
-              {item.title}
-            </NavLink>
-          ) : (
-            <Collapsible
-              open={openItems[key]}
-              onOpenChange={() => toggleSubMenu(key)}
-            >
-              <CollapsibleTrigger asChild className="transition-all">
-                <Button
-                  variant={pathname.includes(item.href) ? "secondary" : "ghost"}
-                  className="w-full items-center gap-1 has-[>svg]:px-2"
-                >
-                  <NavIcon icon={item.icon} />
-                  {item.title}
-                  <ChevronDownIcon
-                    className={cn(
-                      "size-4 ml-auto text-muted-foreground transition-transform",
-                      openItems[key] ? "rotate-180" : ""
-                    )}
-                  />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent
-                className={cn(
-                  "flex flex-col gap-0.5 pl-0.5 ml-4 pt-0.5 border-l border-border"
-                )}
-              >
-                {renderNavItems(item.items, key)}
-              </CollapsibleContent>
-            </Collapsible>
-          )} */}
         </React.Fragment>
       );
     });
