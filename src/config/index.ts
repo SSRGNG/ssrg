@@ -88,6 +88,7 @@ export const appConfig = {
   appNav,
   navSecondary,
   actions,
+  // barActions,
   userNav: mapUserNav(userNav) satisfies UserNavItem[],
   footerNav,
   social: {

@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { ActionKey, DataTableFilterField } from "@/types";
+import type { ActionKey, BarAction, DataTableFilterField } from "@/types";
 
 type DataTableProps<TData, TValue> = React.ComponentPropsWithoutRef<"div"> & {
   /**
@@ -92,6 +92,7 @@ type DataTableProps<TData, TValue> = React.ComponentPropsWithoutRef<"div"> & {
    */
   floatingBar?: React.ReactNode | null;
   actionKey?: ActionKey;
+  barAction?: BarAction;
 };
 
 function DataTable<TData, TValue>({
@@ -100,6 +101,7 @@ function DataTable<TData, TValue>({
   filterFields = [],
   floatingBar = null,
   actionKey,
+  barAction,
   pageSizeOptions = [10, 20, 30, 40],
   className,
   ...props
@@ -173,7 +175,11 @@ function DataTable<TData, TValue>({
       className={cn("w-full space-y-2 overflow-x-auto", className)}
       {...props}
     >
-      <DataTableToolbar table={table} actionKey={actionKey} />
+      <DataTableToolbar
+        table={table}
+        actionKey={actionKey}
+        barAction={barAction}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

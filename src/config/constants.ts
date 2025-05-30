@@ -446,6 +446,13 @@ export const footerNav: NavItem[] = [
   },
 ];
 
+// export const barActions = [
+//   { value: "area", label: "Create Research Area" },
+//   { value: "framework", label: "Create Research Framework" },
+//   { value: "methodology", label: "Create Research Methodology" },
+//   { value: "project", label: "Create Project" },
+//   { value: "publication", label: "Create Publication" },
+// ];
 export const actions = {
   title: "Administration",
   href: "/admin",

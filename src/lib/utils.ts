@@ -195,3 +195,32 @@ export function createEnum<const T extends [string, ...string[]]>(
     type: null as unknown as T[number],
   };
 }
+
+// Utility to convert snake_case or kebab-case to Title Case
+export function humanize(value: string): string {
+  return value
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function defineEnum<const T extends readonly [string, ...string[]]>(
+  ...values: T
+) {
+  const items = values.map((value) => ({
+    value,
+    label: humanize(value),
+  }));
+
+  const labelMap = Object.fromEntries(
+    values.map((value) => [value, humanize(value)])
+  ) as Record<T[number], string>;
+
+  return {
+    values,
+    schema: z.enum(values),
+    type: null as unknown as T[number],
+    items,
+    labels: labelMap,
+    getLabel: (value: T[number]) => labelMap[value],
+  } as const;
+}

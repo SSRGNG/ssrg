@@ -7,20 +7,23 @@ import * as React from "react";
 // import { DataTableDateFilter } from "@/components/data-table/date-filter";
 import { DataTableCreateOptions } from "@/components/data-table/create-options";
 import { DataTableFacetedFilter } from "@/components/data-table/faceted-filter";
+import { ToolbarActions } from "@/components/data-table/toolbar-actions";
 import { DataTableViewOptions } from "@/components/data-table/view-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { ActionKey, DataTableFilterField } from "@/types";
+import type { ActionKey, BarAction, DataTableFilterField } from "@/types";
 
 type DataTableToolbarProps<TData> = React.ComponentProps<"div"> & {
   table: Table<TData>;
   actionKey?: ActionKey;
+  barAction?: BarAction;
 };
 
 function DataTableToolbar<TData>({
   table,
   actionKey,
+  barAction,
   children,
   className,
   ...props
@@ -93,6 +96,7 @@ function DataTableToolbar<TData>({
         {children}
         <DataTableViewOptions table={table} />
         {actionKey && <DataTableCreateOptions actionKey={actionKey} />}
+        {barAction && <ToolbarActions barAction={barAction} />}
       </div>
     </div>
   );

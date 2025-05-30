@@ -1,4 +1,4 @@
-import { createEnum } from "@/lib/utils";
+import { createEnum, defineEnum } from "@/lib/utils";
 
 export const roles = createEnum(
   "admin",
@@ -28,3 +28,33 @@ export const presenterRoles = createEnum(
   "presenter",
   "moderator"
 );
+
+export const datasetStatus = createEnum(
+  "draft",
+  "processing",
+  "active",
+  "archived",
+  "deprecated"
+);
+
+export const accessLevels = createEnum(
+  "public",
+  "restricted",
+  "private",
+  "confidential"
+);
+
+export const publications = defineEnum(
+  "journal_article",
+  "conference_paper",
+  // "book",
+  "book_chapter",
+  "report"
+  // "thesis",
+  // "working_paper",
+  // "presentation",
+  // "video",
+  // "other"
+);
+
+export const barActions = defineEnum("publication", "project");

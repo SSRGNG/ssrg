@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import {
-  boolean,
+  check,
   index,
+  integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -10,23 +12,13 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { users } from "@/db/schema";
+import type { PublicationMetadata, PublicationType } from "@/types";
 
-// Publication type enum to better categorize publications
-// export const publicationTypeEnum = pgEnum("publication_type", [
-//   "journal_article",
-//   "conference_paper",
-//   "book",
-//   "book_chapter",
-//   "report",
-//   "thesis",
-//   "other",
-// ]);
-
-// Publications table
 export const publications = pgTable(
   "publications",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    type: varchar("type", { length: 50 }).$type<PublicationType>().notNull(),
     title: text("title").notNull(),
     abstract: text("abstract"),
     link: varchar("link", { length: 500 }),
@@ -34,45 +26,33 @@ export const publications = pgTable(
       onDelete: "set null",
     }),
     publicationDate: timestamp("publication_date"),
-    // Journal-specific fields
-    journal: varchar("journal", { length: 255 }),
-    volume: varchar("volume", { length: 50 }),
-    issue: varchar("issue", { length: 50 }),
-    pages: varchar("pages", { length: 50 }),
-    // Identifiers
     doi: varchar("doi", { length: 255 }),
-    isbn: varchar("isbn", { length: 20 }),
-    // Book-specific fields
-    city: varchar("city", { length: 255 }),
-    publisher: varchar("publisher", { length: 255 }),
-    editedBook: boolean("edited_book"),
-    // Conference-specific fields
-    conferenceName: varchar("conference_name", { length: 255 }),
-    conferenceLocation: varchar("conference_location", { length: 255 }),
-    conferenceDate: timestamp("conference_date"),
-    // Metadata
+    venue: varchar("venue", { length: 255 }), // Journal name OR conference name... most commonly queried field for the type
+    metadata: jsonb("metadata").$type<PublicationMetadata>(),
+    citationCount: integer("citation_count").default(0),
+    lastCitationUpdate: timestamp("last_citation_update"),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
   (t) => [
+    index("publication_type_idx").on(t.type),
     index("publication_date_idx").on(t.publicationDate),
     index("publication_doi_idx").on(t.doi),
+    index("citation_count_idx").on(t.citationCount),
+    index("venue_idx").on(t.venue), // Fast queries by journal/conference
     // Validate DOI format if provided
-    // check(
-    //   "valid_doi",
-    //   sql`${t.doi} IS NULL OR ${t.doi} ~* '^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$'`
-    // ),
-    // // Validate ISBN format if provided
-    // check(
-    //   "valid_isbn",
-    //   sql`${t.isbn} IS NULL OR ${t.isbn} ~* '^(97(8|9)-?)?\d{9}(\d|X)$'`
-    // ),
-    // Validate URL format if provided
-    // check(
-    //   "valid_link",
-    //   sql`${t.link} IS NULL OR ${t.link} ~* '^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'`
-    // ),
+    check(
+      "valid_doi",
+      sql`${t.doi} IS NULL OR ${t.doi} ~* '^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$'`
+    ),
+    // Ensure venue is provided for main types
+    check(
+      "main_types_need_venue",
+      sql`${t.type} NOT IN ('journal_article', 'conference_paper') OR ${t.venue} IS NOT NULL`
+    ),
+    // URL format validation
+    check("valid_url", sql`${t.link} IS NULL OR ${t.link} ~* '^https?:\/\/'`),
   ]
 );

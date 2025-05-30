@@ -95,6 +95,7 @@ export async function getResearchMethodologies(limit = Infinity, offset = 0) {
     offset,
   });
 }
+
 export async function getProjects(limit = Infinity, offset = 0) {
   return await db.query.projects.findMany({
     columns: {
@@ -630,15 +631,120 @@ export async function getFormattedResearchAreas() {
                       .toString();
                   }
 
+                  // Extract publication details from metadata based on type
+                  const { type, metadata, venue } = pub.publication;
+                  let journal = venue || "Venue not specified";
+                  let volume = "";
+                  let pages = "";
+                  let issue = "";
+                  let publisher = "";
+                  let organization = "";
+                  let reportNumber = "";
+                  let conferenceName = "";
+                  let conferenceLocation = "";
+                  let bookTitle = "";
+
+                  // Extract type-specific metadata
+                  if (metadata && typeof metadata === "object") {
+                    switch (type) {
+                      case "journal_article":
+                        if ("journal" in metadata)
+                          journal =
+                            metadata.journal ||
+                            venue ||
+                            "Journal not specified";
+                        if ("volume" in metadata)
+                          volume = metadata.volume || "";
+                        if ("issue" in metadata) issue = metadata.issue || "";
+                        if ("pages" in metadata) pages = metadata.pages || "";
+                        break;
+
+                      case "conference_paper":
+                        if ("conferenceName" in metadata)
+                          conferenceName =
+                            metadata.conferenceName ||
+                            venue ||
+                            "Conference not specified";
+                        if ("conferenceLocation" in metadata)
+                          conferenceLocation =
+                            metadata.conferenceLocation || "";
+                        journal = conferenceName; // Use conference name as journal for consistency
+                        break;
+
+                      case "book_chapter":
+                        if ("bookTitle" in metadata)
+                          bookTitle =
+                            metadata.bookTitle || "Book title not specified";
+                        if ("publisher" in metadata)
+                          publisher = metadata.publisher || "";
+                        journal = bookTitle; // Use book title as journal for consistency
+                        break;
+
+                      case "report":
+                        if ("organization" in metadata)
+                          organization =
+                            metadata.organization ||
+                            "Organization not specified";
+                        if ("reportNumber" in metadata)
+                          reportNumber = metadata.reportNumber || "";
+                        journal = organization; // Use organization as journal for consistency
+                        break;
+
+                      default:
+                        // For working_paper and other types, use venue or fallback
+                        journal = venue || "Publication venue not specified";
+                        break;
+                    }
+                  }
+
+                  // Build additional info string based on publication type
+                  let additionalInfo = "";
+                  switch (type) {
+                    case "journal_article":
+                      if (volume && issue) {
+                        additionalInfo = `Vol. ${volume}, No. ${issue}`;
+                      } else if (volume) {
+                        additionalInfo = `Vol. ${volume}`;
+                      }
+                      if (pages) {
+                        additionalInfo += additionalInfo
+                          ? `, pp. ${pages}`
+                          : `pp. ${pages}`;
+                      }
+                      break;
+
+                    case "conference_paper":
+                      if (conferenceLocation) {
+                        additionalInfo = conferenceLocation;
+                      }
+                      break;
+
+                    case "book_chapter":
+                      if (publisher) {
+                        additionalInfo = publisher;
+                      }
+                      break;
+
+                    case "report":
+                      if (reportNumber) {
+                        additionalInfo = `Report No. ${reportNumber}`;
+                      }
+                      break;
+                  }
+
                   // Return formatted publication
                   return {
                     title: pub.publication.title,
                     authors: authorText,
-                    journal: pub.publication.journal || "Journal not specified",
+                    journal,
                     year,
-                    volume: pub.publication.volume || "",
-                    pages: pub.publication.pages || "",
+                    volume,
+                    pages,
                     link: `/publications/academic/${pub.publication.id}`,
+
+                    additionalInfo, // New field for type-specific details
+                    type: pub.publication.type,
+                    doi: pub.publication.doi || "",
                   };
                 } catch (error) {
                   console.error(

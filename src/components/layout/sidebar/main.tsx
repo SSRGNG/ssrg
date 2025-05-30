@@ -34,7 +34,6 @@ const isChildPath = (parentPath: string, currentPath: string) => {
 };
 
 // Helper function to process nav items and set active state
-// Helper function to process nav items and set active state
 const processNavItems = (
   items: AppNavItem[],
   currentPath: string

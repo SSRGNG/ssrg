@@ -46,7 +46,10 @@ function DataTableFacetedFilter<TData, TValue>({
           <span className="hidden sm:inline-flex">{title}</span>
           {selectedValues?.size > 0 && (
             <React.Fragment>
-              <Separator orientation="vertical" className="mx-2 h-4" />
+              <Separator
+                orientation="vertical"
+                className="data-[orientation=vertical]:h-4"
+              />
               <Badge
                 variant="secondary"
                 className="rounded-sm px-1 font-normal lg:hidden"
@@ -105,7 +108,7 @@ function DataTableFacetedFilter<TData, TValue>({
                   >
                     <div
                       className={cn(
-                        "mr-2 flex size-4 items-center justify-center rounded-sm border border-primary",
+                        "flex size-4 items-center justify-center rounded-sm border border-primary",
                         isSelected
                           ? "bg-primary text-primary-foreground"
                           : "opacity-50 [&_svg]:invisible"
@@ -115,7 +118,7 @@ function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     {option.icon && (
                       <option.icon
-                        className="mr-2 size-4 text-muted-foreground"
+                        className="size-4 text-muted-foreground"
                         aria-hidden="true"
                       />
                     )}

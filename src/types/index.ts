@@ -1,17 +1,40 @@
+import { z } from "zod";
+
 import type { Icons } from "@/components/shared/icons";
 import { actions, researchers } from "@/config/constants";
-import { events, partners, presenterRoles, roles } from "@/config/enums";
+import {
+  accessLevels,
+  barActions,
+  datasetStatus,
+  events,
+  partners,
+  presenterRoles,
+  publications as publicationsEnum,
+  roles,
+} from "@/config/enums";
 import {
   notifications,
+  publications,
   researchFrameworks,
   researchMethodologies,
   users,
 } from "@/db/schema";
+import {
+  bookChapterMetadataSchema,
+  conferenceMetadataSchema,
+  genericMetadataSchema,
+  journalMetadataSchema,
+  reportMetadataSchema,
+} from "@/lib/validations/publication";
 
 export type Role = typeof roles.type;
 export type Partner = typeof partners.type;
+export type PublicationType = typeof publicationsEnum.type;
 export type Event = typeof events.type;
 export type PresenterRole = typeof presenterRoles.type;
+export type AccessLevel = typeof accessLevels.type;
+export type DatasetStatus = typeof datasetStatus.type;
+export type BarAction = typeof barActions.type;
 
 export type Researcher = (typeof researchers)[number];
 
@@ -19,6 +42,7 @@ export type User = typeof users.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type ResearchMethodology = typeof researchMethodologies.$inferSelect;
 export type ResearchFramework = typeof researchFrameworks.$inferSelect;
+export type Publication = typeof publications.$inferSelect;
 
 export type ServerResponse = {
   status: "error" | "success";
@@ -65,12 +89,6 @@ export type FooterItem = {
   items: SocialItem[];
 };
 
-export type StoredFile = {
-  id: string;
-  name: string;
-  url: string;
-};
-
 export type SocialItem = {
   title: string;
   href: string;
@@ -92,17 +110,6 @@ type ExtractOptionKeys<T> = T extends { items: Array<{ options: infer O }> }
 
 export type ActionItem = typeof actions;
 export type ActionKey = ExtractOptionKeys<ActionItem>;
-// export type ActionItem = {
-//   title: string;
-//   href: string;
-//   roles: Role[];
-//   icon: Icons;
-//   items: Omit<ActionItem, "items">[];
-//   options?: {
-//     view: string;
-//     edit: string;
-//   };
-// };
 
 export type DataTableOption = {
   label: string;
@@ -117,3 +124,47 @@ export type DataTableFilterField<TData> = {
   placeholder?: string;
   options?: DataTableOption[];
 };
+
+export type StoredFile = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+// export type JournalMetadata = {
+//   journal: string;
+//   volume?: string;
+//   issue?: string;
+//   pages?: string;
+// };
+
+// export type ConferenceMetadata = {
+//   conferenceName: string;
+//   conferenceLocation?: string;
+//   conferenceDate?: string; // ISO date string
+// };
+
+// export type BookChapterMetadata = {
+//   bookTitle: string;
+//   publisher?: string;
+//   city?: string;
+//   isbn?: string;
+// };
+
+// export type ReportMetadata = {
+//   organization?: string;
+//   reportNumber?: string;
+// };
+
+export type JournalMetadata = z.infer<typeof journalMetadataSchema>;
+export type ConferenceMetadata = z.infer<typeof conferenceMetadataSchema>;
+export type BookChapterMetadata = z.infer<typeof bookChapterMetadataSchema>;
+export type ReportMetadata = z.infer<typeof reportMetadataSchema>;
+export type Generic = z.infer<typeof genericMetadataSchema>;
+
+export type PublicationMetadata =
+  | JournalMetadata
+  | ConferenceMetadata
+  | BookChapterMetadata
+  | ReportMetadata
+  | Generic; // For flexible "other" types
