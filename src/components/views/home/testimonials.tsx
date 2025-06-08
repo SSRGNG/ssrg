@@ -25,7 +25,6 @@ const testimonials = [
 function Testimonials({ className, ...props }: Props) {
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       className={cn(className)}
       header={{ title: "What Partners Say" }}

@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { Section } from "@/components/shell/section";
 import { buttonVariants } from "@/components/ui/button";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type RAreaType = ResearchAreasData[number];
 type Props = React.ComponentPropsWithoutRef<typeof Section> & {
@@ -12,10 +12,9 @@ type Props = React.ComponentPropsWithoutRef<typeof Section> & {
 };
 
 function Publications({ area, className, ...props }: Props) {
-  if (!area) return null;
+  if (!area?.publications.length) return null;
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       header={{ title: "Publications" }}
       className={cn(className)}

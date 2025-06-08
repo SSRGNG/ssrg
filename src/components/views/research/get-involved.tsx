@@ -9,7 +9,6 @@ type Props = React.ComponentPropsWithoutRef<typeof Section>;
 function GetInvolved({ className, ...props }: Props) {
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       size={"small"}
       className={cn(className)}

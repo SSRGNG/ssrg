@@ -3,8 +3,21 @@ import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
 
-import { researchers } from "@/config/constants";
+import { DOI_REGEX, ORCID_REGEX, researchers } from "@/config/constants";
+import {
+  extractMetadataFields,
+  getConferenceInfo,
+  getJournalInfo,
+  getMetadataField,
+} from "@/db/utils";
+import {
+  AdminAreasData,
+  ResearchersWithRelations,
+  ResearcherWithPublications,
+} from "@/lib/actions/queries";
 import type { NavItem, Role, UserNavItem } from "@/types";
+
+export { doiValidator, orcidValidator } from "@/lib/validations";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,6 +42,10 @@ export function getErrorMessage(err: unknown) {
 export function catchError(err: unknown) {
   const errorMessage = getErrorMessage(err);
   return toast.error(errorMessage);
+}
+
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function formatPrice(
@@ -157,6 +174,177 @@ export const mapNavItems = (items: NavItem[]) => {
   }));
 };
 
+export function mapResearchers(researchers: ResearchersWithRelations) {
+  return researchers.map((researcher) => {
+    const publications = researcher.author.publications.map(
+      ({ publication }) => {
+        const year = publication.publicationDate
+          ? new Date(publication.publicationDate).getFullYear()
+          : null;
+        return year ? `${publication.title} (${year})` : publication.title;
+      }
+    );
+
+    return {
+      id: researcher.id,
+      name: researcher.user.name,
+      title: researcher.title,
+      image: researcher.user.image || "/images/placeholder.webp",
+      areas: researcher.areas.map((area) => area.area.title),
+      bio: researcher.bio,
+      expertise: researcher.expertise.map((e) => e.expertise),
+      education: researcher.education.map((e) => e.education),
+      publications: [...new Set(publications)], // Remove duplicates
+      projects: researcher.leadProjects.map((p) => p.title),
+      contact: {
+        email: researcher.user.email,
+        orcid: researcher.orcid || undefined,
+        twitter: researcher.x ? `@${researcher.x.replace("@", "")}` : undefined,
+      },
+      featured: researcher.featured,
+    };
+  });
+}
+
+export function mapResearchAreas(areas: AdminAreasData) {
+  return areas.map((area) => {
+    // Format publications with authors and metadata
+    const publications = area.publications.map(({ publication }) => {
+      // Format author names (Last, F. & Last, F.)
+      const authorNames = publication.authors.map(({ author }) => {
+        const nameParts = author.name.split(" ");
+        const lastName = nameParts[nameParts.length - 1];
+        const firstInitial = nameParts[0][0];
+        return `${lastName}, ${firstInitial}.`;
+      });
+
+      // Join authors with & for last author
+      const authorsText =
+        authorNames.length <= 2
+          ? authorNames.join(" & ")
+          : `${authorNames.slice(0, -1).join(", ")} & ${
+              authorNames[authorNames.length - 1]
+            }`;
+
+      // Get year from publication date
+      const year = publication.publicationDate
+        ? new Date(publication.publicationDate).getFullYear()
+        : null;
+
+      // Safely extract and validate metadata fields
+      const metadataFields = extractMetadataFields(publication.metadata);
+
+      // Get type-specific info
+      const journalInfo = getJournalInfo(publication.metadata);
+      const conferenceInfo = getConferenceInfo(publication.metadata);
+
+      // Safe field extraction with Zod validation
+      const journal =
+        journalInfo?.journal ||
+        conferenceInfo?.conferenceName ||
+        getMetadataField(publication.metadata, "journal_article", "");
+      const volume = journalInfo?.volume || "";
+      const pages = journalInfo?.pages || "";
+
+      return {
+        id: publication.id,
+        title: publication.title,
+        authors: authorsText,
+        venue: publication.venue,
+        metadata: publication.metadata,
+        journal,
+        volume,
+        pages,
+        metadataType: metadataFields.type,
+        year,
+        type: publication.type,
+        doi: publication.doi || undefined,
+        link: `/publications/academic/${publication.id}`,
+      };
+    });
+
+    return {
+      id: area.id,
+      title: area.title,
+      icon: area.icon,
+      image: area.image,
+      description: area.description,
+      detail: area.detail,
+      questions: area.questions.map((q) => q.question),
+      methods: area.methods.map((method) => ({
+        title: method.title,
+        description: method.description,
+      })),
+      findings: area.findings.map((f) => f.finding),
+      publications,
+      href: area.href,
+      linkText: area.linkText || `Explore ${area.title} Research`,
+    };
+  });
+}
+
+export function mapResearcherPublications(
+  researcher: ResearcherWithPublications
+) {
+  return (
+    researcher
+      .map((userPublication) => {
+        const pub = userPublication.publication;
+
+        const authors = pub.authors.map((author) => ({
+          order: author.order,
+          isCorresponding: author.isCorresponding,
+          name: author.author.name,
+          email: author.author.email,
+          affiliation: author.author.affiliation,
+          orcid: author.author.orcid,
+          researcher: author.author.researcher
+            ? {
+                id: author.author.researcher.id,
+                title: author.author.researcher.title,
+              }
+            : null,
+        }));
+
+        return {
+          // Publication fields
+          id: pub.id,
+          title: pub.title,
+          type: pub.type,
+          doi: pub.doi,
+          publicationDate: pub.publicationDate,
+          abstract: pub.abstract,
+          link: pub.link,
+          venue: pub.venue,
+          metadata: pub.metadata,
+          citationCount: pub.citationCount,
+          lastCitationUpdate: pub.lastCitationUpdate,
+          creatorId: pub.creatorId,
+
+          // User-specific fields
+          userAuthorOrder: userPublication.order,
+          userIsCorresponding: userPublication.isCorresponding,
+          isLeadAuthor: userPublication.order === 0,
+
+          // Authors list
+          authors,
+
+          // Permission flags
+          canDelete:
+            userPublication.order === Math.min(...authors.map((a) => a.order)),
+        };
+      })
+      // Sort by publication date (most recent first)
+      .sort((a, b) => {
+        if (!a.publicationDate || !b.publicationDate) return 0;
+        return (
+          new Date(b.publicationDate).getTime() -
+          new Date(a.publicationDate).getTime()
+        );
+      })
+  );
+}
+
 export const getResearchersByArea = (areaTitle: string) => {
   return researchers.filter((researcher) =>
     researcher.areas.includes(areaTitle)
@@ -166,25 +354,6 @@ export const getResearchersByArea = (areaTitle: string) => {
 export const featuredResearchers = researchers.filter(
   (researcher) => researcher.featured === true
 );
-
-// export function createEnum<const T extends readonly [string, ...string[]]>(
-//   values: T
-// ) {
-//   const schema = z.enum(values);
-//   return Object.assign(schema, {
-//     values,
-//     type: null as unknown as z.infer<typeof schema>,
-//   });
-// }
-
-// 🧠 Super smart createEnum
-// export function createEnum<const Values extends readonly [string, ...string[]]>(
-//   values: Values
-// ) {
-//   const schema = z.enum(values);
-//   type EnumType = Values[number];
-//   return { schema, type: null as unknown as EnumType };
-// }
 
 export function createEnum<const T extends [string, ...string[]]>(
   ...values: T
@@ -223,4 +392,35 @@ export function defineEnum<const T extends readonly [string, ...string[]]>(
     labels: labelMap,
     getLabel: (value: T[number]) => labelMap[value],
   } as const;
+}
+
+export function isValidDOI(doi: string) {
+  return DOI_REGEX.test(doi);
+}
+
+export function isValidORCID(orcid: string): boolean {
+  return ORCID_REGEX.test(orcid);
+}
+
+export function normalizeDOI(input: string) {
+  if (!input) return null;
+
+  // Remove common prefixes
+  const cleaned = input
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//, "")
+    .replace(/^doi:/, "")
+    .trim();
+
+  return isValidDOI(cleaned) ? cleaned : null;
+}
+
+export function normalizeORCID(input: string) {
+  if (!input) return null;
+
+  const cleaned = input
+    .replace(/^https?:\/\/orcid\.org\//, "")
+    .replace(/[^0-9X-]/g, "")
+    .toUpperCase();
+
+  return isValidORCID(cleaned) ? cleaned : null;
 }

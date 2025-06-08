@@ -1,7 +1,7 @@
 import { Section } from "@/components/shell/section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type RAreaType = ResearchAreasData[number];
 type Props = React.ComponentPropsWithoutRef<typeof Section> & {
@@ -12,7 +12,6 @@ function ResearchMethods({ area, className, ...props }: Props) {
   if (!area) return null;
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       header={{
         title: "Research Methods",

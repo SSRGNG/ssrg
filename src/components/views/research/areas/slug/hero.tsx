@@ -1,7 +1,7 @@
 import { Icons } from "@/components/shared/icons";
 import { HeroSection } from "@/components/shell/section";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type RAreaType = ResearchAreasData[number];
 type Props = React.ComponentPropsWithoutRef<typeof HeroSection> & {

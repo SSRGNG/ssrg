@@ -42,7 +42,6 @@ const faqs = [
 function Demo({ className, ...props }: Props) {
   return (
     <Section
-      padding="medium"
       spacing="snug"
       className={cn(className)}
       header={{ title: "Frequently Asked Questions" }}

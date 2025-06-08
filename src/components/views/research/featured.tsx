@@ -24,7 +24,6 @@ function Featured({ className, ...props }: Props) {
   if (!featured.length) return null;
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       className={cn(className)}
       header={{ title: "Featured Projects" }}

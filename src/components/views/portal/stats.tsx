@@ -32,14 +32,6 @@ async function Stats({ className, ...props }: Props) {
       bgColor: "bg-emerald-600/10",
     },
     {
-      title: "Collaborators",
-      count: 0,
-      href: "/portal/publications",
-      icon: "people" as Icons,
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-600/10",
-    },
-    {
       title: "Projects",
       count: 0,
       // count: totalProjects.count,
@@ -47,6 +39,14 @@ async function Stats({ className, ...props }: Props) {
       icon: "caseStudy" as Icons,
       textColor: "text-blue-600",
       bgColor: "bg-blue-600/10",
+    },
+    {
+      title: "Citations",
+      count: 0,
+      href: "#",
+      icon: "quote" as Icons,
+      textColor: "text-purple-600",
+      bgColor: "bg-purple-600/10",
     },
     {
       title: "Datasets",

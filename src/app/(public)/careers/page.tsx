@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { Page } from "@/components/shell";
 
 export const metadata: Metadata = {
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function People() {
-  return (
-    <Page>
-      <CreateResearchArea />
-    </Page>
-  );
+  return <Page>{/* <CreateResearchArea /> */} Careers</Page>;
 }

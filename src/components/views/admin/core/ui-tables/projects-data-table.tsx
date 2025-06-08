@@ -64,6 +64,7 @@ function ProjectsDataTable({ projects, className, ...props }: Props) {
         id: "actions",
         cell: ({ row }) => {
           const area = row.original;
+          console.log(area);
 
           return (
             <DropdownMenu modal={false}>

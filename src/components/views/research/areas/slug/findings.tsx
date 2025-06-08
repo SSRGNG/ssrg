@@ -1,8 +1,8 @@
 import { Info } from "lucide-react";
 
 import { Section } from "@/components/shell/section";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type RAreaType = ResearchAreasData[number];
 type Props = React.ComponentPropsWithoutRef<typeof Section> & {

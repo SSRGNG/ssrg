@@ -14,7 +14,7 @@ import type {
 import { ChartLine, HandHeart, Users2 } from "lucide-react";
 
 export const appName = "SSRG";
-export const appFullName = "Social Solutions Research Group";
+export const appFullName = "Dibịa Akwụkwọ: Social Solutions Research Group";
 export const links = {
   x: "https://x.com/ssrg",
   facebook: "https://facebook.com/ssrg",
@@ -27,9 +27,6 @@ export const PASSWORD_KEY_LENGTH = 64;
 export const PIN_KEY_LENGTH = 32;
 
 export const CACHED_RESEARCH_AREAS = "cached-research-areas";
-export const CACHED_FORMATTED_RESEARCH_AREAS =
-  "cached-formatted-research-areas";
-
 export const CACHED_RESEARCHERS = "cached-researchers";
 export const CACHED_FORMATTED_RESEARCHERS = "cached-formatted-researchers";
 
@@ -39,6 +36,9 @@ export const CACHED_FORMATTED_RESEARCHER = "cached-formatted-researcher";
 export const CACHED_RESEARCH_FRAMEWORKS = "cached-research-frameworks";
 export const CACHED_RESEARCH_METHODOLOGIES = "cached-research-methodologies";
 export const CACHED_PROJECTS = "cached-projects";
+
+export const DOI_REGEX = /^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$/i;
+export const ORCID_REGEX = /^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$/;
 
 export const keywords = [
   appFullName,
@@ -478,6 +478,7 @@ export const actions = {
       icon: "user" as Icons,
       options: {
         user: "Create User",
+        researcher: "Create Researcher",
       },
     },
     {

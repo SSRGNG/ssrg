@@ -8,7 +8,6 @@ type Props = React.ComponentPropsWithoutRef<typeof Section>;
 function Interconnections({ className, ...props }: Props) {
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       className={cn(className)}
       header={{

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Table } from "@tanstack/react-table";
 import { GitBranchPlus } from "lucide-react";
 import * as React from "react";
 
@@ -22,38 +23,41 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { BarAction } from "@/types";
+import { BarAction, TableMeta } from "@/types";
 
 import { CreatePublication } from "@/components/forms/create-publication";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { barActions } from "@/config/enums";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-type ToolbarActionsProps = {
-  barAction: BarAction;
-  label?: string;
+type ToolbarActionsProps<TData, TContext> = {
+  table: Table<TData> & {
+    options: {
+      meta: TableMeta<TData, TContext>;
+    };
+  };
 };
 
 type FormComponentProps = React.ComponentPropsWithoutRef<"form"> & {
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  context?: unknown;
 };
 
-function ToolbarActions({ barAction, label }: ToolbarActionsProps) {
+function ToolbarActions<TData, TContext>({
+  table,
+}: ToolbarActionsProps<TData, TContext>) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
-  const getActionLabel = React.useCallback(() => {
-    if (label) return label;
+  const meta = table.options.meta;
+  const { barAction, context } = meta;
 
-    const derivedLabel = barActions.getLabel(barAction);
-    return `Create ${derivedLabel}`;
-  }, []);
-
-  const actionLabel = getActionLabel();
+  if (!barAction) return null;
+  const actionLabel = barActions.getLabel(barAction);
 
   const formMappings: Record<
     BarAction,
-    React.ComponentType<FormComponentProps>
+    React.ComponentType<FormComponentProps & { context?: TContext }>
   > = {
     publication: CreatePublication,
     project: () => null,
@@ -85,6 +89,7 @@ function ToolbarActions({ barAction, label }: ToolbarActionsProps) {
         <FormComponent
           setIsOpen={setOpen}
           className="px-4 pr-2 overflow-auto"
+          context={context}
         />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
@@ -114,7 +119,7 @@ function ToolbarActions({ barAction, label }: ToolbarActionsProps) {
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="sm:max-h-[70vh]">
-          <FormComponent setIsOpen={setOpen} />
+          <FormComponent setIsOpen={setOpen} context={context} />
         </ScrollArea>
       </DialogContent>
     </Dialog>

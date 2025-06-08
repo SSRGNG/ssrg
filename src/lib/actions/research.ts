@@ -608,8 +608,13 @@ export async function bulkCreateResearchMethodologies(
           .values(methodologiesToProcess)
           .returning();
         results.created = inserted;
-      } catch (err: any) {
-        if (err.code === "23505") {
+      } catch (err) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "code" in err &&
+          err.code === "23505"
+        ) {
           // Unique violation
           // Hard to tell which ones failed in a batch without more complex logic or individual processing.
           // Mark all as error for simplicity in this catch block.

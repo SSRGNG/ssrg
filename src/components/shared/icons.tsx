@@ -91,6 +91,7 @@ export const Icons = {
   privacy: LockIcon,
   projects: ListTreeIcon,
   publications: BookIcon,
+  quote: QuoteIcon,
   reports: FileTextIcon,
   research: LightbulbIcon,
   resources: ThermometerSnowflakeIcon,

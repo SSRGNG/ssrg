@@ -10,7 +10,7 @@ function Newsletter({ className, ...props }: Props) {
       size={"small"}
       alignment={"center"}
       spacing={"snug"}
-      className={cn("pb-8 md:pb-16", className)}
+      className={cn(className)}
       header={{
         title: "Join Our Research Community",
         description:

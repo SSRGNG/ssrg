@@ -11,7 +11,8 @@ import {
   Testimonials,
 } from "@/components/views/home";
 import { appConfig } from "@/config";
-import { getCachedResearchAreas } from "@/lib/queries/admin";
+import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
+import { mapResearchAreas } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: appConfig.home.title,
@@ -19,9 +20,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const areas = await getCachedResearchAreas();
+  const rawAreas = await getCachedAdminResearchAreas();
+  const areas = mapResearchAreas(rawAreas);
 
-  // console.log({ areas });
   return (
     <Page>
       <Hero />

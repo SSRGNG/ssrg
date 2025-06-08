@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type Props = React.ComponentPropsWithoutRef<typeof Section> & {
   research_areas: ResearchAreasData;
@@ -19,7 +19,6 @@ type Props = React.ComponentPropsWithoutRef<typeof Section> & {
 function ResearchAreas({ research_areas, className, ...props }: Props) {
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       className={cn(className)}
       header={{

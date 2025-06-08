@@ -10,7 +10,8 @@ import {
   ResearchMethods,
   ResearchTeam,
 } from "@/components/views/research/areas/slug";
-import { getCachedResearchAreas } from "@/lib/queries/admin";
+import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
+import { mapResearchAreas } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -21,8 +22,8 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const slug = (await params).slug;
-  const areas = await getCachedResearchAreas();
-
+  const rawAreas = await getCachedAdminResearchAreas();
+  const areas = mapResearchAreas(rawAreas);
   const area = areas.find((a) => {
     const hrefSlug = a.href.split("/").pop();
     return hrefSlug === slug;
@@ -41,7 +42,8 @@ export default async function FocusArea({
 }) {
   const { slug } = await params;
 
-  const areas = await getCachedResearchAreas();
+  const rawAreas = await getCachedAdminResearchAreas();
+  const areas = mapResearchAreas(rawAreas);
 
   // console.log({ areas });
   const area = areas.find((a) => {

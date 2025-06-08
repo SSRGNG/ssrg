@@ -1,3 +1,4 @@
+import { appFullName } from "@/config/constants";
 import {
   Body,
   Container,
@@ -61,7 +62,7 @@ export default function NewsletterWelcomeEmail({
           <Container className="mx-auto my-[40px] max-w-2xl rounded p-4">
             <Section className="mt-4">
               <Heading className="text-center text-2xl font-semibold text-blue-800">
-                Social Solutions Research Group
+                {appFullName}
               </Heading>
               <Hr className="my-4" />
               <Heading className="text-center text-3xl font-semibold text-gray-800">
@@ -133,7 +134,7 @@ export default function NewsletterWelcomeEmail({
                 </Link>
               </Text>
               <Text className="mb-0 mt-4">
-                © Social Solutions Research Group {new Date().getFullYear()}
+                © {appFullName} {new Date().getFullYear()}
               </Text>
               <Text className="m-0">
                 123 Research Way, Academic City, AC 12345

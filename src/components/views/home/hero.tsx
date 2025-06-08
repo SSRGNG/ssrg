@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { HeroSection } from "@/components/shell/section";
 import { buttonVariants } from "@/components/ui/button";
+import { appFullName } from "@/config/constants";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<typeof HeroSection>;
@@ -13,9 +14,8 @@ function Hero({ className, ...props }: Props) {
         Bridging research and practice to create meaningful social impact
       </h1>
       <p className="text-balance text-base leading-normal text-muted-foreground">
-        Social Solutions Research Group conducts rigorous research to develop
-        evidence-based approaches for today&apos;s most pressing social
-        challenges.
+        {appFullName} conducts rigorous research to develop evidence-based
+        approaches for today&apos;s most pressing social challenges.
       </p>
       {/* <div className="flex flex-col sm:flex-row justify-center gap-4"> */}
       <div className="max-w-md mx-auto grid xs:grid-cols-2 gap-4">

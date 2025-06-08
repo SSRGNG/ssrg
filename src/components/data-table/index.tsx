@@ -30,82 +30,85 @@ import {
 import { cn } from "@/lib/utils";
 import type { ActionKey, BarAction, DataTableFilterField } from "@/types";
 
-type DataTableProps<TData, TValue> = React.ComponentPropsWithoutRef<"div"> & {
-  /**
-   * The data for the table.
-   * @default []
-   * @type TData[]
-   */
-  data: TData[];
+type DataTableProps<TData, TValue, TContext> =
+  React.ComponentPropsWithoutRef<"div"> & {
+    /**
+     * The data for the table.
+     * @default []
+     * @type TData[]
+     */
+    data: TData[];
 
-  /**
-   * The default number of rows per page.
-   * @default [10, 20, 30, 40]
-   * @type number[] | undefined
-   * @example [20]
-   */
-  pageSizeOptions?: number[];
+    /**
+     * The default number of rows per page.
+     * @default [10, 20, 30, 40]
+     * @type number[] | undefined
+     * @example [20]
+     */
+    pageSizeOptions?: number[];
 
-  /**
-   * The columns of the table.
-   * @default []
-   * @type ColumnDef<TData, TValue>[]
-   */
-  columns: ColumnDef<TData, TValue>[];
+    /**
+     * The columns of the table.
+     * @default []
+     * @type ColumnDef<TData, TValue>[]
+     */
+    columns: ColumnDef<TData, TValue>[];
 
-  /**
-   * Defines filter fields for the table. Supports both dynamic faceted filters and search filters.
-   * - Faceted filters are rendered when `options` are provided for a filter field.
-   * - Otherwise, search filters are rendered.
-   *
-   * The indie filter field `value` represents the corresponding column name in the database table.
-   * @default []
-   * @type { label: string, value: keyof TData, placeholder?: string, options?: { label: string, value: string, icon?: React.ComponentType<{ className?: string }> }[] }[]
-   * @example
-   * ```ts
-   * // Render a search filter
-   * const filterFields = [
-   *   { label: "Title", value: "title", placeholder: "Search titles" }
-   * ];
-   * // Render a faceted filter
-   * const filterFields = [
-   *   {
-   *     label: "Status",
-   *     value: "status",
-   *     options: [
-   *       { label: "Todo", value: "todo" },
-   *       { label: "In Progress", value: "in-progress" },
-   *       { label: "Done", value: "done" },
-   *       { label: "Canceled", value: "canceled" }
-   *     ]
-   *   }
-   * ];
-   * ```
-   */
-  filterFields?: DataTableFilterField<TData>[];
+    /**
+     * Defines filter fields for the table. Supports both dynamic faceted filters and search filters.
+     * - Faceted filters are rendered when `options` are provided for a filter field.
+     * - Otherwise, search filters are rendered.
+     *
+     * The indie filter field `value` represents the corresponding column name in the database table.
+     * @default []
+     * @type { label: string, value: keyof TData, placeholder?: string, options?: { label: string, value: string, icon?: React.ComponentType<{ className?: string }> }[] }[]
+     * @example
+     * ```ts
+     * // Render a search filter
+     * const filterFields = [
+     *   { label: "Title", value: "title", placeholder: "Search titles" }
+     * ];
+     * // Render a faceted filter
+     * const filterFields = [
+     *   {
+     *     label: "Status",
+     *     value: "status",
+     *     options: [
+     *       { label: "Todo", value: "todo" },
+     *       { label: "In Progress", value: "in-progress" },
+     *       { label: "Done", value: "done" },
+     *       { label: "Canceled", value: "canceled" }
+     *     ]
+     *   }
+     * ];
+     * ```
+     */
+    filterFields?: DataTableFilterField<TData>[];
 
-  /**
-   * The floating bar to render at the bottom of the table on row selection.
-   * @default null
-   * @type React.ReactNode | null
-   * @example floatingBar={<TasksTableFloatingBar table={table} />}
-   */
-  floatingBar?: React.ReactNode | null;
-  actionKey?: ActionKey;
-  barAction?: BarAction;
-};
+    /**
+     * The floating bar to render at the bottom of the table on row selection.
+     * @default null
+     * @type React.ReactNode | null
+     * @example floatingBar={<TasksTableFloatingBar table={table} />}
+     */
+    floatingBar?: React.ReactNode | null;
+    actionKey?: ActionKey;
+    barAction?: BarAction;
+    context?: TContext;
+  };
 
-function DataTable<TData, TValue>({
+function DataTable<TData, TValue, TContext>({
   columns,
   data,
   filterFields = [],
   floatingBar = null,
   actionKey,
   barAction,
+  context,
   pageSizeOptions = [10, 20, 30, 40],
   className,
   ...props
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue, TContext>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ category: false });
@@ -156,7 +159,14 @@ function DataTable<TData, TValue>({
       pagination,
     },
     onPaginationChange: setPagination,
-    meta: { searchableColumns, filterableColumns, filterFields },
+    meta: {
+      searchableColumns,
+      filterableColumns,
+      filterFields,
+      actionKey,
+      barAction,
+      context,
+    },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -175,11 +185,7 @@ function DataTable<TData, TValue>({
       className={cn("w-full space-y-2 overflow-x-auto", className)}
       {...props}
     >
-      <DataTableToolbar
-        table={table}
-        actionKey={actionKey}
-        barAction={barAction}
-      />
+      <DataTableToolbar table={table} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

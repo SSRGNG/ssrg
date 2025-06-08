@@ -12,6 +12,7 @@ const sectionVariants = cva("", {
     },
     padding: {
       default: "",
+      hero: "py-4 md:py-0 lg:py-4",
       small: "py-4 md:py-6",
       medium: "py-8 md:py-16",
       large: "py-12 md:py-16 lg:py-20",
@@ -154,7 +155,7 @@ function Section({
 function HeroSection({ className, children, ...props }: SectionProps) {
   return (
     <Section
-      padding="large"
+      padding="hero"
       spacing="tight"
       alignment="center"
       size="small"

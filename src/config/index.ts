@@ -1,6 +1,7 @@
 import { Icons } from "@/components/shared/icons";
 import {
   actions,
+  appFullName,
   appName,
   appNav,
   auth,
@@ -20,6 +21,7 @@ export type AppConfig = typeof appConfig;
 
 export const appConfig = {
   name: appName,
+  appFullName,
   keywords,
   authors,
   creator,
@@ -38,7 +40,7 @@ export const appConfig = {
     icon: "dataTools" as Icons,
   },
   home: {
-    title: `Social Solutions Research Group`,
+    title: appFullName,
     description:
       "Bridging research and practice to create meaningful social impact",
   },

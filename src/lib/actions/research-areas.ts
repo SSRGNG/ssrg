@@ -5,10 +5,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
-import {
-  CACHED_FORMATTED_RESEARCH_AREAS,
-  CACHED_RESEARCH_AREAS,
-} from "@/config/constants";
+import { CACHED_RESEARCH_AREAS } from "@/config/constants";
 import { db } from "@/db";
 import {
   researchAreaFindings,
@@ -98,7 +95,6 @@ export async function createResearchArea(data: CreateResearchAreaPayload) {
 
     // Revalidate the research areas tag & paths
     revalidateTag(CACHED_RESEARCH_AREAS);
-    revalidateTag(CACHED_FORMATTED_RESEARCH_AREAS);
 
     return {
       success: true,
@@ -285,7 +281,6 @@ export async function updateResearchArea(
 
     // Revalidate the research areas tag & paths
     revalidateTag(CACHED_RESEARCH_AREAS);
-    revalidateTag(CACHED_FORMATTED_RESEARCH_AREAS);
 
     return {
       success: true,

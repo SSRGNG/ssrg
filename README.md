@@ -1,6 +1,6 @@
 # 🧠 SSRG Website
 
-This is the official website for the **Social Solutions Research Group (SSRG)**. Built with [Next.js 15](https://nextjs.org/), [TypeScript](https://www.typescriptlang.org/), and [shadcn/ui](https://ui.shadcn.com/), it serves as a hub for showcasing SSRG's research areas, publications, team members, and more.
+This is the official website for the **Dibịa Akwụkwọ: Social Solutions Research Group (SSRG)**. Built with [Next.js 15](https://nextjs.org/), [TypeScript](https://www.typescriptlang.org/), and [shadcn/ui](https://ui.shadcn.com/), it serves as a hub for showcasing SSRG's research areas, publications, team members, and more.
 
 ---
 
@@ -25,6 +25,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 ## ✅ Tasks
 
 ### Structure & Layout
+
 - [x] Set up Next.js project with App Router
 - [x] Configure Tailwind CSS and base theme
 - [x] Implement responsive layout and routing
@@ -34,6 +35,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [ ] Build admin core features
 
 ### Pages
+
 - [x] Homepage
 - [ ] People (Members, Collaborators)
 - [x] Research Areas (with Tabs for projects)
@@ -43,6 +45,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [ ] Admin features & pages
 
 ### Features
+
 - [x] Tabbed interface for research areas
 - [x] Accordion for FAQs
 - [x] Newsletter-style form section
@@ -51,6 +54,7 @@ This is the official website for the **Social Solutions Research Group (SSRG)**.
 - [ ] SEO metadata and Open Graph tags
 
 ### Polish
+
 - [x] Accessible and semantic HTML structure
 - [ ] Lighthouse performance pass
 - [ ] Mobile testing and polish
@@ -65,3 +69,4 @@ To run locally:
 ```bash
 pnpm install
 pnpm dev
+```

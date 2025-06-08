@@ -34,6 +34,7 @@ export const researchers = pgTable(
   },
   (t) => [
     index("researchers_featured_idx").on(t.featured),
+    index("researchers_orcid_idx").on(t.orcid),
     check(
       "valid_orcid",
       sql`${t.orcid} IS NULL OR ${t.orcid} ~* '^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$'`

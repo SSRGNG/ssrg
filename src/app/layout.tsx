@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: { default: appConfig.name, template: `%s | ${appConfig.name}` },
+  title: { default: appConfig.appFullName, template: `%s | ${appConfig.name}` },
   description: appConfig.description,
   keywords: appConfig.keywords,
   authors: appConfig.authors,

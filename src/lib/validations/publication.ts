@@ -1,15 +1,34 @@
 import { z } from "zod";
 
+import { DOI_REGEX } from "@/config/constants";
 import { publications } from "@/config/enums";
+import { pubAuthorSchema } from "@/lib/validations/author";
+
+export const doiValidator = z
+  .string()
+  .optional()
+  .nullable()
+  .refine(
+    (doi) => {
+      if (!doi) return true; // Allow empty/null
+      return DOI_REGEX.test(doi);
+    },
+    {
+      message:
+        "Invalid DOI format. DOI should start with '10.' followed by registrant code and suffix (e.g., 10.1000/182)",
+    }
+  );
+// Author schema - supports both internal researchers and external authors
+export const authorSchema = pubAuthorSchema;
 
 const basePublicationSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   abstract: z.string().optional().nullable(),
-  link: z.string().url("Invalid URL").optional().nullable(),
+  link: z.string().url("Invalid URL").optional().nullable().or(z.literal("")), // Allow empty string
   creatorId: z.string().uuid().optional().nullable(),
   publicationDate: z.coerce.date().optional().nullable(),
-  doi: z.string().optional().nullable(),
-  venue: z.string().optional().nullable(), // Journal name OR conference name
+  doi: doiValidator,
+  venue: z.string().optional().nullable(),
 });
 
 const baseCreateInputSchema = basePublicationSchema.omit({ venue: true });
@@ -82,15 +101,15 @@ export const publicationSchema = z.discriminatedUnion("type", [
   otherSchema,
 ]);
 
-export const publicationAuthorSchema = z.object({
-  researcherId: z.string().uuid(),
-  order: z.number().int().nonnegative(),
-  contribution: z.string().optional().nullable(),
-});
+// export const publicationAuthorSchema = z.object({
+//   researcherId: z.string().uuid(),
+//   order: z.number().int().nonnegative(),
+//   contribution: z.string().optional().nullable(),
+// });
 
 export const researchAreaPublicationSchema = z.object({
   researchAreaId: z.string().uuid(),
-  publicationId: z.string().uuid(),
+  // publicationId: z.string().uuid(),
   order: z.number().int().nonnegative(),
 });
 
@@ -106,7 +125,30 @@ const baseCreateUpdateSchema = basePublicationSchema.extend({
       genericMetadataSchema,
     ])
     .optional(),
-  authors: z.array(publicationAuthorSchema).optional(),
+  authors: z
+    .array(authorSchema)
+    .min(1, "At least one author is required")
+    .refine(
+      (authors) => {
+        // Check for unique order values
+        const orders = authors.map((a) => a.order);
+        return new Set(orders).size === orders.length;
+      },
+      {
+        message: "Author order values must be unique",
+      }
+    )
+    .refine(
+      (authors) => {
+        // Check for sequential ordering starting from 0
+        const orders = authors.map((a) => a.order).sort((a, b) => a - b);
+        return orders.every((order, index) => order === index);
+      },
+      {
+        message:
+          "Author order must be sequential starting from 0 (e.g., 0, 1, 2...)",
+      }
+    ),
   areas: z.array(researchAreaPublicationSchema).optional(),
 });
 
@@ -161,7 +203,52 @@ export const createPublicationSchema = baseCreateUpdateSchema
         });
       }
     }
+
+    // Validate that at least one author is marked as corresponding
+    if (data.authors && data.authors.length > 0) {
+      const correspondingAuthors = data.authors.filter(
+        (a) => a.isCorresponding
+      );
+      // if (correspondingAuthors.length === 0) {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.custom,
+      //     message: "At least one author must be marked as corresponding author",
+      //     path: ["authors"],
+      //   });
+      // }
+      if (correspondingAuthors.length === 0) {
+        // If only one author, they don't strictly need to be marked, but good practice.
+        // If multiple authors, at least one must be marked.
+        if (data.authors.length > 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "At least one author must be marked as corresponding when multiple authors are present.",
+            path: ["authors"],
+          });
+        } else {
+          // Single author case
+          // Optional: you could enforce that the single author IS corresponding
+          // form.setValue(`authors.0.isCorresponding`, true) in addAuthor if only one
+          // or add validation here if you want to enforce it via schema.
+          // For now, if one author, this rule doesn't strictly apply by this logic.
+        }
+      } else if (correspondingAuthors.length > 1) {
+        // Optional: If you only want one corresponding author
+        // ctx.addIssue({
+        //   code: z.ZodIssueCode.custom,
+        //   message: "Only one author can be marked as corresponding.",
+        //   path: ["authors"], // Or target specific checkboxes
+        // });
+      }
+    }
   });
+
+// export const updatePublicationSchema = baseCreateUpdateSchema
+//   .partial()
+//   .extend({
+//     id: z.string().uuid(),
+//   });
 
 export const updatePublicationSchema = baseCreateUpdateSchema
   .partial()
@@ -217,9 +304,10 @@ export const updatePublicationSchema = baseCreateUpdateSchema
         });
       }
     }
+
+    // if (data.metadata && data.metadata.journal !== undefined && !(data.metadata.journal as string).trim()) { ... }
   });
 
-export type PublicationAuthor = z.infer<typeof publicationAuthorSchema>;
 export type ResearchAreaPublication = z.infer<
   typeof researchAreaPublicationSchema
 >;

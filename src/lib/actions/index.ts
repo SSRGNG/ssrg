@@ -20,6 +20,7 @@ import {
   type SignupPayload,
   signupSchema,
 } from "@/lib/validations/auth";
+import { eq } from "drizzle-orm";
 
 export const signinCredential = async (input: CredentialsPayload) => {
   const parsedCredentials = credentialsSchema.safeParse(input);
@@ -188,4 +189,21 @@ export const authWithCredentials = async (
 
 export async function invalidateCache(tag: string) {
   revalidateTag(tag);
+}
+
+export async function getNonResearchers() {
+  // try {
+  return await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      affiliation: users.affiliation,
+    })
+    .from(users)
+    .leftJoin(researchers, eq(users.id, researchers.userId))
+    .orderBy(users.name);
+  // } catch (error) {
+  //   console.error(error);
+  // }
 }

@@ -11,7 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { users } from "@/db/schema";
+import { researchers, users } from "@/db/schema";
 import type { PublicationMetadata, PublicationType } from "@/types";
 
 export const publications = pgTable(
@@ -43,10 +43,18 @@ export const publications = pgTable(
     index("citation_count_idx").on(t.citationCount),
     index("venue_idx").on(t.venue), // Fast queries by journal/conference
     // Validate DOI format if provided
-    check(
-      "valid_doi",
-      sql`${t.doi} IS NULL OR ${t.doi} ~* '^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$'`
-    ),
+    // check(
+    //   "valid_doi",
+    //   sql`${t.doi} IS NULL OR ${
+    //     t.doi
+    //   } ~* ${"^10\\.[0-9]{4,}(\\.[0-9]+)*\\/[-._;()/:A-Z0-9]+$"}`
+    // ),
+    // check(
+    //   "valid_doi",
+    //   sql.raw(
+    //     `doi IS NULL OR doi ~* '^10\\.[0-9]{4,}(\\.[0-9]+)*\\/[-._;()/:A-Z0-9]+$'`
+    //   )
+    // ),
     // Ensure venue is provided for main types
     check(
       "main_types_need_venue",
@@ -54,5 +62,47 @@ export const publications = pgTable(
     ),
     // URL format validation
     check("valid_url", sql`${t.link} IS NULL OR ${t.link} ~* '^https?:\/\/'`),
+  ]
+);
+
+export const authors = pgTable(
+  "authors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // External author info (always present)
+    name: varchar("name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }),
+    affiliation: text("affiliation"), // University/Organization
+    orcid: varchar("orcid", { length: 20 }),
+
+    // Link to internal researcher (optional)
+    researcherId: uuid("researcher_id").references(() => researchers.id, {
+      onDelete: "set null", // Keep author record even if researcher is deleted
+    }),
+
+    // Metadata
+    created_at: timestamp("created_at").defaultNow().notNull(),
+    updated_at: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (t) => [
+    index("authors_name_idx").on(t.name),
+    index("authors_email_idx").on(t.email),
+    index("authors_orcid_idx").on(t.orcid),
+    index("authors_affiliation_idx").on(t.affiliation),
+    index("authors_researcher_idx").on(t.researcherId),
+
+    // ORCID validation
+    check(
+      "valid_orcid",
+      sql`${t.orcid} IS NULL OR ${t.orcid} ~* '^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$'`
+    ),
+
+    // Email validation (basic)
+    check(
+      "valid_email",
+      sql`${t.email} IS NULL OR ${t.email} ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`
+    ),
   ]
 );

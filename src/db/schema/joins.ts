@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -8,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import {
+  authors,
   partners,
   projects,
   publications,
@@ -22,15 +24,20 @@ export const publicationAuthors = pgTable(
     publicationId: uuid("pub_id")
       .notNull()
       .references(() => publications.id, { onDelete: "cascade" }),
-    researcherId: uuid("researcher_id")
+    authorId: uuid("author_id")
       .notNull()
-      .references(() => researchers.id, { onDelete: "cascade" }),
+      .references(() => authors.id, { onDelete: "cascade" }),
     order: integer("order").notNull(), // To maintain author ordering
     contribution: text("contribution"),
+    isCorresponding: boolean("is_corresponding").default(false).notNull(),
   },
   (t) => [
-    primaryKey({ columns: [t.publicationId, t.researcherId] }),
+    primaryKey({ columns: [t.publicationId, t.authorId] }),
     index("pub_author_order_idx").on(t.publicationId, t.order),
+    index("pub_author_corresponding_idx").on(
+      t.publicationId,
+      t.isCorresponding
+    ),
   ]
 );
 

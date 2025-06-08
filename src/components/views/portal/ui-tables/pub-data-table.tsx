@@ -18,12 +18,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { publications } from "@/config/enums";
 import { formatInTextCitation } from "@/db/utils";
-import { PortalResearcherPubs } from "@/lib/actions/queries";
+import type {
+  AuthResearcher,
+  PortalResearcherPubs,
+} from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
 type PubType = PortalResearcherPubs[number];
 type Props = React.ComponentPropsWithoutRef<"div"> & {
   pubs: PortalResearcherPubs;
+  researcher?: AuthResearcher;
 };
 
 // Rule of thumb: Only use getTypedValue for columns that have accessorKey defined in your columns array. For any other data access, use row.original.propertyName directly.
@@ -42,8 +46,13 @@ function formatDate(date: Date | null | undefined): string {
   }).format(new Date(date));
 }
 
-function PublicationsDataTable({ pubs, className, ...props }: Props) {
-  const [isPending, startTransition] = React.useTransition();
+function PublicationsDataTable({
+  pubs,
+  researcher,
+  className,
+  ...props
+}: Props) {
+  // const [isPending, startTransition] = React.useTransition();
 
   const columns = React.useMemo<ColumnDef<PubType>[]>(
     () => [
@@ -126,9 +135,7 @@ function PublicationsDataTable({ pubs, className, ...props }: Props) {
         filterFn: (row, columnId, filterValue: string) => {
           const authors = row.getValue(columnId) as PubType["authors"];
           const citation = formatInTextCitation(authors).toLowerCase();
-          const allNames = authors
-            .map((a) => a.researcher.user.name.toLowerCase())
-            .join(" ");
+          const allNames = authors.map((a) => a.name.toLowerCase()).join(" ");
 
           const search = filterValue.toLowerCase();
           return citation.includes(search) || allNames.includes(search);
@@ -204,7 +211,9 @@ function PublicationsDataTable({ pubs, className, ...props }: Props) {
                     View DOI
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuSeparator />
+                {(pub.isLeadAuthor || pub.canDelete) && (
+                  <DropdownMenuSeparator />
+                )}
                 {pub.isLeadAuthor && (
                   <DropdownMenuItem>
                     <Edit />
@@ -217,7 +226,8 @@ function PublicationsDataTable({ pubs, className, ...props }: Props) {
                       // Implement delete functionality
                       console.log("Delete publication:", pub.id);
                     }}
-                    disabled={isPending}
+                    // disabled={isPending}
+                    disabled
                     className="text-red-600 focus:text-red-600"
                   >
                     <Trash2 />
@@ -238,6 +248,7 @@ function PublicationsDataTable({ pubs, className, ...props }: Props) {
       data={pubs}
       columns={columns}
       className={cn(className)}
+      context={researcher}
       filterFields={[
         { label: "Title", value: "title", placeholder: "Search by title..." },
         {

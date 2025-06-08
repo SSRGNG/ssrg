@@ -12,8 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { projects } from "@/config/constants";
-import { ResearchAreasData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ResearchAreasData } from "@/types";
 
 type RAreaType = ResearchAreasData[number];
 type Props = React.ComponentPropsWithoutRef<typeof Section> & {
@@ -22,6 +22,10 @@ type Props = React.ComponentPropsWithoutRef<typeof Section> & {
 
 function Projects({ area, className, ...props }: Props) {
   if (!area) return null;
+  const filteredProjects = projects.filter((project) =>
+    project.category.includes(area.title)
+  );
+  if (!filteredProjects.length) return null;
   return (
     <Section
       spacing={"snug"}
@@ -30,8 +34,7 @@ function Projects({ area, className, ...props }: Props) {
       {...props}
     >
       <div className="grid md:grid-cols-2 gap-4">
-        {projects
-          .filter((project) => project.category.includes(area.title))
+        {filteredProjects
           .slice(0, 2) // show 2 projects per area
           .map((project, i) => (
             <ProjectCard key={i} article={project} i={i} />

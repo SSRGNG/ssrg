@@ -62,7 +62,7 @@ function Actions({ actions, className, ...props }: Props) {
                 </a>
               </SidebarMenuButton>
               {optionKeys.length > 0 && (
-                <DropdownMenu modal={false}>
+                <DropdownMenu modal={isMobile}>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuAction showOnHover>
                       <MoreHorizontal />
@@ -73,6 +73,7 @@ function Actions({ actions, className, ...props }: Props) {
                     className="w-56"
                     side={isMobile ? "bottom" : "right"}
                     align={isMobile ? "end" : "start"}
+                    // onCloseAutoFocus={(e) => isMobile && e.preventDefault()}
                   >
                     {optionKeys.map((key) => (
                       <DropdownMenuItem asChild key={key}>

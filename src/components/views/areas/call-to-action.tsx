@@ -6,11 +6,7 @@ import { cn } from "@/lib/utils";
 
 function CallToAction({ className }: { className?: string }) {
   return (
-    <Section
-      padding="medium"
-      spacing="snug"
-      className={cn("bg-muted", className)}
-    >
+    <Section spacing="snug" className={cn("bg-muted", className)}>
       <div className="bg-brand text-white rounded-xl overflow-hidden shadow-xl max-w-5xl mx-auto">
         <div className="md:flex">
           <div className="md:w-1/3 bg-brand/90">

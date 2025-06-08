@@ -17,7 +17,6 @@ type Props = React.ComponentPropsWithoutRef<typeof Section>;
 function ResearchPartnerships({ className, ...props }: Props) {
   return (
     <Section
-      padding={"medium"}
       spacing={"snug"}
       className={cn(className)}
       header={{

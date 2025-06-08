@@ -26,6 +26,7 @@ import { ActionKey } from "@/types";
 import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { CreateResearchFrameworks } from "@/components/forms/create-research-frameworks";
 import { CreateResearchMethodologies } from "@/components/forms/create-research-methodologies";
+import { CreateResearcher } from "@/components/forms/create-researcher";
 import { UserSignup } from "@/components/forms/user-signup";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { appConfig } from "@/config";
@@ -68,8 +69,9 @@ function CreateActions({
     ActionKey,
     React.ComponentType<FormComponentProps>
   > = {
-    area: CreateResearchArea,
     user: UserSignup,
+    researcher: CreateResearcher,
+    area: CreateResearchArea,
     framework: CreateResearchFrameworks,
     methodology: CreateResearchMethodologies,
     project: () => null,

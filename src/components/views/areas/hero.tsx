@@ -9,7 +9,7 @@ type Props = React.ComponentPropsWithoutRef<typeof Section>;
 function Hero({ className, ...props }: Props) {
   return (
     <Section
-      padding={"large"}
+      padding={"hero"}
       className={cn("grid md:grid-cols-2 gap-4 items-center", className)}
       {...props}
     >

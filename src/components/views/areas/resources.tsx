@@ -11,7 +11,6 @@ type Props = React.ComponentPropsWithoutRef<typeof Section>;
 function Resources({ className, ...props }: Props) {
   return (
     <Section
-      padding="medium"
       spacing="snug"
       className={cn(className)}
       header={{

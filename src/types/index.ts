@@ -19,6 +19,7 @@ import {
   researchMethodologies,
   users,
 } from "@/db/schema";
+import { mapResearchAreas, mapResearcherPublications } from "@/lib/utils";
 import {
   bookChapterMetadataSchema,
   conferenceMetadataSchema,
@@ -125,36 +126,18 @@ export type DataTableFilterField<TData> = {
   options?: DataTableOption[];
 };
 
+export type TableMeta<TData, TContext> = {
+  searchableColumns: DataTableFilterField<TData>[];
+  filterableColumns: DataTableFilterField<TData>[];
+  filterFields?: DataTableFilterField<TData>[];
+  barAction?: BarAction;
+  context?: TContext;
+};
 export type StoredFile = {
   id: string;
   name: string;
   url: string;
 };
-
-// export type JournalMetadata = {
-//   journal: string;
-//   volume?: string;
-//   issue?: string;
-//   pages?: string;
-// };
-
-// export type ConferenceMetadata = {
-//   conferenceName: string;
-//   conferenceLocation?: string;
-//   conferenceDate?: string; // ISO date string
-// };
-
-// export type BookChapterMetadata = {
-//   bookTitle: string;
-//   publisher?: string;
-//   city?: string;
-//   isbn?: string;
-// };
-
-// export type ReportMetadata = {
-//   organization?: string;
-//   reportNumber?: string;
-// };
 
 export type JournalMetadata = z.infer<typeof journalMetadataSchema>;
 export type ConferenceMetadata = z.infer<typeof conferenceMetadataSchema>;
@@ -168,3 +151,6 @@ export type PublicationMetadata =
   | BookChapterMetadata
   | ReportMetadata
   | Generic; // For flexible "other" types
+
+export type ResearchAreasData = ReturnType<typeof mapResearchAreas>;
+export type PortalResearcherPubs = ReturnType<typeof mapResearcherPublications>;

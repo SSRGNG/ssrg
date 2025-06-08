@@ -1,6 +1,9 @@
+import { relations } from "drizzle-orm";
+
 import {
   accounts,
   authenticators,
+  authors,
   eventPresenters,
   events,
   partnerProjects,
@@ -21,7 +24,6 @@ import {
   sessions,
   users,
 } from "@/db/schema";
-import { relations } from "drizzle-orm";
 
 // auth
 export const authRelations = relations(users, ({ one, many }) => ({
@@ -54,6 +56,17 @@ export const authenticatorRelations = relations(authenticators, ({ one }) => ({
     fields: [authenticators.userId],
     references: [users.id],
   }),
+}));
+
+// authors
+export const authorsRelations = relations(authors, ({ one, many }) => ({
+  // Link to internal researcher (optional)
+  researcher: one(researchers, {
+    fields: [authors.researcherId],
+    references: [researchers.id],
+  }),
+  // Publications this author has contributed to
+  publications: many(publicationAuthors, { relationName: "auth_pubs" }),
 }));
 
 // events
@@ -123,7 +136,7 @@ export const partnerProjectsRelations = relations(
 export const publicationsRelations = relations(
   publications,
   ({ many, one }) => ({
-    authors: many(publicationAuthors),
+    authors: many(publicationAuthors, { relationName: "pub_auths" }),
     createdBy: one(users, {
       fields: [publications.creatorId],
       references: [users.id],
@@ -139,10 +152,13 @@ export const publicationAuthorsRelations = relations(
     publication: one(publications, {
       fields: [publicationAuthors.publicationId],
       references: [publications.id],
+      relationName: "pub_auths",
     }),
-    researcher: one(researchers, {
-      fields: [publicationAuthors.researcherId],
-      references: [researchers.id],
+    author: one(authors, {
+      // Changed from researcher to author
+      fields: [publicationAuthors.authorId],
+      references: [authors.id],
+      relationName: "auth_pubs",
     }),
   })
 );
@@ -209,9 +225,15 @@ export const researchersRelations = relations(researchers, ({ one, many }) => ({
   }),
   expertise: many(researcherExpertise),
   education: many(researcherEducation),
-
   areas: many(researcherAreas),
-  publications: many(publicationAuthors),
+  // publications: many(publicationAuthors),
+  // Publications where this researcher is an author (through authors table)
+  // authorProfile: many(authors), // One researcher can have multiple author records
+  author: one(authors, {
+    fields: [researchers.id],
+    references: [authors.researcherId],
+  }),
+
   leadProjects: many(projects, {
     relationName: "lead",
   }),
