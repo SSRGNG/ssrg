@@ -1,5 +1,9 @@
 import "server-only";
 
+import { asc, desc, eq, getTableColumns } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { redirect } from "next/navigation";
+
 import { auth } from "@/auth";
 import { appConfig } from "@/config";
 import { db } from "@/db";
@@ -10,9 +14,6 @@ import {
   researchers,
   users,
 } from "@/db/schema";
-import { asc, desc, eq, getTableColumns } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
-import { redirect } from "next/navigation";
 
 export async function getPublications(limit = Infinity, offset = 0) {
   const results = await db.query.publications.findMany({

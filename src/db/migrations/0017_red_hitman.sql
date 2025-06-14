@@ -1,0 +1,1 @@
+ALTER TABLE "publications" ALTER COLUMN "publication_date" SET DATA TYPE varchar(10);

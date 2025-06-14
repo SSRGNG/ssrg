@@ -13,6 +13,7 @@ import {
   roles,
 } from "@/config/enums";
 import {
+  authors,
   notifications,
   publications,
   researchFrameworks,
@@ -44,6 +45,10 @@ export type Notification = typeof notifications.$inferSelect;
 export type ResearchMethodology = typeof researchMethodologies.$inferSelect;
 export type ResearchFramework = typeof researchFrameworks.$inferSelect;
 export type Publication = typeof publications.$inferSelect;
+export type AuthorInfo = typeof authors.$inferSelect & {
+  publicationCount: number;
+  isResearcher: boolean;
+};
 
 export type ServerResponse = {
   status: "error" | "success";

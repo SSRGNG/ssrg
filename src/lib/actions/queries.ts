@@ -1,5 +1,6 @@
 "use server";
 
+import { searchAuthors } from "@/lib/actions/search";
 import {
   getProjects,
   getResearchAreas,
@@ -40,3 +41,22 @@ export type ResearchersWithRelations = Awaited<
 export type ResearcherWithPublications = Awaited<
   ReturnType<typeof researcherPublications>
 >;
+
+type SearchAuthorsResult = Awaited<ReturnType<typeof searchAuthors>>;
+
+type SearchAuthorsSuccess = Extract<SearchAuthorsResult, { success: true }>;
+export type AuthorSearchResults = SearchAuthorsSuccess["results"];
+
+// Method 3: Extract individual result item types
+export type AuthorSearchResult = AuthorSearchResults[number];
+
+// Method 4: Extract specific result types using discriminated union
+export type ResearcherResult = Extract<
+  AuthorSearchResult,
+  { type: "researcher" }
+>;
+export type AuthorResult = Extract<AuthorSearchResult, { type: "author" }>;
+
+// Method 5: Extract just the data types
+export type ResearcherData = ResearcherResult["data"];
+export type AuthorData = AuthorResult["data"];

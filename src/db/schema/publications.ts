@@ -25,7 +25,7 @@ export const publications = pgTable(
     creatorId: uuid("creator_id").references(() => users.id, {
       onDelete: "set null",
     }),
-    publicationDate: timestamp("publication_date"),
+    publicationDate: varchar("publication_date", { length: 10 }),
     doi: varchar("doi", { length: 255 }),
     venue: varchar("venue", { length: 255 }), // Journal name OR conference name... most commonly queried field for the type
     metadata: jsonb("metadata").$type<PublicationMetadata>(),
@@ -42,19 +42,6 @@ export const publications = pgTable(
     index("publication_doi_idx").on(t.doi),
     index("citation_count_idx").on(t.citationCount),
     index("venue_idx").on(t.venue), // Fast queries by journal/conference
-    // Validate DOI format if provided
-    // check(
-    //   "valid_doi",
-    //   sql`${t.doi} IS NULL OR ${
-    //     t.doi
-    //   } ~* ${"^10\\.[0-9]{4,}(\\.[0-9]+)*\\/[-._;()/:A-Z0-9]+$"}`
-    // ),
-    // check(
-    //   "valid_doi",
-    //   sql.raw(
-    //     `doi IS NULL OR doi ~* '^10\\.[0-9]{4,}(\\.[0-9]+)*\\/[-._;()/:A-Z0-9]+$'`
-    //   )
-    // ),
     // Ensure venue is provided for main types
     check(
       "main_types_need_venue",

@@ -73,7 +73,7 @@ function Actions({ actions, className, ...props }: Props) {
                     className="w-56"
                     side={isMobile ? "bottom" : "right"}
                     align={isMobile ? "end" : "start"}
-                    // onCloseAutoFocus={(e) => isMobile && e.preventDefault()}
+                    onCloseAutoFocus={(e) => isMobile && e.preventDefault()}
                   >
                     {optionKeys.map((key) => (
                       <DropdownMenuItem asChild key={key}>

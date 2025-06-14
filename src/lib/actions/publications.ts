@@ -1,6 +1,7 @@
 "use server";
 
-import { and, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
 import { db } from "@/db";
@@ -11,139 +12,16 @@ import {
   researchers,
   users,
 } from "@/db/schema";
+import { getCitationCount } from "@/lib/actions/citations";
 import { isRoleAllowed } from "@/lib/utils";
 import {
   type CreateAuthorPayload,
   createAuthorSchema,
-  searchAuthorSchema,
 } from "@/lib/validations/author";
 import {
   CreatePublicationPayload,
   createPublicationSchema,
 } from "@/lib/validations/publication";
-
-export async function searchAuthors(query: string, limit: number = 20) {
-  try {
-    const validation = searchAuthorSchema.safeParse({ query, limit });
-    if (!validation.success) {
-      return {
-        success: false,
-        error: "Invalid search parameters",
-      };
-    }
-
-    const { query: searchQuery, limit: searchLimit } = validation.data;
-
-    // Search researchers (with user data) - these are platform users
-    const researcherResults = await db
-      .select({
-        id: researchers.id,
-        userId: researchers.userId,
-        name: users.name,
-        email: users.email,
-        affiliation: users.affiliation,
-        title: researchers.title,
-        bio: researchers.bio,
-        featured: researchers.featured,
-        orcid: researchers.orcid,
-        avatar: users.image,
-      })
-      .from(researchers)
-      .innerJoin(users, eq(researchers.userId, users.id))
-      .where(
-        or(
-          ilike(users.name, `%${searchQuery}%`),
-          ilike(users.email, `%${searchQuery}%`),
-          ilike(users.affiliation, `%${searchQuery}%`),
-          ilike(researchers.orcid, `%${searchQuery}%`)
-        )
-      )
-      .limit(Math.floor(searchLimit / 2));
-
-    // Search standalone authors (not linked to researchers)
-    // These are external authors who have been added to publications but aren't platform users
-    const authorResults = await db
-      .select({
-        id: authors.id,
-        name: authors.name,
-        email: authors.email,
-        affiliation: authors.affiliation,
-        orcid: authors.orcid,
-        researcherId: authors.researcherId,
-      })
-      .from(authors)
-      .where(
-        and(
-          isNull(authors.researcherId), // Only standalone authors (not linked to researchers)
-          or(
-            ilike(authors.name, `%${searchQuery}%`),
-            ilike(authors.email, `%${searchQuery}%`),
-            ilike(authors.affiliation, `%${searchQuery}%`),
-            ilike(authors.orcid, `%${searchQuery}%`)
-          )
-        )
-      )
-      .limit(Math.floor(searchLimit / 2));
-
-    // Get publication counts for standalone authors
-    const authorIds = authorResults.map((a) => a.id);
-    let publicationCounts: { authorId: string; count: number }[] = [];
-
-    if (authorIds.length > 0) {
-      publicationCounts = await db
-        .select({
-          authorId: publicationAuthors.authorId,
-          count: count(),
-        })
-        .from(publicationAuthors)
-        .where(inArray(publicationAuthors.authorId, authorIds))
-        .groupBy(publicationAuthors.authorId);
-    }
-
-    const publicationCountMap = new Map(
-      publicationCounts.map((pc) => [pc.authorId, pc.count])
-    );
-
-    // Format results to match your component types
-    const results = [
-      ...researcherResults.map((researcher) => ({
-        type: "researcher" as const,
-        data: {
-          id: researcher.id,
-          userId: researcher.userId,
-          name: researcher.name,
-          email: researcher.email,
-          affiliation: researcher.affiliation,
-          title: researcher.title,
-          bio: researcher.bio,
-          featured: researcher.featured,
-          orcid: researcher.orcid,
-          avatar: researcher.avatar,
-        },
-      })),
-      ...authorResults.map((author) => ({
-        type: "author" as const,
-        data: {
-          id: author.id,
-          name: author.name,
-          email: author.email,
-          affiliation: author.affiliation,
-          orcid: author.orcid,
-          researcherId: author.researcherId,
-          publicationCount: publicationCountMap.get(author.id) || 0,
-        },
-      })),
-    ];
-
-    return { success: true, results };
-  } catch (error) {
-    console.error("Author search error:", error);
-    return {
-      success: false,
-      error: "Failed to search authors",
-    };
-  }
-}
 
 export async function createAuthor(data: CreateAuthorPayload) {
   try {
@@ -262,35 +140,235 @@ export async function createAuthor(data: CreateAuthorPayload) {
   }
 }
 
-export async function checkAuthorExists(
-  email?: string,
-  orcid?: string,
-  name?: string,
-  affiliation?: string
-) {
+export async function createAuthorForPublication(data: CreateAuthorPayload) {
   try {
-    const conditions = [];
-
-    if (email) {
-      conditions.push(eq(authors.email, email));
+    const validation = createAuthorSchema.safeParse(data);
+    if (!validation.success) {
+      return {
+        success: false,
+        error: "Invalid author data",
+        details: validation.error.errors,
+      };
     }
 
-    if (orcid) {
-      conditions.push(eq(authors.orcid, orcid));
-    }
+    const { email, name, affiliation, orcid } = validation.data;
 
-    if (conditions.length === 0 && name && affiliation) {
-      // Fallback to name + affiliation match
-      conditions.push(
-        and(ilike(authors.name, name), ilike(authors.affiliation, affiliation))
+    return await db.transaction(async (tx) => {
+      // Single comprehensive check
+      const existingRecords = await tx
+        .select({
+          // Author fields
+          authorId: authors.id,
+          authorName: authors.name,
+          authorEmail: authors.email,
+          authorAffiliation: authors.affiliation,
+          authorOrcid: authors.orcid,
+          authorResearcherId: authors.researcherId,
+
+          // Researcher fields
+          researcherId: researchers.id,
+          researcherOrcid: researchers.orcid,
+          userName: users.name,
+          userEmail: users.email,
+          userAffiliation: users.affiliation,
+
+          // Publication count
+          publicationCount: sql<number>`(
+            SELECT COUNT(*)::int 
+            FROM ${publicationAuthors} 
+            WHERE ${publicationAuthors.authorId} = ${authors.id}
+          )`,
+        })
+        .from(authors)
+        .leftJoin(researchers, eq(authors.researcherId, researchers.id))
+        .leftJoin(users, eq(researchers.userId, users.id))
+        .where(
+          or(
+            // Exact matches
+            email ? eq(authors.email, email) : sql`false`,
+            orcid ? eq(authors.orcid, orcid) : sql`false`,
+            // Fuzzy name + affiliation match
+            name && affiliation
+              ? and(
+                  ilike(authors.name, `%${name}%`),
+                  ilike(authors.affiliation, `%${affiliation}%`)
+                )
+              : sql`false`
+          )
+        )
+        .limit(3);
+
+      // Check for researchers without author records
+      let unlinkedResearcher = null;
+      if (email || orcid) {
+        const unlinked = await tx
+          .select({
+            researcherId: researchers.id,
+            researcherOrcid: researchers.orcid,
+            userName: users.name,
+            userEmail: users.email,
+            userAffiliation: users.affiliation,
+          })
+          .from(researchers)
+          .innerJoin(users, eq(researchers.userId, users.id))
+          .leftJoin(authors, eq(authors.researcherId, researchers.id))
+          .where(
+            and(
+              isNull(authors.id), // No author record
+              or(
+                email ? eq(users.email, email) : sql`false`,
+                orcid ? eq(researchers.orcid, orcid) : sql`false`
+              )
+            )
+          )
+          .limit(1);
+
+        unlinkedResearcher = unlinked[0] || null;
+      }
+
+      // Process results
+      const exactMatch = existingRecords.find(
+        (record) =>
+          (email && record.authorEmail === email) ||
+          (orcid && record.authorOrcid === orcid)
       );
+
+      if (exactMatch) {
+        return {
+          success: true,
+          conflictType: "existing_author",
+          author: {
+            id: exactMatch.authorId,
+            name: exactMatch.authorName,
+            email: exactMatch.authorEmail,
+            affiliation: exactMatch.authorAffiliation,
+            orcid: exactMatch.authorOrcid,
+            researcherId: exactMatch.authorResearcherId,
+            publicationCount: exactMatch.publicationCount || 0,
+            isResearcher: !!exactMatch.authorResearcherId,
+          },
+        };
+      }
+
+      // If researcher exists without author record, create it
+      if (unlinkedResearcher) {
+        const [newAuthor] = await tx
+          .insert(authors)
+          .values({
+            name: unlinkedResearcher.userName,
+            email: unlinkedResearcher.userEmail,
+            affiliation: unlinkedResearcher.userAffiliation,
+            orcid: unlinkedResearcher.researcherOrcid,
+            researcherId: unlinkedResearcher.researcherId,
+          })
+          .returning({
+            id: authors.id,
+            name: authors.name,
+            email: authors.email,
+            affiliation: authors.affiliation,
+            orcid: authors.orcid,
+            researcherId: authors.researcherId,
+          });
+
+        return {
+          success: true,
+          conflictType: "researcher_needs_author",
+          author: {
+            ...newAuthor,
+            publicationCount: 0,
+            isResearcher: true,
+          },
+        };
+      }
+
+      // Check for potential duplicates
+      const fuzzyMatch = existingRecords.find((record) => {
+        if (!name || !affiliation) return false;
+        return (
+          record.authorName?.toLowerCase().includes(name.toLowerCase()) &&
+          record.authorAffiliation
+            ?.toLowerCase()
+            .includes(affiliation.toLowerCase())
+        );
+      });
+
+      if (fuzzyMatch) {
+        return {
+          success: false,
+          error: `Similar author found: "${fuzzyMatch.authorName}" at "${fuzzyMatch.authorAffiliation}"`,
+          conflictType: "potential_duplicate",
+          suggestedAuthor: {
+            id: fuzzyMatch.authorId,
+            name: fuzzyMatch.authorName,
+            email: fuzzyMatch.authorEmail,
+            affiliation: fuzzyMatch.authorAffiliation,
+            orcid: fuzzyMatch.authorOrcid,
+            researcherId: fuzzyMatch.authorResearcherId,
+            publicationCount: fuzzyMatch.publicationCount || 0,
+            isResearcher: !!fuzzyMatch.authorResearcherId,
+          },
+        };
+      }
+
+      // Create new external author
+      const [newAuthor] = await tx
+        .insert(authors)
+        .values({
+          name: validation.data.name,
+          email: validation.data.email || null,
+          affiliation: validation.data.affiliation || null,
+          orcid: validation.data.orcid || null,
+          researcherId: null, // External author
+        })
+        .returning({
+          id: authors.id,
+          name: authors.name,
+          email: authors.email,
+          affiliation: authors.affiliation,
+          orcid: authors.orcid,
+          researcherId: authors.researcherId,
+        });
+
+      return {
+        success: true,
+        conflictType: "new_author",
+        author: {
+          ...newAuthor,
+          publicationCount: 0,
+          isResearcher: false,
+        },
+      };
+    });
+  } catch (err) {
+    console.error("Author creation error:", err);
+
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code === "23505"
+    ) {
+      return {
+        success: false,
+        error: "Author with this email or ORCID already exists",
+      };
     }
 
-    if (conditions.length === 0) {
-      return { success: true, exists: false };
-    }
+    return {
+      success: false,
+      error: "Failed to create author",
+    };
+  }
+}
 
-    const existingAuthor = await db
+// Helper function for handling researcher selection in publication workflow
+export async function handleResearcherSelection(
+  researcherId: string,
+  needsAuthorRecord: boolean = false
+) {
+  if (!needsAuthorRecord) {
+    // Researcher already has author record, just return the author info
+    const authorInfo = await db
       .select({
         id: authors.id,
         name: authors.name,
@@ -300,50 +378,99 @@ export async function checkAuthorExists(
         researcherId: authors.researcherId,
       })
       .from(authors)
-      .where(or(...conditions))
+      .where(eq(authors.researcherId, researcherId))
       .limit(1);
 
-    // Also check researchers table
-    const researcherConditions = [];
-
-    if (orcid) {
-      researcherConditions.push(eq(researchers.orcid, orcid));
+    if (authorInfo[0]) {
+      return {
+        success: true,
+        author: {
+          ...authorInfo[0],
+          publicationCount: 0, // Calculate if needed
+          isResearcher: true,
+        },
+      };
     }
+  }
 
-    let existingResearcher = null;
-    if (researcherConditions.length > 0) {
-      const researcherResults = await db
+  // Create author record for researcher
+  return await createAuthorForResearcher(researcherId);
+}
+
+// Keep the createAuthorForResearcher function from previous version
+export async function createAuthorForResearcher(researcherId: string) {
+  try {
+    return await db.transaction(async (tx) => {
+      const researcher = await tx
         .select({
           id: researchers.id,
-          userId: researchers.userId,
+          title: researchers.title,
+          orcid: researchers.orcid,
           name: users.name,
           email: users.email,
           affiliation: users.affiliation,
-          title: researchers.title,
-          bio: researchers.bio,
-          featured: researchers.featured,
-          orcid: researchers.orcid,
-          avatar: users.image,
         })
         .from(researchers)
         .innerJoin(users, eq(researchers.userId, users.id))
-        .where(or(...researcherConditions))
+        .where(eq(researchers.id, researcherId))
         .limit(1);
 
-      existingResearcher = researcherResults[0] || null;
-    }
+      if (!researcher[0]) {
+        return {
+          success: false,
+          error: "Researcher not found",
+        };
+      }
 
-    return {
-      success: true,
-      exists: existingAuthor.length > 0 || !!existingResearcher,
-      author: existingAuthor[0] || null,
-      researcher: existingResearcher,
-    };
+      const r = researcher[0];
+
+      // Check if author record already exists
+      const existingAuthor = await tx
+        .select({ id: authors.id })
+        .from(authors)
+        .where(eq(authors.researcherId, researcherId))
+        .limit(1);
+
+      if (existingAuthor[0]) {
+        return {
+          success: false,
+          error: "Author record already exists for this researcher",
+        };
+      }
+
+      // Create author record
+      const [newAuthor] = await tx
+        .insert(authors)
+        .values({
+          name: r.name,
+          email: r.email,
+          affiliation: r.affiliation,
+          orcid: r.orcid,
+          researcherId: r.id,
+        })
+        .returning({
+          id: authors.id,
+          name: authors.name,
+          email: authors.email,
+          affiliation: authors.affiliation,
+          orcid: authors.orcid,
+          researcherId: authors.researcherId,
+        });
+
+      return {
+        success: true,
+        author: {
+          ...newAuthor,
+          publicationCount: 0,
+          isResearcher: true,
+        },
+      };
+    });
   } catch (error) {
-    console.error("Check author exists error:", error);
+    console.error("Error creating author for researcher:", error);
     return {
       success: false,
-      error: "Failed to check if author exists",
+      error: "Failed to create author record for researcher",
     };
   }
 }
@@ -380,6 +507,60 @@ export async function createPublication(data: CreatePublicationPayload) {
 
     const validatedData = validation.data;
 
+    // Validate author order uniqueness
+    const orderValues = validatedData.authors.map((a) => a.order);
+    const uniqueOrders = new Set(orderValues);
+    if (orderValues.length !== uniqueOrders.size) {
+      return {
+        success: false,
+        error: "Invalid author data",
+        details: "Author order values must be unique",
+      };
+    }
+
+    // Fetch citation count if DOI is provided
+    let citationCount = 0;
+    let lastCitationUpdate = null;
+
+    if (validatedData.doi) {
+      try {
+        const fetchedCount = await getCitationCount(validatedData.doi);
+        if (fetchedCount !== null) {
+          citationCount = fetchedCount;
+          lastCitationUpdate = new Date();
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to fetch citation count during publication creation:",
+          error
+        );
+        // Continue with creation even if citation fetch fails
+      }
+    }
+
+    let publicationDate = null;
+
+    if (validatedData.publicationDate) {
+      if (validatedData.publicationDate instanceof Date) {
+        publicationDate = validatedData.publicationDate
+          .toISOString()
+          .split("T")[0];
+      } else {
+        const dateStr = validatedData.publicationDate;
+        // Validate format but store as-is
+        if (
+          /^\d{4}$/.test(dateStr) ||
+          /^\d{4}-\d{2}$/.test(dateStr) ||
+          /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+        ) {
+          publicationDate = dateStr;
+        }
+      }
+    }
+
+    // console.log({ citationCount });
+    // console.log({ lastCitationUpdate });
+    // console.log({ publicationDate });
     // Start a transaction to ensure data consistency
     const result = await db.transaction(async (tx) => {
       // 1. Create the publication record
@@ -391,12 +572,12 @@ export async function createPublication(data: CreatePublicationPayload) {
           abstract: validatedData.abstract || null,
           link: validatedData.link || null,
           creatorId: creatorId,
-          publicationDate: validatedData.publicationDate || null,
+          publicationDate: publicationDate,
           doi: validatedData.doi || null,
           venue: validatedData.venue || null,
           metadata: validatedData.metadata || {},
-          citationCount: 0,
-          lastCitationUpdate: null,
+          citationCount: citationCount,
+          lastCitationUpdate: lastCitationUpdate,
         })
         .returning();
 
@@ -405,17 +586,45 @@ export async function createPublication(data: CreatePublicationPayload) {
         async (authorData) => {
           let authorId = authorData.id;
 
-          // If no author ID provided, we need to find or create the author
-          if (!authorId) {
-            // Check if this author already exists
+          // If author ID provided, verify it exists
+          if (authorId) {
+            const existingAuthor = await tx
+              .select({ id: authors.id })
+              .from(authors)
+              .where(eq(authors.id, authorId))
+              .limit(1);
+
+            if (existingAuthor.length === 0) {
+              throw new Error(`Author with ID ${authorId} not found`);
+            }
+          } else {
+            // No author ID provided, find or create the author
             let existingAuthor = null;
 
-            // First check by ORCID if provided
-            if (authorData.orcid) {
+            // Normalize empty strings to null for ORCID
+            const normalizedOrcid = authorData.orcid?.trim() || null;
+            const normalizedEmail = authorData.email?.trim() || null;
+            const researcherId = authorData.researcherId || null;
+
+            // FIRST: Check by researcherId if provided (internal researcher scenario)
+            if (researcherId) {
+              const researcherResults = await tx
+                .select({ id: authors.id })
+                .from(authors)
+                .where(eq(authors.researcherId, researcherId))
+                .limit(1);
+
+              if (researcherResults.length > 0) {
+                existingAuthor = researcherResults[0];
+              }
+            }
+
+            // SECOND: Check by ORCID if provided and no researcher match
+            if (!existingAuthor && normalizedOrcid) {
               const orcidResults = await tx
                 .select({ id: authors.id })
                 .from(authors)
-                .where(eq(authors.orcid, authorData.orcid))
+                .where(eq(authors.orcid, normalizedOrcid))
                 .limit(1);
 
               if (orcidResults.length > 0) {
@@ -423,12 +632,12 @@ export async function createPublication(data: CreatePublicationPayload) {
               }
             }
 
-            // Then check by email if provided and no ORCID match
-            if (!existingAuthor && authorData.email) {
+            // THIRD: Check by email if provided and no previous matches
+            if (!existingAuthor && normalizedEmail) {
               const emailResults = await tx
                 .select({ id: authors.id })
                 .from(authors)
-                .where(eq(authors.email, authorData.email))
+                .where(eq(authors.email, normalizedEmail))
                 .limit(1);
 
               if (emailResults.length > 0) {
@@ -440,22 +649,67 @@ export async function createPublication(data: CreatePublicationPayload) {
             if (existingAuthor) {
               authorId = existingAuthor.id;
             } else {
-              // Create new author record
-              const [newAuthor] = await tx
-                .insert(authors)
-                .values({
-                  name: authorData.name,
-                  email: authorData.email || null,
-                  affiliation: authorData.affiliation || null,
-                  orcid: authorData.orcid || null,
-                  researcherId: authorData.researcherId || null,
-                })
-                .returning({ id: authors.id });
+              // Create new author record with normalized data
+              try {
+                const [newAuthor] = await tx
+                  .insert(authors)
+                  .values({
+                    name: authorData.name.trim(),
+                    email: normalizedEmail,
+                    affiliation: authorData.affiliation?.trim() || null,
+                    orcid: normalizedOrcid,
+                    researcherId: researcherId,
+                  })
+                  .returning({ id: authors.id });
 
-              authorId = newAuthor.id;
+                authorId = newAuthor.id;
+              } catch (dbError) {
+                // Handle potential race condition where author was created between check and insert
+                if (
+                  dbError instanceof Error &&
+                  dbError.message.includes("duplicate key")
+                ) {
+                  // Try one more time to find the author by researcherId first, then ORCID/email
+                  if (researcherId) {
+                    const retryResearcher = await tx
+                      .select({ id: authors.id })
+                      .from(authors)
+                      .where(eq(authors.researcherId, researcherId))
+                      .limit(1);
+                    if (retryResearcher.length > 0) {
+                      authorId = retryResearcher[0].id;
+                    }
+                  } else if (normalizedOrcid) {
+                    const retryOrcid = await tx
+                      .select({ id: authors.id })
+                      .from(authors)
+                      .where(eq(authors.orcid, normalizedOrcid))
+                      .limit(1);
+                    if (retryOrcid.length > 0) {
+                      authorId = retryOrcid[0].id;
+                    }
+                  } else if (normalizedEmail) {
+                    const retryEmail = await tx
+                      .select({ id: authors.id })
+                      .from(authors)
+                      .where(eq(authors.email, normalizedEmail))
+                      .limit(1);
+                    if (retryEmail.length > 0) {
+                      authorId = retryEmail[0].id;
+                    }
+                  }
+
+                  if (!authorId) {
+                    throw dbError; // Re-throw if we still can't find the author
+                  }
+                } else {
+                  throw dbError;
+                }
+              }
             }
           }
 
+          revalidatePath("/portal");
           return {
             authorId,
             authorData,
@@ -472,16 +726,20 @@ export async function createPublication(data: CreatePublicationPayload) {
           publicationId: newPublication.id,
           authorId,
           order: authorData.order,
-          contribution: authorData.contribution || null,
+          contribution: authorData.contribution?.trim() || null,
           isCorresponding: authorData.isCorresponding || false,
         })
       );
+
+      // Sort by order to ensure consistent insertion
+      publicationAuthorData.sort((a, b) => a.order - b.order);
 
       await tx.insert(publicationAuthors).values(publicationAuthorData);
 
       // 4. Handle research areas if provided
       if (validatedData.areas && validatedData.areas.length > 0) {
         console.log("Research areas to be implemented:", validatedData.areas);
+        // TODO: Implement research areas logic
       }
 
       return newPublication;
@@ -524,6 +782,21 @@ export async function createPublication(data: CreatePublicationPayload) {
           error: "Invalid data format. Please check DOI, URL, and venue fields",
         };
       }
+
+      if (error.message.includes("not found")) {
+        return {
+          success: false,
+          error: "Referenced author not found",
+          details: error.message,
+        };
+      }
+
+      if (error.message.includes("Author order")) {
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
     }
 
     return {
@@ -532,143 +805,3 @@ export async function createPublication(data: CreatePublicationPayload) {
     };
   }
 }
-
-// import { auth } from "@/auth";
-// import { db } from "@/db";
-// import { publications, publicationAuthors } from "@/db/schema";
-// import { authorService } from "@/lib/services/author";
-// import {
-//   CreatePublicationPayload,
-//   createPublicationSchema,
-// } from "@/lib/validations/publication";
-
-// // Re-export author-related functions from the service
-// export const searchAuthors = authorService.searchAuthors.bind(authorService);
-// export const createAuthor = authorService.createAuthor.bind(authorService);
-// export const checkAuthorExists = authorService.checkAuthorExists.bind(authorService);
-
-// export async function createPublication(data: CreatePublicationPayload) {
-//   try {
-//     const user = (await auth())?.user;
-//     if (user?.role !== "researcher" || !user.id) {
-//       return {
-//         success: false,
-//         error: "Invalid authorization",
-//         details: "You must be a researcher to create publications",
-//       };
-//     }
-
-//     const creatorId = user.id;
-
-//     // Validate the publication data
-//     const validation = createPublicationSchema.safeParse(data);
-//     if (!validation.success) {
-//       return {
-//         success: false,
-//         error: "Invalid publication data",
-//         details: validation.error.errors,
-//       };
-//     }
-
-//     const validatedData = validation.data;
-
-//     // Use the author service for batch processing
-//     const authorProcessingResult = await authorService.processAuthorsForPublication(
-//       validatedData.authors
-//     );
-
-//     if (!authorProcessingResult.success || !authorProcessingResult.processedAuthors) {
-//       return {
-//         success: false,
-//         error: authorProcessingResult.error || "Failed to process authors",
-//       };
-//     }
-
-//     // Extract processedAuthors to ensure TypeScript knows it's defined
-//     const processedAuthors = authorProcessingResult.processedAuthors;
-
-//     // Create publication in transaction
-//     const result = await db.transaction(async (tx) => {
-//       // 1. Create the publication record
-//       const [newPublication] = await tx
-//         .insert(publications)
-//         .values({
-//           type: validatedData.type,
-//           title: validatedData.title,
-//           abstract: validatedData.abstract || null,
-//           link: validatedData.link || null,
-//           creatorId: creatorId,
-//           publicationDate: validatedData.publicationDate || null,
-//           doi: validatedData.doi || null,
-//           venue: validatedData.venue || null,
-//           metadata: validatedData.metadata || {},
-//           citationCount: 0,
-//           lastCitationUpdate: null,
-//         })
-//         .returning();
-
-//       // 2. Create publication-author relationships
-//       const publicationAuthorData = processedAuthors.map(
-//         ({ authorId, authorData }) => ({
-//           publicationId: newPublication.id,
-//           authorId,
-//           order: authorData.order,
-//           contribution: authorData.contribution || null,
-//           isCorresponding: authorData.isCorresponding || false,
-//         })
-//       );
-
-//       await tx.insert(publicationAuthors).values(publicationAuthorData);
-
-//       // 3. Handle research areas if provided (future implementation)
-//       if (validatedData.areas && validatedData.areas.length > 0) {
-//         console.log("Research areas to be implemented:", validatedData.areas);
-//       }
-
-//       return newPublication;
-//     });
-
-//     return {
-//       success: true,
-//       publication: {
-//         id: result.id,
-//         type: result.type,
-//         title: result.title,
-//         abstract: result.abstract,
-//         link: result.link,
-//         creatorId: result.creatorId,
-//         publicationDate: result.publicationDate,
-//         doi: result.doi,
-//         venue: result.venue,
-//         metadata: result.metadata,
-//         citationCount: result.citationCount,
-//         created_at: result.created_at,
-//         updated_at: result.updated_at,
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Publication creation error:", error);
-
-//     // Handle specific database constraint errors
-//     if (error instanceof Error) {
-//       if (error.message.includes("duplicate key")) {
-//         return {
-//           success: false,
-//           error: "A publication with similar details already exists",
-//         };
-//       }
-
-//       if (error.message.includes("violates check constraint")) {
-//         return {
-//           success: false,
-//           error: "Invalid data format. Please check DOI, URL, and venue fields",
-//         };
-//       }
-//     }
-
-//     return {
-//       success: false,
-//       error: "Failed to create publication",
-//     };
-//   }
-// }

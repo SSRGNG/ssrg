@@ -5,7 +5,7 @@ export async function getCitationCount(doi: string): Promise<number | null> {
     const count = await fetchOpenCitationsCount(doi);
     if (count !== null) return count;
 
-    // Fallback to Crossref (note: Crossref doesn't always provide citation count)
+    // Fallback to Crossref
     const fallback = await fetchCrossrefCitationCount(doi);
     return fallback;
   } catch (error) {
@@ -23,7 +23,6 @@ async function fetchOpenCitationsCount(doi: string): Promise<number | null> {
   if (!res.ok) return null;
 
   const data = await res.json();
-  // return Array.isArray(data) ? data.length : null
   return data?.count ?? null;
 }
 

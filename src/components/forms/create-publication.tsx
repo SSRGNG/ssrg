@@ -6,15 +6,17 @@ import {
   ChevronDown,
   ExternalLink,
   Mail,
-  Plus,
+  PlusCircle,
+  Trash2,
   User,
   UserPlus,
-  X,
 } from "lucide-react";
 import * as React from "react";
 import {
   useFieldArray,
   useForm,
+  useFormContext,
+  useWatch,
   type Control,
   // type FieldArrayWithId,
   type Path,
@@ -66,12 +68,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { publications } from "@/config/enums";
+import { createAuthor, createPublication } from "@/lib/actions/publications";
 import {
-  checkAuthorExists,
-  createAuthor,
-  searchAuthors,
-} from "@/lib/actions/publications";
-import { AuthResearcher } from "@/lib/actions/queries";
+  AuthorData,
+  AuthorSearchResult,
+  AuthResearcher,
+} from "@/lib/actions/queries";
+import { searchAuthors } from "@/lib/actions/search";
 import { cn } from "@/lib/utils";
 import {
   createPublicationSchema,
@@ -86,22 +89,9 @@ type ControlledInputProps = {
   placeholder?: string;
   type?: string;
 };
-type BaseAuthor = {
-  id: string;
-  name: string;
-  email?: string | null;
-  affiliation?: string | null;
-  orcid?: string | null;
-};
+
 type Researcher = AuthResearcher;
-type Author = BaseAuthor & {
-  researcherId?: string | null;
-  publicationCount?: number;
-};
-type AuthorSearchResult = {
-  type: "researcher" | "author";
-  data: Researcher | Author;
-};
+// type Author = AuthorData
 type AuthorFieldsProps = {
   // field: FieldArrayWithId<CreatePublicationPayload, "authors", "id">;
   index: number;
@@ -117,7 +107,7 @@ type Props<TContext> = React.ComponentPropsWithoutRef<"form"> & {
 type CreateAuthorDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAuthorCreated: (author: Author) => void;
+  onAuthorCreated: (author: AuthorData) => void;
 };
 
 // Create New Author Dialog Component
@@ -142,55 +132,24 @@ function CreateAuthorDialog({
 
     setIsCreating(true);
     try {
-      // First check if author already exists
-      const existsResult = await checkAuthorExists(
-        authorData.email || undefined,
-        authorData.orcid || undefined,
-        authorData.name,
-        authorData.affiliation || undefined
-      );
+      const result = await createAuthor({
+        name: authorData.name,
+        email: authorData.email || undefined,
+        affiliation: authorData.affiliation || undefined,
+        orcid: authorData.orcid || undefined,
+      });
 
-      if (!existsResult.success) {
-        toast.error("Failed to check author existence");
+      if (!result.success) {
+        toast.error(result.error || "Failed to create author");
         return;
       }
 
-      if (existsResult.exists) {
-        if (existsResult.author) {
-          // Use existing author
-          const existingAuthor: Author = {
-            ...existsResult.author,
-            publicationCount: 0, // Will be updated by the system
-          };
-          onAuthorCreated(existingAuthor);
-          toast.success("Using existing author");
-        } else if (existsResult.researcher) {
-          // Handle researcher case
-          toast.error("This person is already a researcher in the system");
-          return;
-        }
-      } else {
-        // Create new author
-        const result = await createAuthor({
-          name: authorData.name,
-          email: authorData.email || undefined,
-          affiliation: authorData.affiliation || undefined,
-          orcid: authorData.orcid || undefined,
-        });
-
-        if (!result.success) {
-          toast.error(result.error || "Failed to create author");
-          return;
-        }
-
-        if (result.author) {
-          onAuthorCreated(result.author);
-          toast.success("Author created successfully");
-        }
+      if (result.author) {
+        onAuthorCreated(result.author);
+        toast.success("Author created successfully");
+        setAuthorData({ name: "", email: "", affiliation: "", orcid: "" });
+        onOpenChange(false);
       }
-
-      setAuthorData({ name: "", email: "", affiliation: "", orcid: "" });
-      onOpenChange(false);
     } catch (error) {
       console.error("Error creating author:", error);
       toast.error("Failed to create author");
@@ -211,9 +170,9 @@ function CreateAuthorDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <FormLabel>Name *</FormLabel>
+            <FormLabel>Full Name *</FormLabel>
             <Input
-              placeholder="e.g., Dr. John Smith"
+              placeholder="e.g., Irene R. Davis"
               value={authorData.name}
               onChange={(e) =>
                 setAuthorData((prev) => ({ ...prev, name: e.target.value }))
@@ -225,7 +184,7 @@ function CreateAuthorDialog({
             <FormLabel>Email</FormLabel>
             <Input
               type="email"
-              placeholder="john@university.edu"
+              placeholder="irene@unn.edu"
               value={authorData.email}
               onChange={(e) =>
                 setAuthorData((prev) => ({ ...prev, email: e.target.value }))
@@ -236,7 +195,7 @@ function CreateAuthorDialog({
           <div className="space-y-2">
             <FormLabel>Affiliation</FormLabel>
             <Input
-              placeholder="University of Science"
+              placeholder="University, Organization, or Company"
               value={authorData.affiliation}
               onChange={(e) =>
                 setAuthorData((prev) => ({
@@ -295,54 +254,67 @@ function AuthorSelector({
   const [isSearching, setIsSearching] = React.useState(false);
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
-  const performSearch = React.useCallback(
-    async (query: string): Promise<AuthorSearchResult[]> => {
-      if (!query.trim()) return [];
+  const performSearch = React.useCallback(async (query: string) => {
+    if (!query.trim()) return [];
 
-      setIsSearching(true);
-      try {
-        const result = await searchAuthors(query, 20);
+    setIsSearching(true);
+    try {
+      const result = await searchAuthors(query, 20);
 
-        if (!result.success) {
-          console.error("Search failed:", result.error);
-          return [];
-        }
+      if (!result.success) return [];
 
-        return result.results || [];
-      } catch (error) {
-        console.error("Search error:", error);
-        return [];
-      } finally {
-        setIsSearching(false);
-      }
-    },
-    []
-  );
+      return result.results || [];
+    } catch (error) {
+      console.error("Search error:", error);
+      return [];
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   // Debounce search to avoid too many API calls
   const debouncedSearch = React.useMemo(() => {
-    const timeoutRef = { current: null as NodeJS.Timeout | null };
+    let timeoutId: NodeJS.Timeout | null = null;
 
     return (query: string) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
 
-      timeoutRef.current = setTimeout(() => {
-        performSearch(query).then(setSearchResults);
-      }, 300);
+      timeoutId = setTimeout(async () => {
+        const results = await performSearch(query);
+        setSearchResults(results);
+      }, 500);
     };
   }, [performSearch]);
 
   React.useEffect(() => {
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       debouncedSearch(searchQuery);
     } else {
       setSearchResults([]);
     }
   }, [searchQuery, debouncedSearch]);
 
-  const handleAuthorCreated = (newAuthor: Author) => {
+  // Clear results when dropdown closes
+  React.useEffect(() => {
+    if (!open) {
+      setSearchResults([]);
+      setSearchQuery("");
+    }
+  }, [open]);
+
+  // Debug effect
+  React.useEffect(() => {
+    console.log("Current search state:", {
+      query: searchQuery,
+      results: searchResults,
+      isSearching,
+      open,
+    });
+  }, [searchResults, searchQuery, isSearching, open]);
+
+  const handleAuthorCreated = (newAuthor: AuthorData) => {
     const authorResult: AuthorSearchResult = {
       type: "author",
       data: newAuthor,
@@ -353,9 +325,6 @@ function AuthorSelector({
 
   const getAuthorDisplayName = (author: AuthorSearchResult) => {
     const { data } = author;
-    if (author.type === "researcher") {
-      return `${data.name} (Researcher)`;
-    }
     return data.name;
   };
 
@@ -381,9 +350,7 @@ function AuthorSelector({
               <div className="flex items-center gap-2">
                 {selectedAuthor.type === "researcher" && (
                   <Avatar className="h-5 w-5">
-                    <AvatarImage
-                      src={(selectedAuthor.data as Researcher).avatar ?? ""}
-                    />
+                    <AvatarImage src={selectedAuthor.data.avatar ?? ""} />
                     <AvatarFallback className="text-xs">
                       {selectedAuthor.data.name
                         .split(" ")
@@ -395,11 +362,6 @@ function AuthorSelector({
                 <span className="truncate">
                   {getAuthorDisplayName(selectedAuthor)}
                 </span>
-                {selectedAuthor.type === "researcher" && (
-                  <Badge variant="secondary" className="text-xs">
-                    Researcher
-                  </Badge>
-                )}
               </div>
             ) : (
               placeholder
@@ -411,19 +373,71 @@ function AuthorSelector({
           className="min-w-[var(--radix-popover-trigger-width)]"
           align="start"
         >
-          <Command>
+          <Command shouldFilter={false}>
             <CommandInput
               placeholder="Search authors and researchers..."
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
             <CommandList>
-              {isSearching ? (
-                <CommandEmpty>Searching...</CommandEmpty>
-              ) : searchResults.length === 0 && searchQuery ? (
-                <CommandEmpty>
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground mb-3">
+              {isSearching && <CommandEmpty>Searching...</CommandEmpty>}
+
+              {!isSearching &&
+                searchQuery.trim() &&
+                searchResults.length > 0 && (
+                  <CommandGroup heading="Search Results">
+                    {searchResults.map((author) => (
+                      <CommandItem
+                        key={`${author.type}-${author.data.id}`}
+                        onSelect={() => {
+                          onSelect(author);
+                          setOpen(false);
+                        }}
+                        className="gap-3"
+                      >
+                        {author.type === "researcher" ? (
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={author.data.avatar ?? ""} />
+                            <AvatarFallback className="text-xs">
+                              {author.data.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-3 w-3" />
+                          </div>
+                        )}
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="truncate">{author.data.name}</span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {getAuthorDetails(author)}
+                          </span>
+                        </div>
+                        <Badge
+                          variant={
+                            author.type === "researcher"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className="text-xs"
+                        >
+                          {author.type === "researcher"
+                            ? "Researcher"
+                            : "Author"}
+                        </Badge>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+
+              {!isSearching &&
+                searchQuery.trim() &&
+                searchResults.length === 0 && (
+                  <CommandEmpty className="text-center py-4 space-y-3">
+                    <p className="text-sm text-muted-foreground">
                       No authors found for &ldquo;{searchQuery}&rdquo;
                     </p>
                     <Button
@@ -434,116 +448,50 @@ function AuthorSelector({
                       }}
                       className="gap-2"
                     >
-                      <UserPlus className="size-4" />
+                      <UserPlus />
                       Create New Author
                     </Button>
-                  </div>
-                </CommandEmpty>
-              ) : (
-                <>
-                  {/* Current user first if not already selected */}
-                  {researcher && !selectedAuthor && (
-                    <CommandGroup heading="You">
-                      <CommandItem
-                        onSelect={() => {
-                          onSelect({ type: "researcher", data: researcher });
-                          setOpen(false);
-                        }}
-                        className="gap-3"
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={researcher.avatar ?? ""} />
-                          <AvatarFallback className="text-xs">
-                            {researcher.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span>{researcher.name} (You)</span>
-                          <span className="text-xs text-muted-foreground">
-                            {getAuthorDetails({
-                              type: "researcher",
-                              data: researcher,
-                            })}
-                          </span>
-                        </div>
-                        <Badge variant="secondary" className="ml-auto text-xs">
-                          Researcher
-                        </Badge>
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
+                  </CommandEmpty>
+                )}
 
-                  {searchResults.length > 0 && (
-                    <CommandGroup heading="Search Results">
-                      {searchResults.map((author) => (
-                        <CommandItem
-                          key={`${author.type}-${author.data.id}`}
-                          onSelect={() => {
-                            onSelect(author);
-                            setOpen(false);
-                          }}
-                          className="gap-3"
-                        >
-                          {author.type === "researcher" && (
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage
-                                src={(author.data as Researcher).avatar ?? ""}
-                              />
-                              <AvatarFallback className="text-xs">
-                                {author.data.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                          {author.type === "author" && (
-                            <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-                              <User className="h-3 w-3" />
-                            </div>
-                          )}
-                          <div className="flex flex-col flex-1 min-w-0">
-                            <span className="truncate">{author.data.name}</span>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {getAuthorDetails(author)}
-                            </span>
-                          </div>
-                          <Badge
-                            variant={
-                              author.type === "researcher"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs"
-                          >
-                            {author.type === "researcher"
-                              ? "Researcher"
-                              : "Author"}
-                          </Badge>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-
-                  {searchQuery && (
-                    <CommandGroup>
-                      <CommandItem
-                        onSelect={() => {
-                          setShowCreateDialog(true);
-                          setOpen(false);
-                        }}
-                        className="gap-2"
-                      >
-                        <UserPlus className="h-4 w-4" />
-                        Create new author &ldquo;{searchQuery}&rdquo;
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
-                </>
-              )}
+              {!isSearching &&
+                !searchQuery.trim() &&
+                researcher &&
+                !selectedAuthor && (
+                  <CommandGroup heading="You">
+                    <CommandItem
+                      onSelect={() => {
+                        onSelect({
+                          type: "researcher",
+                          data: { ...researcher, publicationCount: 0 },
+                        });
+                        setOpen(false);
+                      }}
+                      className="gap-3"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={researcher.avatar ?? ""} />
+                        <AvatarFallback className="text-xs">
+                          {researcher.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span>{researcher.name} (You)</span>
+                        <span className="text-xs text-muted-foreground">
+                          {[researcher.email, researcher.affiliation]
+                            .filter(Boolean)
+                            .join(" • ")}
+                        </span>
+                      </div>
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        Researcher
+                      </Badge>
+                    </CommandItem>
+                  </CommandGroup>
+                )}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -683,50 +631,134 @@ function ReportFields({ control }: { control: FormControl }) {
 }
 
 function AuthorFields({
-  // field,
   index,
   remove,
   control,
   researcher,
   onSelectExistingAuthor,
 }: AuthorFieldsProps) {
-  const [selectedAuthor, setSelectedAuthor] =
-    React.useState<AuthorSearchResult | null>(null);
-  const [isManualEntry, setIsManualEntry] = React.useState(false);
+  // Get the current author data from form control
+  const currentAuthor = useWatch({
+    control,
+    name: `authors.${index}`,
+  });
 
+  const { setValue } = useFormContext();
+
+  // Determine if we're in manual entry mode (no researcherId or author id)
+  const [isManualEntry, setIsManualEntry] = React.useState(
+    !currentAuthor?.researcherId && !currentAuthor?.id
+  );
+
+  // Handle author selection from search
   const handleAuthorSelect = (author: AuthorSearchResult | null) => {
-    setSelectedAuthor(author);
     if (author) {
       onSelectExistingAuthor(index, author);
       setIsManualEntry(false);
-    }
-  };
-
-  const toggleManualEntry = () => {
-    setIsManualEntry(!isManualEntry);
-    if (!isManualEntry) {
-      setSelectedAuthor(null);
-      // Clear form fields when switching to manual entry
-      const fieldsToUpdate = ["name", "email", "affiliation", "orcid"] as const;
-      fieldsToUpdate.forEach((fieldName) => {
-        control._formValues.authors[index][fieldName] = "";
+    } else {
+      setValue(`authors.${index}`, {
+        name: "",
+        email: "",
+        affiliation: "",
+        orcid: "",
+        order: index,
+        contribution: currentAuthor?.contribution || "",
+        isCorresponding: currentAuthor?.isCorresponding || false,
+        researcherId: null,
+        id: undefined,
       });
     }
   };
+
+  // Toggle between manual entry and search mode
+  const toggleManualEntry = () => {
+    const newMode = !isManualEntry;
+    setIsManualEntry(newMode);
+
+    if (newMode) {
+      // When switching to manual entry, clear any existing author/researcher references
+      // but keep any manually entered values
+      setValue(`authors.${index}.researcherId`, null);
+      setValue(`authors.${index}.id`, undefined);
+    } else {
+      // When switching back to search mode, clear fields if they match the researcher
+      if (
+        researcher &&
+        currentAuthor.name === researcher.name &&
+        currentAuthor.email === researcher.email
+      ) {
+        setValue(`authors.${index}`, {
+          ...currentAuthor,
+          name: "",
+          email: "",
+          affiliation: "",
+          orcid: "",
+        });
+      }
+    }
+  };
+
+  // Create the selectedAuthor object in the correct format for AuthorSelector
+  const selectedAuthor = React.useMemo(() => {
+    if (!currentAuthor) return null;
+
+    if (currentAuthor.researcherId && researcher) {
+      // Format as researcher
+      return {
+        type: "researcher" as const,
+        data: {
+          id: researcher.id,
+          userId: researcher.userId,
+          name: researcher.name,
+          email: researcher.email,
+          affiliation: researcher.affiliation,
+          title: researcher.title || "",
+          bio: researcher.bio || "",
+          featured: researcher.featured || false,
+          orcid: researcher.orcid,
+          avatar: researcher.avatar,
+          publicationCount: 0,
+        },
+      };
+    } else if (currentAuthor.id) {
+      // Format as regular author
+      return {
+        type: "author" as const,
+        data: {
+          id: currentAuthor.id,
+          name: currentAuthor.name,
+          email: currentAuthor.email || "",
+          affiliation: currentAuthor.affiliation || "",
+          orcid: currentAuthor.orcid || "",
+          researcherId: currentAuthor.researcherId || null,
+          publicationCount: 0,
+        },
+      };
+    }
+    return null;
+  }, [currentAuthor, researcher]);
   return (
     <div className="p-4 border rounded-lg space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <User className="size-4" />
           <span className="font-medium">Author {index + 1}</span>
-          {selectedAuthor && selectedAuthor.type === "researcher" && (
-            <Badge variant="secondary" className="text-xs">
-              Researcher
-            </Badge>
-          )}
+          <Badge
+            variant={
+              selectedAuthor?.type === "researcher" ? "default" : "secondary"
+            }
+            className="text-xs"
+          >
+            {selectedAuthor?.type === "researcher" ? "Researcher" : "Author"}
+          </Badge>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={remove}>
-          <X className="size-4" />
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={remove}
+        >
+          <Trash2 />
         </Button>
       </div>
 
@@ -739,7 +771,7 @@ function AuthorFields({
             variant="ghost"
             size="sm"
             onClick={toggleManualEntry}
-            className="text-xs h-6 px-2"
+            className="text-xs h-6 px-2 text-muted-foreground"
           >
             {isManualEntry ? "Select existing" : "Manual entry"}
           </Button>
@@ -765,9 +797,7 @@ function AuthorFields({
           <div className="flex items-start gap-3">
             {selectedAuthor.type === "researcher" ? (
               <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={(selectedAuthor.data as Researcher).avatar ?? ""}
-                />
+                <AvatarImage src={selectedAuthor.data.avatar ?? ""} />
                 <AvatarFallback>
                   {selectedAuthor.data.name
                     .split(" ")
@@ -784,19 +814,19 @@ function AuthorFields({
               <p className="font-medium">{selectedAuthor.data.name}</p>
               {selectedAuthor.data.email && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Mail className="h-3 w-3" />
+                  <Mail className="size-3" />
                   {selectedAuthor.data.email}
                 </p>
               )}
               {selectedAuthor.data.affiliation && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Building2 className="h-3 w-3" />
+                  <Building2 className="size-3" />
                   {selectedAuthor.data.affiliation}
                 </p>
               )}
               {selectedAuthor.data.orcid && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="size-3" />
                   ORCID: {selectedAuthor.data.orcid}
                 </p>
               )}
@@ -805,22 +835,22 @@ function AuthorFields({
         </div>
       )}
 
-      {/* Manual Entry Fields */}
+      {/* Manual Entry Fields - shown when in manual mode OR when no author is selected */}
       {(isManualEntry || !selectedAuthor) && (
         <div className="space-y-4">
           <div className="grid xs:grid-cols-2 gap-4">
             <ControlledInput
               control={control}
               name={`authors.${index}.name`}
-              title="Name"
-              placeholder="e.g., Dr. John Smith"
+              title="Full Name"
+              placeholder="e.g., Irene R. Davis"
             />
             <ControlledInput
               control={control}
               name={`authors.${index}.email`}
               title="Email"
               type="email"
-              placeholder="john@university.edu"
+              placeholder="irene@unn.edu"
             />
           </div>
 
@@ -829,7 +859,7 @@ function AuthorFields({
               control={control}
               name={`authors.${index}.affiliation`}
               title="Affiliation"
-              placeholder="e.g., University of Science"
+              placeholder="e.g., University, Organization, or Company"
             />
             <ControlledInput
               control={control}
@@ -892,29 +922,6 @@ function AuthorFields({
   );
 }
 
-const defaultValues: CreatePublicationPayload = {
-  title: "",
-  type: "journal_article",
-  abstract: "",
-  link: "",
-  venue: "",
-  doi: "",
-  metadata: {},
-  authors: [
-    {
-      name: "",
-      email: "",
-      affiliation: "",
-      orcid: "",
-      order: 0,
-      contribution: "",
-      isCorresponding: true,
-      researcherId: null,
-    },
-  ],
-  areas: [],
-};
-
 function CreatePublication<TContext>({
   setIsOpen,
   context,
@@ -926,7 +933,28 @@ function CreatePublication<TContext>({
   const researcher = context as AuthResearcher | undefined;
   const form = useForm<CreatePublicationPayload>({
     resolver: zodResolver(createPublicationSchema),
-    defaultValues,
+    defaultValues: {
+      title: "",
+      type: "journal_article",
+      abstract: "",
+      link: "",
+      venue: "",
+      doi: "",
+      metadata: {},
+      authors: [
+        {
+          name: researcher?.name ?? "",
+          email: researcher?.email ?? "",
+          affiliation: researcher?.affiliation ?? "",
+          orcid: researcher?.orcid ?? "",
+          order: 0,
+          contribution: "",
+          isCorresponding: true,
+          researcherId: researcher?.id,
+        },
+      ],
+      areas: [],
+    },
     mode: "onTouched",
   });
 
@@ -941,21 +969,6 @@ function CreatePublication<TContext>({
 
   const selectedType = form.watch("type");
   const publicationTypes = React.useMemo(() => publications.items, []);
-
-  // Add current user as first author if available
-  React.useEffect(() => {
-    if (
-      researcher &&
-      authorFields.length === 1 &&
-      !form.getValues("authors.0.name")
-    ) {
-      form.setValue("authors.0.name", researcher.name);
-      form.setValue("authors.0.email", researcher.email || "");
-      form.setValue("authors.0.affiliation", researcher.affiliation || "");
-      form.setValue("authors.0.orcid", researcher.orcid || "");
-      form.setValue("authors.0.researcherId", researcher.id);
-    }
-  }, [researcher, authorFields.length, form]);
 
   // Optimized callbacks with useCallback
   const addAuthor = React.useCallback(() => {
@@ -1005,12 +1018,14 @@ function CreatePublication<TContext>({
 
   const linkToResearcher = React.useCallback(
     async (authorIndex: number, researcher: Researcher) => {
+      form.setValue(`authors.${authorIndex}.id`, undefined);
       form.setValue(`authors.${authorIndex}.name`, researcher.name);
       form.setValue(`authors.${authorIndex}.email`, researcher.email);
       form.setValue(
         `authors.${authorIndex}.affiliation`,
         researcher.affiliation
       );
+      form.setValue(`authors.${authorIndex}.orcid`, researcher.orcid);
       form.setValue(`authors.${authorIndex}.researcherId`, researcher.id);
     },
     [form]
@@ -1043,20 +1058,6 @@ function CreatePublication<TContext>({
     [selectedType, form]
   );
 
-  // Optimized date formatting
-  const formatDateValue = React.useCallback(
-    (value: Date | null | undefined) => {
-      if (!value) return "";
-      const date = new Date(value);
-      return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
-    },
-    []
-  );
-
-  const handleDateChange = React.useCallback((value: string) => {
-    return value ? new Date(value) : null;
-  }, []);
-
   // Render type-specific fields
   const renderTypeSpecificFields = React.useMemo(() => {
     switch (selectedType) {
@@ -1082,46 +1083,30 @@ function CreatePublication<TContext>({
         return;
       }
 
+      if (data.publicationDate) {
+        data.publicationDate = new Date(data.publicationDate).toISOString();
+      }
       startTransition(async () => {
         try {
-          // Process authors to ensure proper data structure
-          const processedAuthors = data.authors.map((author, index) => ({
-            ...author,
-            order: index,
-            // Ensure required fields are present
-            name: author.name || "",
-            email: author.email || null,
-            affiliation: author.affiliation || null,
-            orcid: author.orcid || null,
-            contribution: author.contribution || null,
-            isCorresponding: author.isCorresponding || false,
-            researcherId: author.researcherId || null,
-          }));
+          console.log({ data });
+          // toast("You submitted the following values", {
+          //   description: (
+          //     <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
+          //       <code className="text-white">
+          //         {JSON.stringify(processedData, null, 2)}
+          //       </code>
+          //     </pre>
+          //   ),
+          // });
 
-          const processedData = {
-            ...data,
-            authors: processedAuthors,
-            // Ensure dates are properly formatted
-            publicationDate: data.publicationDate || null,
-            // Clean up empty metadata fields
-            // metadata: Object.fromEntries(
-            //   Object.entries(data.metadata || {}).filter(
-            //     ([_, value]) =>
-            //       value !== null && value !== undefined && value !== ""
-            //   )
-            // ),
-          };
+          const result = await createPublication(data);
 
-          console.log("Submitting publication data:", processedData);
-
-          // const result = await createPublication(processedData);
-
-          // if (!result.success) {
-          //   toast.error("Error", {
-          //     description: result.error || "Failed to create publication",
-          //   });
-          //   return;
-          // }
+          if (!result.success) {
+            toast.error("Error", {
+              description: result.error || "Failed to create publication",
+            });
+            return;
+          }
 
           toast.success("Success", {
             description: "Publication created successfully!",
@@ -1260,6 +1245,53 @@ function CreatePublication<TContext>({
             )}
           />
 
+          {/* <FormField
+            control={form.control}
+            name="publicationDate"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <ErrorTitle fieldState={fieldState} title="Publication Date" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "px-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(new Date(field.value), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center">
+                    <Calendar
+                      // classNames={{ root: "w-full" }}
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        field.onChange(date ? date.toISOString() : null);
+                      }}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      captionLayout="dropdown"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormDescription>
+                  When this publication was released.
+                </FormDescription>
+              </FormItem>
+            )}
+          /> */}
+
           <FormField
             control={form.control}
             name="publicationDate"
@@ -1268,12 +1300,28 @@ function CreatePublication<TContext>({
                 <ErrorTitle fieldState={fieldState} title="Publication Date" />
                 <FormControl>
                   <Input
-                    type="date"
+                    placeholder="e.g., 2023, 2023-05, or 2023-05-15"
                     {...field}
-                    value={formatDateValue(field.value)}
-                    onChange={(e) =>
-                      field.onChange(handleDateChange(e.target.value))
-                    }
+                    value={field.value ? String(field.value) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow typing numbers and hyphens
+                      if (!value || /^[\d-]*$/.test(value)) {
+                        field.onChange(value || null);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      if (
+                        value &&
+                        !/^(\d{4}|\d{4}-\d{2}|\d{4}-\d{2}-\d{2})$/.test(value)
+                      ) {
+                        // Show error or clear invalid input
+                        console.error(
+                          "Please use format: YYYY, YYYY-MM, or YYYY-MM-DD"
+                        );
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormDescription>
@@ -1332,51 +1380,42 @@ function CreatePublication<TContext>({
 
         {/* Authors Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Authors</h3>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addAuthor}
-            >
-              <Plus className="size-4" />
-              Add Author
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {authorFields.map((field, index) => (
-              <AuthorFields
-                key={field.id}
-                // field={field}
-                index={index}
-                remove={() => removeAuthorField(index)}
-                control={form.control}
-                researcher={researcher}
-                onSelectExistingAuthor={(index, author) => {
-                  if (author.type === "researcher") {
-                    linkToResearcher(index, author.data as Researcher);
-                  } else {
-                    form.setValue(`authors.${index}.name`, author.data.name);
-                    form.setValue(
-                      `authors.${index}.email`,
-                      author.data.email || ""
-                    );
-                    form.setValue(
-                      `authors.${index}.affiliation`,
-                      author.data.affiliation || ""
-                    );
-                    form.setValue(
-                      `authors.${index}.orcid`,
-                      author.data.orcid || ""
-                    );
-                    form.setValue(`authors.${index}.researcherId`, null);
-                  }
-                }}
-              />
-            ))}
-          </div>
+          <h3>Authors</h3>
+          {authorFields.map((field, index) => (
+            <AuthorFields
+              key={field.id}
+              // field={field}
+              index={index}
+              remove={() => removeAuthorField(index)}
+              control={form.control}
+              researcher={researcher}
+              onSelectExistingAuthor={(index, author) => {
+                if (author.type === "researcher") {
+                  linkToResearcher(index, author.data);
+                } else {
+                  form.setValue(`authors.${index}.id`, author.data.id);
+                  form.setValue(`authors.${index}.name`, author.data.name);
+                  form.setValue(
+                    `authors.${index}.email`,
+                    author.data.email || ""
+                  );
+                  form.setValue(
+                    `authors.${index}.affiliation`,
+                    author.data.affiliation || ""
+                  );
+                  form.setValue(
+                    `authors.${index}.orcid`,
+                    author.data.orcid || ""
+                  );
+                  form.setValue(`authors.${index}.researcherId`, null);
+                }
+              }}
+            />
+          ))}
+          <Button type="button" variant="secondary" onClick={addAuthor}>
+            <PlusCircle />
+            Add Author
+          </Button>
         </div>
         <Button
           type="submit"

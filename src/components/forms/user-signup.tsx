@@ -135,7 +135,7 @@ function UserSignup({ setIsOpen, className, ...props }: Props) {
                 <FormItem>
                   <ErrorTitle fieldState={fieldState} title="Full Name" />
                   <FormControl>
-                    <Input placeholder="Dr. Kwame Adisa" {...field} />
+                    <Input placeholder="Irene R. Davis" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -148,7 +148,7 @@ function UserSignup({ setIsOpen, className, ...props }: Props) {
                 <FormItem>
                   <ErrorTitle fieldState={fieldState} title="Email Address" />
                   <FormControl>
-                    <Input placeholder="e.g., adisa@ssrg.org" {...field} />
+                    <Input placeholder="e.g., irene@ssrg.org" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -247,15 +247,17 @@ function UserSignup({ setIsOpen, className, ...props }: Props) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {roles.values.map((role) => (
-                      <SelectItem
-                        key={role}
-                        className="capitalize"
-                        value={role}
-                      >
-                        {role}
-                      </SelectItem>
-                    ))}
+                    {roles.values
+                      .filter((role) => role !== "admin")
+                      .map((role) => (
+                        <SelectItem
+                          key={role}
+                          className="capitalize"
+                          value={role}
+                        >
+                          {role}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>

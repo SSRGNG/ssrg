@@ -120,6 +120,13 @@
       "when": 1749314409772,
       "tag": "0016_smart_carmella_unuscione",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1749929854988,
+      "tag": "0017_red_hitman",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import {
   ResearcherWithPublications,
 } from "@/lib/actions/queries";
 import type { NavItem, Role, UserNavItem } from "@/types";
+import { format } from "date-fns";
 
 export { doiValidator, orcidValidator } from "@/lib/validations";
 
@@ -423,4 +424,17 @@ export function normalizeORCID(input: string) {
     .toUpperCase();
 
   return isValidORCID(cleaned) ? cleaned : null;
+}
+
+export function formatPublicationDate(dateString: string) {
+  if (!dateString) return "Date not specified";
+
+  if (/^\d{4}$/.test(dateString)) {
+    return dateString; // "2023"
+  } else if (/^\d{4}-\d{2}$/.test(dateString)) {
+    return format(new Date(dateString + "-01"), "MMMM yyyy"); // "May 2023"
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return format(new Date(dateString), "PPP"); // "May 15, 2023"
+  }
+  return dateString;
 }

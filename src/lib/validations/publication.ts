@@ -26,7 +26,16 @@ const basePublicationSchema = z.object({
   abstract: z.string().optional().nullable(),
   link: z.string().url("Invalid URL").optional().nullable().or(z.literal("")), // Allow empty string
   creatorId: z.string().uuid().optional().nullable(),
-  publicationDate: z.coerce.date().optional().nullable(),
+  publicationDate: z
+    .union([
+      z.date(),
+      z.string().datetime(), // Full ISO string
+      z.string().regex(/^\d{4}$/, "Invalid year format"), // 2023
+      z.string().regex(/^\d{4}-\d{2}$/, "Invalid year-month format"), // 2023-05
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"), // 2023-05-15
+    ])
+    .optional()
+    .nullable(),
   doi: doiValidator,
   venue: z.string().optional().nullable(),
 });

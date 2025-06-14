@@ -1,8 +1,10 @@
 // "use client";
 
 // import { zodResolver } from "@hookform/resolvers/zod";
+// import { format } from "date-fns";
 // import {
 //   Building2,
+//   CalendarIcon,
 //   ChevronDown,
 //   ExternalLink,
 //   Mail,
@@ -16,7 +18,7 @@
 //   useFieldArray,
 //   useForm,
 //   type Control,
-//   type FieldArrayWithId,
+//   // type FieldArrayWithId,
 //   type Path,
 // } from "react-hook-form";
 // import { toast } from "sonner";
@@ -25,6 +27,7 @@
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { Badge } from "@/components/ui/badge";
 // import { Button } from "@/components/ui/button";
+// import { Calendar } from "@/components/ui/calendar";
 // import { Checkbox } from "@/components/ui/checkbox";
 // import {
 //   Command,
@@ -66,13 +69,13 @@
 // import { Separator } from "@/components/ui/separator";
 // import { Textarea } from "@/components/ui/textarea";
 // import { publications } from "@/config/enums";
+// import { createAuthor, createPublication } from "@/lib/actions/publications";
 // import {
-//   checkAuthorExists,
-//   createAuthor,
-//   createPublication,
-//   searchAuthors,
-// } from "@/lib/actions/publications";
-// import { AuthResearcher } from "@/lib/actions/queries";
+//   AuthorData,
+//   AuthorSearchResult,
+//   AuthResearcher,
+// } from "@/lib/actions/queries";
+// import { searchAuthors } from "@/lib/actions/search";
 // import { cn } from "@/lib/utils";
 // import {
 //   createPublicationSchema,
@@ -87,24 +90,11 @@
 //   placeholder?: string;
 //   type?: string;
 // };
-// type BaseAuthor = {
-//   id: string;
-//   name: string;
-//   email?: string | null;
-//   affiliation?: string | null;
-//   orcid?: string | null;
-// };
+
 // type Researcher = AuthResearcher;
-// type Author = BaseAuthor & {
-//   researcherId?: string | null;
-//   publicationCount?: number;
-// };
-// type AuthorSearchResult = {
-//   type: "researcher" | "author";
-//   data: Researcher | Author;
-// };
+// // type Author = AuthorData
 // type AuthorFieldsProps = {
-//   field: FieldArrayWithId<CreatePublicationPayload, "authors", "id">;
+//   // field: FieldArrayWithId<CreatePublicationPayload, "authors", "id">;
 //   index: number;
 //   remove: () => void;
 //   control: Control<CreatePublicationPayload>;
@@ -118,7 +108,7 @@
 // type CreateAuthorDialogProps = {
 //   open: boolean;
 //   onOpenChange: (open: boolean) => void;
-//   onAuthorCreated: (author: Author) => void;
+//   onAuthorCreated: (author: AuthorData) => void;
 // };
 
 // // Create New Author Dialog Component
@@ -143,55 +133,24 @@
 
 //     setIsCreating(true);
 //     try {
-//       // First check if author already exists
-//       const existsResult = await checkAuthorExists(
-//         authorData.email || undefined,
-//         authorData.orcid || undefined,
-//         authorData.name,
-//         authorData.affiliation || undefined
-//       );
+//       const result = await createAuthor({
+//         name: authorData.name,
+//         email: authorData.email || undefined,
+//         affiliation: authorData.affiliation || undefined,
+//         orcid: authorData.orcid || undefined,
+//       });
 
-//       if (!existsResult.success) {
-//         toast.error("Failed to check author existence");
+//       if (!result.success) {
+//         toast.error(result.error || "Failed to create author");
 //         return;
 //       }
 
-//       if (existsResult.exists) {
-//         if (existsResult.author) {
-//           // Use existing author
-//           const existingAuthor: Author = {
-//             ...existsResult.author,
-//             publicationCount: 0, // Will be updated by the system
-//           };
-//           onAuthorCreated(existingAuthor);
-//           toast.success("Using existing author");
-//         } else if (existsResult.researcher) {
-//           // Handle researcher case
-//           toast.error("This person is already a researcher in the system");
-//           return;
-//         }
-//       } else {
-//         // Create new author
-//         const result = await createAuthor({
-//           name: authorData.name,
-//           email: authorData.email || undefined,
-//           affiliation: authorData.affiliation || undefined,
-//           orcid: authorData.orcid || undefined,
-//         });
-
-//         if (!result.success) {
-//           toast.error(result.error || "Failed to create author");
-//           return;
-//         }
-
-//         if (result.author) {
-//           onAuthorCreated(result.author);
-//           toast.success("Author created successfully");
-//         }
+//       if (result.author) {
+//         onAuthorCreated(result.author);
+//         toast.success("Author created successfully");
+//         setAuthorData({ name: "", email: "", affiliation: "", orcid: "" });
+//         onOpenChange(false);
 //       }
-
-//       setAuthorData({ name: "", email: "", affiliation: "", orcid: "" });
-//       onOpenChange(false);
 //     } catch (error) {
 //       console.error("Error creating author:", error);
 //       toast.error("Failed to create author");
@@ -206,15 +165,15 @@
 //         <DialogHeader>
 //           <DialogTitle>Create New Author</DialogTitle>
 //           <DialogDescription>
-//             Add a new author who isn't in the system yet.
+//             {"Add a new author who isn't in the system yet."}
 //           </DialogDescription>
 //         </DialogHeader>
 
 //         <div className="space-y-4 py-4">
 //           <div className="space-y-2">
-//             <FormLabel>Name *</FormLabel>
+//             <FormLabel>Full Name *</FormLabel>
 //             <Input
-//               placeholder="e.g., Dr. John Smith"
+//               placeholder="e.g., Irene R. Davis"
 //               value={authorData.name}
 //               onChange={(e) =>
 //                 setAuthorData((prev) => ({ ...prev, name: e.target.value }))
@@ -226,7 +185,7 @@
 //             <FormLabel>Email</FormLabel>
 //             <Input
 //               type="email"
-//               placeholder="john@university.edu"
+//               placeholder="irene@unn.edu"
 //               value={authorData.email}
 //               onChange={(e) =>
 //                 setAuthorData((prev) => ({ ...prev, email: e.target.value }))
@@ -237,7 +196,7 @@
 //           <div className="space-y-2">
 //             <FormLabel>Affiliation</FormLabel>
 //             <Input
-//               placeholder="University of Science"
+//               placeholder="University, Organization, or Company"
 //               value={authorData.affiliation}
 //               onChange={(e) =>
 //                 setAuthorData((prev) => ({
@@ -304,11 +263,15 @@
 //       try {
 //         const result = await searchAuthors(query, 20);
 
+//         // Add debugging logs
+//         console.log("Search result:", result);
+
 //         if (!result.success) {
 //           console.error("Search failed:", result.error);
 //           return [];
 //         }
 
+//         console.log("Search results:", result.results);
 //         return result.results || [];
 //       } catch (error) {
 //         console.error("Search error:", error);
@@ -329,21 +292,45 @@
 //         clearTimeout(timeoutRef.current);
 //       }
 
-//       timeoutRef.current = setTimeout(() => {
-//         performSearch(query).then(setSearchResults);
+//       // Clear results immediately when starting a new search
+//       if (query.trim()) {
+//         setSearchResults([]);
+//       }
+
+//       setIsSearching(true);
+//       timeoutRef.current = setTimeout(async () => {
+//         const results = await performSearch(query);
+//         setSearchResults(results);
+//         setIsSearching(false);
 //       }, 300);
 //     };
 //   }, [performSearch]);
 
 //   React.useEffect(() => {
-//     if (searchQuery) {
+//     if (searchQuery.trim()) {
 //       debouncedSearch(searchQuery);
 //     } else {
 //       setSearchResults([]);
+//       setIsSearching(false);
 //     }
 //   }, [searchQuery, debouncedSearch]);
 
-//   const handleAuthorCreated = (newAuthor: Author) => {
+//   // Clear results when dropdown closes
+//   // React.useEffect(() => {
+//   //   if (!open) {
+//   //     setSearchResults([]);
+//   //     setSearchQuery("");
+//   //   }
+//   // }, [open]);
+
+//   // Add this debug effect
+//   React.useEffect(() => {
+//     console.log("Current searchResults state:", searchResults);
+//     console.log("Current searchQuery:", searchQuery);
+//     console.log("Current isSearching:", isSearching);
+//   }, [searchResults, searchQuery, isSearching]);
+
+//   const handleAuthorCreated = (newAuthor: AuthorData) => {
 //     const authorResult: AuthorSearchResult = {
 //       type: "author",
 //       data: newAuthor,
@@ -382,9 +369,7 @@
 //               <div className="flex items-center gap-2">
 //                 {selectedAuthor.type === "researcher" && (
 //                   <Avatar className="h-5 w-5">
-//                     <AvatarImage
-//                       src={(selectedAuthor.data as Researcher).avatar ?? ""}
-//                     />
+//                     <AvatarImage src={selectedAuthor.data.avatar ?? ""} />
 //                     <AvatarFallback className="text-xs">
 //                       {selectedAuthor.data.name
 //                         .split(" ")
@@ -396,11 +381,18 @@
 //                 <span className="truncate">
 //                   {getAuthorDisplayName(selectedAuthor)}
 //                 </span>
-//                 {selectedAuthor.type === "researcher" && (
-//                   <Badge variant="secondary" className="text-xs">
-//                     Researcher
-//                   </Badge>
-//                 )}
+//                 <Badge
+//                   variant={
+//                     selectedAuthor.type === "researcher"
+//                       ? "default"
+//                       : "secondary"
+//                   }
+//                   className="text-xs"
+//                 >
+//                   {selectedAuthor.type === "researcher"
+//                     ? "Researcher"
+//                     : "Author"}
+//                 </Badge>
 //               </div>
 //             ) : (
 //               placeholder
@@ -408,7 +400,10 @@
 //             <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
 //           </Button>
 //         </PopoverTrigger>
-//         <PopoverContent className="w-full p-0" align="start">
+//         <PopoverContent
+//           className="min-w-[var(--radix-popover-trigger-width)]"
+//           align="start"
+//         >
 //           <Command>
 //             <CommandInput
 //               placeholder="Search authors and researchers..."
@@ -416,13 +411,56 @@
 //               onValueChange={setSearchQuery}
 //             />
 //             <CommandList>
-//               {isSearching ? (
+//               {isSearching && searchQuery.trim() ? (
 //                 <CommandEmpty>Searching...</CommandEmpty>
-//               ) : searchResults.length === 0 && searchQuery ? (
+//               ) : searchResults.length > 0 ? (
+//                 <CommandGroup heading="Search Results">
+//                   {searchResults.map((author) => (
+//                     <CommandItem
+//                       key={`${author.type}-${author.data.id}`}
+//                       onSelect={() => {
+//                         onSelect(author);
+//                         setOpen(false);
+//                       }}
+//                       className="gap-3"
+//                     >
+//                       {author.type === "researcher" ? (
+//                         <Avatar className="h-6 w-6">
+//                           <AvatarImage src={author.data.avatar ?? ""} />
+//                           <AvatarFallback className="text-xs">
+//                             {author.data.name
+//                               .split(" ")
+//                               .map((n) => n[0])
+//                               .join("")}
+//                           </AvatarFallback>
+//                         </Avatar>
+//                       ) : (
+//                         <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+//                           <User className="h-3 w-3" />
+//                         </div>
+//                       )}
+//                       <div className="flex flex-col flex-1 min-w-0">
+//                         <span className="truncate">{author.data.name}</span>
+//                         <span className="text-xs text-muted-foreground truncate">
+//                           {getAuthorDetails(author)}
+//                         </span>
+//                       </div>
+//                       <Badge
+//                         variant={
+//                           author.type === "researcher" ? "default" : "secondary"
+//                         }
+//                         className="text-xs"
+//                       >
+//                         {author.type === "researcher" ? "Researcher" : "Author"}
+//                       </Badge>
+//                     </CommandItem>
+//                   ))}
+//                 </CommandGroup>
+//               ) : searchQuery.trim() ? (
 //                 <CommandEmpty>
 //                   <div className="text-center py-4">
 //                     <p className="text-sm text-muted-foreground mb-3">
-//                       No authors found for "{searchQuery}"
+//                       No authors found for &ldquo;{searchQuery}&rdquo;
 //                     </p>
 //                     <Button
 //                       size="sm"
@@ -437,111 +475,41 @@
 //                     </Button>
 //                   </div>
 //                 </CommandEmpty>
-//               ) : (
-//                 <>
-//                   {/* Current user first if not already selected */}
-//                   {researcher && !selectedAuthor && (
-//                     <CommandGroup heading="You">
-//                       <CommandItem
-//                         onSelect={() => {
-//                           onSelect({ type: "researcher", data: researcher });
-//                           setOpen(false);
-//                         }}
-//                         className="gap-3"
-//                       >
-//                         <Avatar className="h-6 w-6">
-//                           <AvatarImage src={researcher.avatar ?? ""} />
-//                           <AvatarFallback className="text-xs">
-//                             {researcher.name
-//                               .split(" ")
-//                               .map((n) => n[0])
-//                               .join("")}
-//                           </AvatarFallback>
-//                         </Avatar>
-//                         <div className="flex flex-col">
-//                           <span>{researcher.name} (You)</span>
-//                           <span className="text-xs text-muted-foreground">
-//                             {getAuthorDetails({
-//                               type: "researcher",
-//                               data: researcher,
-//                             })}
-//                           </span>
-//                         </div>
-//                         <Badge variant="secondary" className="ml-auto text-xs">
-//                           Researcher
-//                         </Badge>
-//                       </CommandItem>
-//                     </CommandGroup>
-//                   )}
-
-//                   {searchResults.length > 0 && (
-//                     <CommandGroup heading="Search Results">
-//                       {searchResults.map((author) => (
-//                         <CommandItem
-//                           key={`${author.type}-${author.data.id}`}
-//                           onSelect={() => {
-//                             onSelect(author);
-//                             setOpen(false);
-//                           }}
-//                           className="gap-3"
-//                         >
-//                           {author.type === "researcher" && (
-//                             <Avatar className="h-6 w-6">
-//                               <AvatarImage
-//                                 src={(author.data as Researcher).avatar ?? ""}
-//                               />
-//                               <AvatarFallback className="text-xs">
-//                                 {author.data.name
-//                                   .split(" ")
-//                                   .map((n) => n[0])
-//                                   .join("")}
-//                               </AvatarFallback>
-//                             </Avatar>
-//                           )}
-//                           {author.type === "author" && (
-//                             <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-//                               <User className="h-3 w-3" />
-//                             </div>
-//                           )}
-//                           <div className="flex flex-col flex-1 min-w-0">
-//                             <span className="truncate">{author.data.name}</span>
-//                             <span className="text-xs text-muted-foreground truncate">
-//                               {getAuthorDetails(author)}
-//                             </span>
-//                           </div>
-//                           <Badge
-//                             variant={
-//                               author.type === "researcher"
-//                                 ? "default"
-//                                 : "secondary"
-//                             }
-//                             className="text-xs"
-//                           >
-//                             {author.type === "researcher"
-//                               ? "Researcher"
-//                               : "Author"}
-//                           </Badge>
-//                         </CommandItem>
-//                       ))}
-//                     </CommandGroup>
-//                   )}
-
-//                   {searchQuery && (
-//                     <CommandGroup>
-//                       <CommandItem
-//                         onSelect={() => {
-//                           setShowCreateDialog(true);
-//                           setOpen(false);
-//                         }}
-//                         className="gap-2"
-//                       >
-//                         <UserPlus className="h-4 w-4" />
-//                         Create new author "{searchQuery}"
-//                       </CommandItem>
-//                     </CommandGroup>
-//                   )}
-//                 </>
-//               )}
+//               ) : researcher && !selectedAuthor ? (
+//                 <CommandGroup heading="You">
+//                   <CommandItem
+//                     onSelect={() => {
+//                       onSelect({
+//                         type: "researcher",
+//                         data: { ...researcher, publicationCount: 0 },
+//                       });
+//                       setOpen(false);
+//                     }}
+//                     className="gap-3"
+//                   >
+//                     <Avatar className="h-6 w-6">
+//                       <AvatarImage src={researcher.avatar ?? ""} />
+//                       <AvatarFallback className="text-xs">
+//                         {researcher.name
+//                           .split(" ")
+//                           .map((n) => n[0])
+//                           .join("")}
+//                       </AvatarFallback>
+//                     </Avatar>
+//                     <div className="flex flex-col">
+//                       <span>{researcher.name} (You)</span>
+//                       <span className="text-xs text-muted-foreground">
+//                         {[researcher.email, researcher.affiliation]
+//                           .filter(Boolean)
+//                           .join(" • ")}
+//                       </span>
+//                     </div>
+//                     <Badge variant="secondary" className="ml-auto text-xs">
+//                       Researcher
+//                     </Badge>
+//                   </CommandItem>
+//                 </CommandGroup>
+//               ) : null}
 //             </CommandList>
 //           </Command>
 //         </PopoverContent>
@@ -681,7 +649,7 @@
 // }
 
 // function AuthorFields({
-//   field,
+//   // field,
 //   index,
 //   remove,
 //   control,
@@ -810,15 +778,15 @@
 //             <ControlledInput
 //               control={control}
 //               name={`authors.${index}.name`}
-//               title="Name"
-//               placeholder="e.g., Dr. John Smith"
+//               title="Full Name"
+//               placeholder="e.g., Irene R. Davis"
 //             />
 //             <ControlledInput
 //               control={control}
 //               name={`authors.${index}.email`}
 //               title="Email"
 //               type="email"
-//               placeholder="john@university.edu"
+//               placeholder="irene@unn.edu"
 //             />
 //           </div>
 
@@ -827,7 +795,7 @@
 //               control={control}
 //               name={`authors.${index}.affiliation`}
 //               title="Affiliation"
-//               placeholder="e.g., University of Science"
+//               placeholder="e.g., University, Organization, or Company"
 //             />
 //             <ControlledInput
 //               control={control}
@@ -844,7 +812,7 @@
 
 //       <FormField
 //         control={control}
-//         name={`authors.${index}.contribution` as any}
+//         name={`authors.${index}.contribution`}
 //         render={({ field, fieldState }) => (
 //           <FormItem>
 //             <ErrorTitle fieldState={fieldState} title="Contribution" />
@@ -857,7 +825,7 @@
 //               />
 //             </FormControl>
 //             <FormDescription>
-//               Optional description of the author's role and contribution
+//               {"Optional description of the author's role and contribution"}
 //             </FormDescription>
 //           </FormItem>
 //         )}
@@ -865,7 +833,7 @@
 
 //       <FormField
 //         control={control}
-//         name={`authors.${index}.isCorresponding` as any}
+//         name={`authors.${index}.isCorresponding`}
 //         render={({ field, fieldState }) => (
 //           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
 //             <FormControl>
@@ -890,29 +858,6 @@
 //   );
 // }
 
-// const defaultValues: CreatePublicationPayload = {
-//   title: "",
-//   type: "journal_article",
-//   abstract: "",
-//   link: "",
-//   venue: "",
-//   doi: "",
-//   metadata: {},
-//   authors: [
-//     {
-//       name: "",
-//       email: "",
-//       affiliation: "",
-//       orcid: "",
-//       order: 0,
-//       contribution: "",
-//       isCorresponding: true,
-//       researcherId: null,
-//     },
-//   ],
-//   areas: [],
-// };
-
 // function CreatePublication<TContext>({
 //   setIsOpen,
 //   context,
@@ -924,7 +869,28 @@
 //   const researcher = context as AuthResearcher | undefined;
 //   const form = useForm<CreatePublicationPayload>({
 //     resolver: zodResolver(createPublicationSchema),
-//     defaultValues,
+//     defaultValues: {
+//       title: "",
+//       type: "journal_article",
+//       abstract: "",
+//       link: "",
+//       venue: "",
+//       doi: "",
+//       metadata: {},
+//       authors: [
+//         {
+//           name: researcher?.name ?? "",
+//           email: researcher?.email ?? "",
+//           affiliation: researcher?.affiliation ?? "",
+//           orcid: researcher?.orcid ?? "",
+//           order: 0,
+//           contribution: "",
+//           isCorresponding: true,
+//           researcherId: researcher?.id,
+//         },
+//       ],
+//       areas: [],
+//     },
 //     mode: "onTouched",
 //   });
 
@@ -939,21 +905,6 @@
 
 //   const selectedType = form.watch("type");
 //   const publicationTypes = React.useMemo(() => publications.items, []);
-
-//   // Add current user as first author if available
-//   React.useEffect(() => {
-//     if (
-//       researcher &&
-//       authorFields.length === 1 &&
-//       !form.getValues("authors.0.name")
-//     ) {
-//       form.setValue("authors.0.name", researcher.name);
-//       form.setValue("authors.0.email", researcher.email || "");
-//       form.setValue("authors.0.affiliation", researcher.affiliation || "");
-//       form.setValue("authors.0.orcid", researcher.orcid || "");
-//       form.setValue("authors.0.researcherId", researcher.id);
-//     }
-//   }, [researcher, authorFields.length, form]);
 
 //   // Optimized callbacks with useCallback
 //   const addAuthor = React.useCallback(() => {
@@ -1009,6 +960,7 @@
 //         `authors.${authorIndex}.affiliation`,
 //         researcher.affiliation
 //       );
+//       form.setValue(`authors.${authorIndex}.orcid`, researcher.orcid);
 //       form.setValue(`authors.${authorIndex}.researcherId`, researcher.id);
 //     },
 //     [form]
@@ -1041,20 +993,6 @@
 //     [selectedType, form]
 //   );
 
-//   // Optimized date formatting
-//   const formatDateValue = React.useCallback(
-//     (value: Date | null | undefined) => {
-//       if (!value) return "";
-//       const date = new Date(value);
-//       return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
-//     },
-//     []
-//   );
-
-//   const handleDateChange = React.useCallback((value: string) => {
-//     return value ? new Date(value) : null;
-//   }, []);
-
 //   // Render type-specific fields
 //   const renderTypeSpecificFields = React.useMemo(() => {
 //     switch (selectedType) {
@@ -1082,37 +1020,18 @@
 
 //       startTransition(async () => {
 //         try {
-//           // Process authors to ensure proper data structure
-//           const processedAuthors = data.authors.map((author, index) => ({
-//             ...author,
-//             order: index,
-//             // Ensure required fields are present
-//             name: author.name || "",
-//             email: author.email || null,
-//             affiliation: author.affiliation || null,
-//             orcid: author.orcid || null,
-//             contribution: author.contribution || null,
-//             isCorresponding: author.isCorresponding || false,
-//             researcherId: author.researcherId || null,
-//           }));
+//           console.log({ data });
+//           // toast("You submitted the following values", {
+//           //   description: (
+//           //     <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
+//           //       <code className="text-white">
+//           //         {JSON.stringify(processedData, null, 2)}
+//           //       </code>
+//           //     </pre>
+//           //   ),
+//           // });
 
-//           const processedData = {
-//             ...data,
-//             authors: processedAuthors,
-//             // Ensure dates are properly formatted
-//             publicationDate: data.publicationDate || null,
-//             // Clean up empty metadata fields
-//             metadata: Object.fromEntries(
-//               Object.entries(data.metadata || {}).filter(
-//                 ([_, value]) =>
-//                   value !== null && value !== undefined && value !== ""
-//               )
-//             ),
-//           };
-
-//           console.log("Submitting publication data:", processedData);
-
-//           const result = await createPublication(processedData);
+//           const result = await createPublication(data);
 
 //           if (!result.success) {
 //             toast.error("Error", {
@@ -1147,12 +1066,12 @@
 //         {...props}
 //       >
 //         {/* Publication Type and Title */}
-//         <div className="grid xs:grid-cols-4 gap-4">
+//         <div className="grid xs:grid-cols-2 sm:grid-cols-4 gap-4">
 //           <FormField
 //             control={form.control}
 //             name="type"
 //             render={({ field, fieldState }) => (
-//               <FormItem>
+//               <FormItem className="sm:col-span-1">
 //                 <ErrorTitle fieldState={fieldState} title="Publication Type" />
 //                 <Select
 //                   onValueChange={field.onChange}
@@ -1178,7 +1097,7 @@
 //             control={form.control}
 //             name="title"
 //             render={({ field, fieldState }) => (
-//               <FormItem className="xs:col-span-3">
+//               <FormItem className="sm:col-span-3">
 //                 <ErrorTitle fieldState={fieldState} title="Title" />
 //                 <FormControl>
 //                   <Input
@@ -1264,16 +1183,38 @@
 //             render={({ field, fieldState }) => (
 //               <FormItem>
 //                 <ErrorTitle fieldState={fieldState} title="Publication Date" />
-//                 <FormControl>
-//                   <Input
-//                     type="date"
-//                     {...field}
-//                     value={formatDateValue(field.value)}
-//                     onChange={(e) =>
-//                       field.onChange(handleDateChange(e.target.value))
-//                     }
-//                   />
-//                 </FormControl>
+//                 <Popover>
+//                   <PopoverTrigger asChild>
+//                     <FormControl>
+//                       <Button
+//                         variant={"outline"}
+//                         className={cn(
+//                           "px-3 text-left font-normal",
+//                           !field.value && "text-muted-foreground"
+//                         )}
+//                       >
+//                         {field.value ? (
+//                           format(field.value, "PPP")
+//                         ) : (
+//                           <span>Pick a date</span>
+//                         )}
+//                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+//                       </Button>
+//                     </FormControl>
+//                   </PopoverTrigger>
+//                   <PopoverContent className="w-auto p-0" align="center">
+//                     <Calendar
+//                       // classNames={{ root: "w-full" }}
+//                       mode="single"
+//                       selected={field.value ?? undefined}
+//                       onSelect={field.onChange}
+//                       disabled={(date) =>
+//                         date > new Date() || date < new Date("1900-01-01")
+//                       }
+//                       captionLayout="dropdown"
+//                     />
+//                   </PopoverContent>
+//                 </Popover>
 //                 <FormDescription>
 //                   When this publication was released.
 //                 </FormDescription>
@@ -1347,15 +1288,16 @@
 //             {authorFields.map((field, index) => (
 //               <AuthorFields
 //                 key={field.id}
-//                 field={field}
+//                 // field={field}
 //                 index={index}
 //                 remove={() => removeAuthorField(index)}
 //                 control={form.control}
 //                 researcher={researcher}
 //                 onSelectExistingAuthor={(index, author) => {
 //                   if (author.type === "researcher") {
-//                     linkToResearcher(index, author.data as Researcher);
+//                     linkToResearcher(index, author.data);
 //                   } else {
+//                     form.setValue(`authors.${index}.id`, author.data.id);
 //                     form.setValue(`authors.${index}.name`, author.data.name);
 //                     form.setValue(
 //                       `authors.${index}.email`,
