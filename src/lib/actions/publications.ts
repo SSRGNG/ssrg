@@ -518,26 +518,6 @@ export async function createPublication(data: CreatePublicationPayload) {
       };
     }
 
-    // Fetch citation count if DOI is provided
-    let citationCount = 0;
-    let lastCitationUpdate = null;
-
-    if (validatedData.doi) {
-      try {
-        const fetchedCount = await getCitationCount(validatedData.doi);
-        if (fetchedCount !== null) {
-          citationCount = fetchedCount;
-          lastCitationUpdate = new Date();
-        }
-      } catch (error) {
-        console.warn(
-          "Failed to fetch citation count during publication creation:",
-          error
-        );
-        // Continue with creation even if citation fetch fails
-      }
-    }
-
     let publicationDate = null;
 
     if (validatedData.publicationDate) {
@@ -558,11 +538,106 @@ export async function createPublication(data: CreatePublicationPayload) {
       }
     }
 
-    // console.log({ citationCount });
-    // console.log({ lastCitationUpdate });
-    // console.log({ publicationDate });
+    // **NEW: Check for duplicate publications**
+    let duplicateCheck = null;
+
+    // Primary check: DOI (most reliable)
+    if (validatedData.doi) {
+      duplicateCheck = await db
+        .select({
+          id: publications.id,
+          title: publications.title,
+          doi: publications.doi,
+        })
+        .from(publications)
+        .where(eq(publications.doi, validatedData.doi))
+        .limit(1);
+    }
+
+    // Secondary check: Title + Venue combination (fallback for publications without DOI)
+    if (!duplicateCheck?.length && validatedData.venue) {
+      duplicateCheck = await db
+        .select({
+          id: publications.id,
+          title: publications.title,
+          venue: publications.venue,
+        })
+        .from(publications)
+        .where(
+          and(
+            eq(publications.title, validatedData.title),
+            eq(publications.venue, validatedData.venue)
+          )
+        )
+        .limit(1);
+    }
+
+    // Tertiary check: Title + Publication Date (additional fallback)
+    if (!duplicateCheck?.length && publicationDate) {
+      duplicateCheck = await db
+        .select({
+          id: publications.id,
+          title: publications.title,
+          publicationDate: publications.publicationDate,
+        })
+        .from(publications)
+        .where(
+          and(
+            eq(publications.title, validatedData.title),
+            eq(publications.publicationDate, publicationDate)
+          )
+        )
+        .limit(1);
+    }
+
+    if (duplicateCheck && duplicateCheck.length > 0) {
+      const duplicate = duplicateCheck[0];
+      return {
+        success: false,
+        error: "Duplicate publication detected",
+        details: validatedData.doi
+          ? `A publication with DOI "${validatedData.doi}" already exists`
+          : `A publication with the same title "${duplicate.title}" already exists in the same venue or publication date`,
+        duplicateId: duplicate.id,
+      };
+    }
+
+    // Fetch citation count if DOI is provided
+    let citationCount = 0;
+    let lastCitationUpdate = null;
+
+    if (validatedData.doi) {
+      try {
+        const fetchedCount = await getCitationCount(validatedData.doi);
+        if (fetchedCount !== null) {
+          citationCount = fetchedCount;
+          lastCitationUpdate = new Date();
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to fetch citation count during publication creation:",
+          error
+        );
+        // Continue with creation even if citation fetch fails
+      }
+    }
+
     // Start a transaction to ensure data consistency
     const result = await db.transaction(async (tx) => {
+      // **ADDITIONAL SAFETY CHECK: Recheck for duplicates within transaction**
+      // This prevents race conditions where two requests might pass the initial check
+      if (validatedData.doi) {
+        const transactionDuplicateCheck = await tx
+          .select({ id: publications.id })
+          .from(publications)
+          .where(eq(publications.doi, validatedData.doi))
+          .limit(1);
+
+        if (transactionDuplicateCheck.length > 0) {
+          throw new Error(`Duplicate DOI detected: ${validatedData.doi}`);
+        }
+      }
+
       // 1. Create the publication record
       const [newPublication] = await tx
         .insert(publications)
@@ -709,7 +784,6 @@ export async function createPublication(data: CreatePublicationPayload) {
             }
           }
 
-          revalidatePath("/portal");
           return {
             authorId,
             authorData,
@@ -745,6 +819,7 @@ export async function createPublication(data: CreatePublicationPayload) {
       return newPublication;
     });
 
+    revalidatePath("/portal");
     // Return success response with the created publication
     return {
       success: true,
@@ -769,10 +844,14 @@ export async function createPublication(data: CreatePublicationPayload) {
 
     // Handle specific database constraint errors
     if (error instanceof Error) {
-      if (error.message.includes("duplicate key")) {
+      if (
+        error.message.includes("duplicate key") ||
+        error.message.includes("Duplicate DOI detected")
+      ) {
         return {
           success: false,
           error: "A publication with similar details already exists",
+          details: error.message,
         };
       }
 

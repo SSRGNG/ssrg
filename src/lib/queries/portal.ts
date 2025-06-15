@@ -1,6 +1,14 @@
 import "server-only";
 
-import { asc, desc, eq, getTableColumns } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  isNotNull,
+  sql,
+} from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { redirect } from "next/navigation";
 
@@ -360,4 +368,75 @@ export async function getNonResearchers() {
   // } catch (error) {
   //   console.error(error);
   // }
+}
+
+export async function getUserStats() {
+  try {
+    // Get authenticated user
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user?.id) {
+      return {
+        success: false as const,
+        error: "User not authenticated",
+      };
+    }
+
+    // Get user's researcher profile (if exists)
+    const userResearcher = await db
+      .select({ id: researchers.id })
+      .from(researchers)
+      .where(eq(researchers.userId, user.id))
+      .limit(1);
+
+    const researcherId = userResearcher[0]?.id;
+
+    if (!researcherId) {
+      // User doesn't have a researcher profile, return zeros
+      return {
+        success: true as const,
+        data: {
+          publicationCount: 0,
+          totalCitations: 0,
+        },
+      };
+    }
+
+    // Get publication count and total citations for the user
+    // This counts publications where the user is an author (through their researcher profile)
+    const statsResult = await db
+      .select({
+        publicationCount: sql<number>`COUNT(DISTINCT ${publications.id})::int`,
+        totalCitations: sql<number>`COALESCE(SUM(${publications.citationCount}), 0)::int`,
+      })
+      .from(publications)
+      .innerJoin(
+        publicationAuthors,
+        eq(publications.id, publicationAuthors.publicationId)
+      )
+      .innerJoin(authors, eq(publicationAuthors.authorId, authors.id))
+      .where(
+        and(
+          eq(authors.researcherId, researcherId),
+          isNotNull(publications.id) // Ensure we're counting valid publications
+        )
+      );
+
+    const stats = statsResult[0] || { publicationCount: 0, totalCitations: 0 };
+
+    return {
+      success: true as const,
+      data: {
+        publicationCount: stats.publicationCount,
+        totalCitations: stats.totalCitations,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching user stats:", error);
+    return {
+      success: false as const,
+      error: "Failed to fetch user statistics",
+    };
+  }
 }

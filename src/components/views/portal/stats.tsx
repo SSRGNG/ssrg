@@ -8,24 +8,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-// import { db } from "@/db";
-// import { projects, publications } from "@/db/schema";
+import { getUserStats } from "@/lib/queries/portal";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 type Props = React.ComponentProps<"section">;
 
 async function Stats({ className, ...props }: Props) {
-  // const [[totalProjects], [totalPublications]] = await Promise.all([
-  //   db.select({ count: sql<number>`count(*)` }).from(projects),
-  //   db.select({ count: sql<number>`count(*)` }).from(publications),
-  // ]);
+  const userStatsResult = await getUserStats();
+  const publicationCount = userStatsResult.success
+    ? userStatsResult.data.publicationCount
+    : 0;
+  const citationCount = userStatsResult.success
+    ? userStatsResult.data.totalCitations
+    : 0;
 
   const stats = [
     {
       title: "Publications",
-      count: 0,
-      // count: totalPublications.count,
+      count: publicationCount,
       href: "/portal/publications",
       icon: "reports" as Icons,
       textColor: "text-emerald-600",
@@ -34,7 +35,6 @@ async function Stats({ className, ...props }: Props) {
     {
       title: "Projects",
       count: 0,
-      // count: totalProjects.count,
       href: "/portal/projects",
       icon: "caseStudy" as Icons,
       textColor: "text-blue-600",
@@ -42,7 +42,7 @@ async function Stats({ className, ...props }: Props) {
     },
     {
       title: "Citations",
-      count: 0,
+      count: citationCount,
       href: "#",
       icon: "quote" as Icons,
       textColor: "text-purple-600",
@@ -74,13 +74,6 @@ async function Stats({ className, ...props }: Props) {
           bgColor={stat.bgColor}
         />
       ))}
-
-      {/* <StatCard
-        title="Publications"
-        value={totalPublications.count}
-        href="/portal/publications"
-      />
-      <StatCard title="Datasets" value={0} href="/portal/data" /> */}
     </section>
   );
 }
@@ -105,14 +98,14 @@ function StatCard({
     <Link href={href}>
       <Card className="gap-2.5 flex-row justify-between items-center">
         <CardHeader className="gap-0">
-          <CardTitle className="text-base">{title}</CardTitle>
+          <CardTitle className="text-sm sm:text-base">{title}</CardTitle>
           <CardDescription className={cn(textColor, "font-semibold text-2xl")}>
             {count}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <span className={cn(bgColor, "flex rounded-full p-3")}>
-            <Icon className={cn(textColor)} strokeWidth={1.5} />
+            <Icon className={cn("size-4", textColor)} strokeWidth={1.5} />
           </span>
         </CardContent>
       </Card>

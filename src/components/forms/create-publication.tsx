@@ -11,6 +11,7 @@ import {
   User,
   UserPlus,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import {
   useFieldArray,
@@ -305,14 +306,14 @@ function AuthorSelector({
   }, [open]);
 
   // Debug effect
-  React.useEffect(() => {
-    console.log("Current search state:", {
-      query: searchQuery,
-      results: searchResults,
-      isSearching,
-      open,
-    });
-  }, [searchResults, searchQuery, isSearching, open]);
+  // React.useEffect(() => {
+  //   console.log("Current search state:", {
+  //     query: searchQuery,
+  //     results: searchResults,
+  //     isSearching,
+  //     open,
+  //   });
+  // }, [searchResults, searchQuery, isSearching, open]);
 
   const handleAuthorCreated = (newAuthor: AuthorData) => {
     const authorResult: AuthorSearchResult = {
@@ -929,6 +930,7 @@ function CreatePublication<TContext>({
   ...props
 }: Props<TContext>) {
   const [isPending, startTransition] = React.useTransition();
+  const router = useRouter();
 
   const researcher = context as AuthResearcher | undefined;
   const form = useForm<CreatePublicationPayload>({
@@ -1083,12 +1085,9 @@ function CreatePublication<TContext>({
         return;
       }
 
-      if (data.publicationDate) {
-        data.publicationDate = new Date(data.publicationDate).toISOString();
-      }
       startTransition(async () => {
         try {
-          console.log({ data });
+          // console.log({ data });
           // toast("You submitted the following values", {
           //   description: (
           //     <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
@@ -1102,9 +1101,37 @@ function CreatePublication<TContext>({
           const result = await createPublication(data);
 
           if (!result.success) {
-            toast.error("Error", {
-              description: result.error || "Failed to create publication",
-            });
+            if (result.error === "Duplicate publication detected") {
+              toast.error("Duplicate Publication", {
+                description: result.details as string, // Safe to cast since duplicate errors always return string details
+                action: result.duplicateId
+                  ? {
+                      label: "View Existing",
+                      onClick: () =>
+                        router.push(`/publications/${result.duplicateId}`),
+                    }
+                  : undefined,
+              });
+            } else {
+              // Handle different types of details
+              let description = result.error || "Failed to create publication";
+
+              if (result.details) {
+                if (Array.isArray(result.details)) {
+                  // Format Zod validation errors nicely
+                  const errorMessages = result.details
+                    .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+                    .join("; ");
+                  description = `${description}. ${errorMessages}`;
+                } else {
+                  description = result.details;
+                }
+              }
+
+              toast.error("Validation Error", {
+                description: description,
+              });
+            }
             return;
           }
 
@@ -1123,7 +1150,7 @@ function CreatePublication<TContext>({
         }
       });
     },
-    [form, setIsOpen]
+    [form, setIsOpen, router]
   );
 
   return (

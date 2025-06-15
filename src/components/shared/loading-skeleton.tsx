@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -102,4 +103,29 @@ function LoadingSkeleton({ className, ...props }: Props) {
   );
 }
 
-export { LoadingSkeleton };
+function StatsSkeleton({ className, ...props }: Props) {
+  return (
+    <section
+      className={cn("grid xs:grid-cols-2 md:grid-cols-4 gap-4", className)}
+      {...props}
+    >
+      {Array.from({ length: 4 }, (_, idx) => (
+        <Card
+          key={idx}
+          className="gap-2.5 flex-row justify-between items-center"
+        >
+          <CardHeader className="gap-0">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-7 w-12 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <span className={cn("flex rounded-full p-3 bg-accent")}>
+              <Skeleton className="size-4 rounded-full" />
+            </span>
+          </CardContent>
+        </Card>
+      ))}
+    </section>
+  );
+}
+export { LoadingSkeleton, StatsSkeleton };

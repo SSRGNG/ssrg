@@ -22,7 +22,7 @@ import type {
   AuthResearcher,
   PortalResearcherPubs,
 } from "@/lib/actions/queries";
-import { cn } from "@/lib/utils";
+import { cn, formatPublicationDate } from "@/lib/utils";
 
 type PubType = PortalResearcherPubs[number];
 type Props = React.ComponentPropsWithoutRef<"div"> & {
@@ -36,14 +36,6 @@ function getTypedValue<TData, TValue>(
   columnId: keyof TData
 ): TValue {
   return row.getValue(columnId as string) as TValue;
-}
-
-function formatDate(date: Date | null | undefined): string {
-  if (!date) return "N/A";
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-  }).format(new Date(date));
 }
 
 function PublicationsDataTable({
@@ -148,7 +140,7 @@ function PublicationsDataTable({
         ),
         cell: ({ row }) => {
           const date = row.original.publicationDate;
-          return formatDate(date);
+          return formatPublicationDate(date);
         },
       },
       {

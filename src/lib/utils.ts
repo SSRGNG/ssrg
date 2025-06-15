@@ -426,7 +426,7 @@ export function normalizeORCID(input: string) {
   return isValidORCID(cleaned) ? cleaned : null;
 }
 
-export function formatPublicationDate(dateString: string) {
+export function formatPublicationDate(dateString: string | null) {
   if (!dateString) return "Date not specified";
 
   if (/^\d{4}$/.test(dateString)) {
