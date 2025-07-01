@@ -50,13 +50,21 @@ export function formatInTextCitation(
 ): string {
   if (!authors || authors.length === 0) return "No authors";
 
-  // Extract last name and first initial
   const authorNames = authors.map((author) => {
-    const fullName = author.name;
-    const nameParts = fullName.trim().split(" ");
+    const fullName = author.name.trim();
+    const nameParts = fullName.split(/\s+/);
+
+    if (nameParts.length === 1) {
+      return `${nameParts[0]}`; // Just one name, e.g., "Cher"
+    }
+
     const lastName = nameParts[nameParts.length - 1];
-    const firstInitial = nameParts[0][0];
-    return `${lastName}, ${firstInitial}.`;
+    const initials = nameParts
+      .slice(0, -1)
+      .map((part) => part[0].toUpperCase() + ".")
+      .join(" ");
+
+    return `${lastName}, ${initials}`;
   });
 
   if (authorNames.length === 1) {
@@ -64,9 +72,8 @@ export function formatInTextCitation(
   } else if (authorNames.length === 2) {
     return `${authorNames[0]} & ${authorNames[1]}`;
   } else {
-    // APA in-text: first author + et al.
-    const [firstAuthor] = authorNames;
-    return `${firstAuthor} et al.`;
+    // APA style for 3 or more authors
+    return `${authorNames[0]} et al.`;
   }
 }
 

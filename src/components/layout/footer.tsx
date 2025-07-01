@@ -28,19 +28,19 @@ function Footer({ className, ...props }: Props) {
       {...props}
     >
       <section className="container py-4 space-y-6">
-        <section className="grid xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <section className="grid xs:grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
           {nav.slice(0, -1).map((item) => {
             return (
-              <div key={item.title} className="space-y-4">
-                <h4 className="text-base font-medium">{item.title}</h4>
-                <ul className="space-y-2.5 text-sm">
+              <div key={item.title} className="space-y-3">
+                <h4 className="text-sm font-medium">{item.title}</h4>
+                <ul className="space-y-1.5 text-xs">
                   {item.items.map((link) => (
                     <li key={link.title}>
                       <Link
                         href={link.href}
                         target={link.external ? "_blank" : undefined}
                         rel={link.external ? "noreferrer" : undefined}
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        className="text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {link.title}
                         <span className="sr-only">{link.title}</span>
@@ -51,11 +51,9 @@ function Footer({ className, ...props }: Props) {
               </div>
             );
           })}
-          <div className="space-y-4">
-            <h4 className="text-base font-medium">
-              {nav[nav.length - 1].title}
-            </h4>
-            <ul className="space-y-2.5 text-muted-foreground text-sm">
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">{nav[nav.length - 1].title}</h4>
+            <ul className="space-y-1.5 text-muted-foreground text-xs">
               <li>{appConfig.address}</li>
               <li>
                 <a

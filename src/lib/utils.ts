@@ -45,6 +45,12 @@ export function catchError(err: unknown) {
   return toast.error(errorMessage);
 }
 
+export function isMacOs() {
+  if (typeof window === "undefined") return false;
+
+  return window.navigator.userAgent.includes("Mac");
+}
+
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -260,7 +266,7 @@ export function mapResearchAreas(areas: AdminAreasData) {
         year,
         type: publication.type,
         doi: publication.doi || undefined,
-        link: `/publications/academic/${publication.id}`,
+        link: `/publications/academics/${publication.id}`,
       };
     });
 

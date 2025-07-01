@@ -1,6 +1,6 @@
 "use server";
 
-import { searchAuthors } from "@/lib/actions/search";
+import { searchAuthors, searchPublications } from "@/lib/actions/search";
 import {
   getProjects,
   getResearchAreas,
@@ -16,6 +16,7 @@ import {
   getResearcherPublications,
   researcherPublications,
 } from "@/lib/queries/portal";
+import { getAllPublications } from "@/lib/queries/publications";
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<
@@ -26,6 +27,7 @@ export type AdminMethodologiesData = Awaited<
 >;
 export type AdminProjectsData = Awaited<ReturnType<typeof getProjects>>;
 export type PortalPublications = Awaited<ReturnType<typeof getPublications>>;
+export type Publications = Awaited<ReturnType<typeof getAllPublications>>;
 
 export type PortalResearcherPubs = Awaited<
   ReturnType<typeof getResearcherPublications>
@@ -43,20 +45,27 @@ export type ResearcherWithPublications = Awaited<
 >;
 
 type SearchAuthorsResult = Awaited<ReturnType<typeof searchAuthors>>;
+type SearchPublicationsResult = Awaited<ReturnType<typeof searchPublications>>;
 
 type SearchAuthorsSuccess = Extract<SearchAuthorsResult, { success: true }>;
-export type AuthorSearchResults = SearchAuthorsSuccess["results"];
+type SearchPublicationsSuccess = Extract<
+  SearchPublicationsResult,
+  { success: true }
+>;
 
-// Method 3: Extract individual result item types
+export type AuthorSearchResults = SearchAuthorsSuccess["results"];
+export type PublicationSearchResults = SearchPublicationsSuccess["results"];
+
+// Extract individual result item types
 export type AuthorSearchResult = AuthorSearchResults[number];
 
-// Method 4: Extract specific result types using discriminated union
+// Extract specific result types using discriminated union
 export type ResearcherResult = Extract<
   AuthorSearchResult,
   { type: "researcher" }
 >;
 export type AuthorResult = Extract<AuthorSearchResult, { type: "author" }>;
 
-// Method 5: Extract just the data types
+// Extract just the data types
 export type ResearcherData = ResearcherResult["data"];
 export type AuthorData = AuthorResult["data"];

@@ -159,3 +159,6 @@ export type PublicationMetadata =
 
 export type ResearchAreasData = ReturnType<typeof mapResearchAreas>;
 export type PortalResearcherPubs = ReturnType<typeof mapResearcherPublications>;
+
+export type SortOption = "recent" | "alphabetical" | "citations";
+export type ViewMode = "compact" | "detailed";

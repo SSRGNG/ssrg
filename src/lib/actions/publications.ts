@@ -1,9 +1,10 @@
 "use server";
 
 import { and, eq, ilike, isNull, or, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { auth } from "@/auth";
+import { CACHED_PUBLICATIONS } from "@/config/constants";
 import { db } from "@/db";
 import {
   authors,
@@ -783,6 +784,8 @@ export async function createPublication(data: CreatePublicationPayload) {
               }
             }
           }
+
+          revalidateTag(CACHED_PUBLICATIONS);
 
           return {
             authorId,

@@ -25,6 +25,7 @@ export const links = {
 
 export const PASSWORD_KEY_LENGTH = 64;
 export const PIN_KEY_LENGTH = 32;
+export const DEFAULT_PAGE_SIZE = 12;
 
 export const CACHED_RESEARCH_AREAS = "cached-research-areas";
 export const CACHED_RESEARCHERS = "cached-researchers";
@@ -36,6 +37,8 @@ export const CACHED_FORMATTED_RESEARCHER = "cached-formatted-researcher";
 export const CACHED_RESEARCH_FRAMEWORKS = "cached-research-frameworks";
 export const CACHED_RESEARCH_METHODOLOGIES = "cached-research-methodologies";
 export const CACHED_PROJECTS = "cached-projects";
+
+export const CACHED_PUBLICATIONS = "cached-publications";
 
 export const DOI_REGEX = /^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$/i;
 export const ORCID_REGEX = /^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$/;
@@ -207,7 +210,7 @@ export const mainNav: NavItem[] = [
     items: [
       {
         title: "Academic Publications",
-        href: "/publications/academic",
+        href: "/publications/academics",
         description: "Journal articles, books, and reports",
         icon: "graduationCap",
         items: [],
@@ -630,7 +633,7 @@ export const research_areas = [
         year: "2024",
         volume: "42(3)",
         pages: "215-238",
-        link: "/publications/academic/participatory-urban-governance",
+        link: "/publications/academics/participatory-urban-governance",
       },
       {
         title:
@@ -640,7 +643,7 @@ export const research_areas = [
         year: "2023",
         volume: "18(2)",
         pages: "87-106",
-        link: "/publications/academic/resilient-communities-framework",
+        link: "/publications/academics/resilient-communities-framework",
       },
       {
         title:
@@ -650,7 +653,7 @@ export const research_areas = [
         year: "2022",
         volume: "15(4)",
         pages: "342-361",
-        link: "/publications/academic/community-knowledge-systems",
+        link: "/publications/academics/community-knowledge-systems",
       },
     ],
     href: "/research/areas/community-development",
@@ -702,7 +705,7 @@ export const research_areas = [
         year: "2024",
         volume: "37(2)",
         pages: "118-142",
-        link: "/publications/academic/housing-first-implementation",
+        link: "/publications/academics/housing-first-implementation",
       },
       {
         title:
@@ -712,7 +715,7 @@ export const research_areas = [
         year: "2023",
         volume: "51(3)",
         pages: "289-312",
-        link: "/publications/academic/cross-sectoral-policy",
+        link: "/publications/academics/cross-sectoral-policy",
       },
       {
         title:
@@ -722,7 +725,7 @@ export const research_areas = [
         year: "2022",
         volume: "82(1)",
         pages: "75-94",
-        link: "/publications/academic/community-defined-metrics",
+        link: "/publications/academics/community-defined-metrics",
       },
     ],
     href: "/research/areas/policy-analysis",
@@ -774,7 +777,7 @@ export const research_areas = [
         year: "2024",
         volume: "29(4)",
         pages: "217-236",
-        link: "/publications/academic/power-sharing-mechanisms",
+        link: "/publications/academics/power-sharing-mechanisms",
       },
       {
         title:
@@ -784,7 +787,7 @@ export const research_areas = [
         year: "2023",
         volume: "33(2)",
         pages: "156-175",
-        link: "/publications/academic/measuring-equity-framework",
+        link: "/publications/academics/measuring-equity-framework",
       },
       {
         title:
@@ -794,7 +797,7 @@ export const research_areas = [
         year: "2022",
         volume: "59(3)",
         pages: "482-504",
-        link: "/publications/academic/intersectional-educational-equity",
+        link: "/publications/academics/intersectional-educational-equity",
       },
     ],
     href: "/research/areas/equity-inclusion",

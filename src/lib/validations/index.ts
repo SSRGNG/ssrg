@@ -30,3 +30,8 @@ export const orcidValidator = z
       message: "Invalid ORCID format. Should be in format: 0000-0000-0000-0000",
     }
   );
+
+export const searchSchema = z.object({
+  query: z.string().min(1).max(100),
+  limit: z.number().int().positive().max(50).default(20),
+});

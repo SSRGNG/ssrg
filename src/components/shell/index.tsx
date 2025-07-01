@@ -15,6 +15,11 @@ const layoutVariants = cva("", {
       ),
       markdown: "container max-w-3xl py-8 md:py-10 lg:py-10",
       default: "flex-1 container space-y-8 md:space-y-16 py-8 md:py-16",
+      public: "flex-1 container space-y-4 py-6 md:py-8",
+      publications: cn(
+        "flex-1 container py-4 sm:py-8",
+        "grid content-start gap-4"
+      ),
       main: "flex-1 px-4",
       portal: "p-4",
       grid: "grid items-center gap-8 pb-8 pt-6 md:py-8",

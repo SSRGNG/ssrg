@@ -23,7 +23,7 @@ type Props = React.ComponentProps<typeof NavigationMenu> & {
 function MainNav({ items, blur = false, className, ...props }: Props) {
   return (
     <NavigationMenu className={cn("hidden md:block", className)} {...props}>
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-0 lg:gap-1">
         {items.map((item, index) => {
           const Icon = Icons[item.icon];
 
@@ -34,7 +34,7 @@ function MainNav({ items, blur = false, className, ...props }: Props) {
                   className={cn(
                     navigationMenuTriggerStyle(),
                     blur && "bg-transparent hover:bg-accent/10",
-                    "font-semibold lg:text-base capitalize h-auto"
+                    "font-semibold lg:text-base capitalize h-auto px-2 lg:px-4"
                   )}
                 >
                   {item.title}
@@ -46,19 +46,19 @@ function MainNav({ items, blur = false, className, ...props }: Props) {
               <NavigationMenuTrigger
                 className={cn(
                   blur && "bg-transparent hover:bg-accent/10",
-                  "font-semibold lg:text-base capitalize h-auto"
+                  "font-semibold lg:text-base capitalize h-auto px-2 lg:px-4"
                 )}
               >
                 {item.title}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid gap-3 p-5 md:w-[500px] lg:w-[700px] lg:grid-cols-[.70fr_1fr]">
+                <ul className="grid gap-3 p-4 lg:p-5 md:w-[500px] lg:w-[700px] lg:grid-cols-[.70fr_1fr]">
                   <li className="row-span-4">
                     <NavigationMenuLink asChild>
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex size-full select-none flex-col justify-end rounded-xl bg-gradient-to-b from-muted/50 to-muted p-5 no-underline outline-none focus:shadow-sm"
+                          "flex size-full select-none flex-col justify-end rounded-xl bg-gradient-to-b from-muted/50 to-muted p-4 lg:p-5 no-underline outline-none focus:shadow-sm"
                         )}
                       >
                         <Icon className="size-7" aria-hidden="true" />

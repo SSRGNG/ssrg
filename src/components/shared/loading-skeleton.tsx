@@ -1,4 +1,8 @@
+import { Calendar, LayoutGrid } from "lucide-react";
+import * as React from "react";
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Select, SelectTrigger } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -128,4 +132,52 @@ function StatsSkeleton({ className, ...props }: Props) {
     </section>
   );
 }
-export { LoadingSkeleton, StatsSkeleton };
+
+function PublicationsSkeleton() {
+  return (
+    <React.Fragment>
+      {Array.from({ length: 12 }, (_, i) => (
+        <div key={i} className="border rounded-lg p-4 animate-pulse space-y-2">
+          <Skeleton className="h-6 rounded w-1/3" />
+          <Skeleton className="h-8 rounded w-full" />
+          <Skeleton className="h-4 rounded w-2/3" />
+          <Skeleton className="h-16 rounded w-full" />
+        </div>
+      ))}
+    </React.Fragment>
+  );
+}
+
+function ViewModeFallback() {
+  return (
+    <div className="flex items-center border rounded-md">
+      <div className="rounded-[5.3px] rounded-r-none border-r size-8 bg-accent flex items-center justify-center">
+        <LayoutGrid className="size-4" />
+      </div>
+      <div className="rounded-[5.3px] rounded-l-none size-8 flex items-center justify-center">
+        <LayoutGrid className="size-4" />
+      </div>
+    </div>
+  );
+}
+
+function PublicationsFilterFallback() {
+  return (
+    <Select>
+      <SelectTrigger
+        size="sm"
+        className="p-1 gap-0.5"
+        title="Sort publications"
+      >
+        <Calendar className="size-4" />
+      </SelectTrigger>
+    </Select>
+  );
+}
+export {
+  LoadingSkeleton,
+  PublicationsFilterFallback,
+  PublicationsSkeleton,
+  StatsSkeleton,
+  ViewModeFallback,
+};
