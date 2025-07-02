@@ -39,7 +39,7 @@ function MobileNav({ user, ...props }: MobileNavProps) {
           size="icon"
           className={cn(
             "size-8 rounded-sm md:hidden bg-brand",
-            user ? "ring-2 ring-ring" : ""
+            user ? "ring-2 ring-ring" : "rounded-md"
           )}
         >
           {user ? (

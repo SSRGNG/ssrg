@@ -8,20 +8,22 @@ function TailwindIndicator({ className, ...props }: Props) {
   return (
     <section
       className={cn(
-        "fixed bottom-4 right-4 z-50 flex size-7 items-center justify-center rounded-full text-background bg-foreground p-2 font-mono text-sm",
+        "fixed bottom-4 right-4 z-50 size-9 border border-ring flex items-center justify-center rounded-full text-background bg-foreground p-2 text-sm font-semibold cursor-pointer",
         className
       )}
       {...props}
     >
-      <div className="block xs:hidden">xx</div>
-      <div className="hidden xs:block sm:hidden">xs</div>
-      <div className="hidden sm:block md:hidden lg:hidden xl:hidden 2xl:hidden">
+      <span className="block xxs:hidden">base</span>
+      <span className="hidden xxs:block xsm:hidden">xxs</span>
+      <span className="hidden xsm:block xs:hidden">xsm</span>
+      <span className="hidden xs:block sm:hidden">xs</span>
+      <span className="hidden sm:block md:hidden lg:hidden xl:hidden 2xl:hidden">
         sm
-      </div>
-      <div className="hidden md:block lg:hidden xl:hidden 2xl:hidden">md</div>
-      <div className="hidden lg:block xl:hidden 2xl:hidden">lg</div>
-      <div className="hidden xl:block 2xl:hidden">xl</div>
-      <div className="hidden 2xl:block">2xl</div>
+      </span>
+      <span className="hidden md:block lg:hidden xl:hidden 2xl:hidden">md</span>
+      <span className="hidden lg:block xl:hidden 2xl:hidden">lg</span>
+      <span className="hidden xl:block 2xl:hidden">xl</span>
+      <span className="hidden 2xl:block">2xl</span>
     </section>
   );
 }

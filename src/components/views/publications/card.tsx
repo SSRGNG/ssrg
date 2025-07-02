@@ -1,16 +1,9 @@
-import {
-  Award,
-  BookOpen,
-  ExternalLink,
-  FileText,
-  Link2,
-  Presentation,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { ExternalLink, Link2, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { TYPE_CONFIG } from "@/config/constants";
 import { publications } from "@/config/enums";
 import { formatInTextCitation } from "@/db/utils";
 import { Publications } from "@/lib/actions/queries";
@@ -24,44 +17,17 @@ type Props = React.ComponentProps<"article"> & {
 
 type PublicationType = Publications[number]["type"];
 
-const TYPE_CONFIG = {
-  journal_article: {
-    icon: FileText,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50",
-  },
-  conference_paper: {
-    icon: Presentation,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-  },
-  book_chapter: {
-    icon: BookOpen,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-  report: {
-    icon: Award,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-  },
-} as const;
-
 const TypeBadge = React.memo(({ type }: { type: PublicationType }) => {
   const config = TYPE_CONFIG[type] || TYPE_CONFIG.journal_article;
   const Icon = config.icon;
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-md text-sm font-medium",
-        config.color,
-        config.bgColor
-      )}
+    <Badge
+      className={cn(config.color, config.bgColor, "uppercase tracking-wide")}
     >
       <Icon className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
       {publications.getLabel(type)}
-    </span>
+    </Badge>
   );
 });
 TypeBadge.displayName = "TypeBadge";
@@ -206,8 +172,9 @@ function Card({ publication, viewMode, className, ...props }: Props) {
   return (
     <article
       className={cn(
-        "group border border-border rounded-lg p-4 transition-all duration-200",
-        "hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 space-y-3",
+        // "group border border-border rounded-lg p-4 transition-all duration-200",
+        "bg-card text-card-foreground rounded-xl border p-4 sm:p-6 shadow-sm",
+        "hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 space-y-2.5",
         // isCompact ? "space-y-3" : "space-y-3",
         className
       )}
@@ -231,15 +198,15 @@ function Card({ publication, viewMode, className, ...props }: Props) {
       </header>
 
       {/* Main content */}
-      <div className="space-y-2">
-        <h3 className={cn("text-base font-medium line-clamp-2")}>
+      <div className="space-y-2.5">
+        <h3 className={cn("text-base md:text-lg font-medium line-clamp-2")}>
           {publication.title}
         </h3>
 
         {publication.venue && (
           <p
             className={cn(
-              "text-sm text-muted-foreground font-medium",
+              "text-sm text-muted-foreground/70 font-medium",
               isCompact ? "truncate" : "line-clamp-1"
             )}
           >

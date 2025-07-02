@@ -1,3 +1,13 @@
+import {
+  Award,
+  BookOpen,
+  ChartLine,
+  FileText,
+  HandHeart,
+  Presentation,
+  Users2,
+} from "lucide-react";
+
 import { AuthUser } from "@/auth";
 import { Icons } from "@/components/shared/icons";
 import {
@@ -11,7 +21,6 @@ import type {
   SocialItem,
   UserNavItem,
 } from "@/types";
-import { ChartLine, HandHeart, Users2 } from "lucide-react";
 
 export const appName = "SSRG";
 export const appFullName = "Dibịa Akwụkwọ: Social Solutions Research Group";
@@ -42,6 +51,29 @@ export const CACHED_PUBLICATIONS = "cached-publications";
 
 export const DOI_REGEX = /^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$/i;
 export const ORCID_REGEX = /^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$/;
+
+export const TYPE_CONFIG = {
+  journal_article: {
+    icon: FileText,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-600/15",
+  },
+  conference_paper: {
+    icon: Presentation,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-600/15",
+  },
+  book_chapter: {
+    icon: BookOpen,
+    color: "text-purple-600",
+    bgColor: "bg-purple-600/15",
+  },
+  report: {
+    icon: Award,
+    color: "text-orange-600",
+    bgColor: "bg-orange-600/15",
+  },
+} as const;
 
 export const keywords = [
   appFullName,

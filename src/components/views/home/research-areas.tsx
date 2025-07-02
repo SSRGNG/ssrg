@@ -9,14 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { ResearchAreasData } from "@/types";
+import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
+import { cn, mapResearchAreas } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<typeof Section> & {
-  research_areas: ResearchAreasData;
-};
+type Props = React.ComponentPropsWithoutRef<typeof Section>;
 
-function ResearchAreas({ research_areas, className, ...props }: Props) {
+async function ResearchAreas({ className, ...props }: Props) {
+  const rawAreas = await getCachedAdminResearchAreas();
+  const areas = mapResearchAreas(rawAreas);
+
   return (
     <Section
       spacing={"snug"}
@@ -29,7 +30,7 @@ function ResearchAreas({ research_areas, className, ...props }: Props) {
       {...props}
     >
       <div className="grid gap-4 xs:grid-cols-2 md:grid-cols-3">
-        {research_areas.map((area, i) => (
+        {areas.map((area, i) => (
           <Card
             key={area?.title}
             className={cn("gap-2.5", i === 2 && "xs:col-span-2 md:col-span-1")}

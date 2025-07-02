@@ -12,6 +12,98 @@ import {
 } from "@/db/schema";
 import { and, desc, eq, exists, gt, lt, or } from "drizzle-orm";
 
+export async function getPublication(id: string) {
+  try {
+    const result = await db.query.publications.findFirst({
+      with: {
+        authors: {
+          columns: {
+            order: true,
+            isCorresponding: true,
+          },
+          with: {
+            author: {
+              columns: {
+                name: true,
+                email: true,
+                affiliation: true,
+                orcid: true,
+              },
+              with: {
+                researcher: {
+                  columns: { id: true, title: true, orcid: true },
+                },
+              },
+            },
+          },
+          orderBy: (a, { asc }) => [asc(a.order)],
+        },
+      },
+      where: (model, { eq }) => eq(model.id, id),
+    });
+
+    if (!result) {
+      throw new Error(`Publication with ID ${id} not found`);
+    }
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+export async function getLatestPublications(limit = Infinity, offset = 0) {
+  const results = await db.query.publications.findMany({
+    columns: {
+      id: true,
+      title: true,
+      type: true,
+      doi: true,
+      abstract: true,
+      publicationDate: true,
+    },
+    with: {
+      authors: {
+        columns: {
+          order: true,
+          isCorresponding: true,
+        },
+        with: {
+          author: {
+            columns: {
+              name: true,
+              email: true,
+              affiliation: true,
+              orcid: true,
+            },
+            with: {
+              researcher: {
+                columns: { id: true, title: true, orcid: true },
+              },
+            },
+          },
+        },
+        orderBy: (q, { asc }) => [asc(q.order)],
+      },
+    },
+    orderBy: (q, { desc }) => [desc(q.updated_at)],
+    limit: limit === Infinity ? undefined : limit,
+    offset,
+  });
+
+  return results.map((pub) => ({
+    ...pub,
+    authors: pub.authors.map(({ order, isCorresponding, author }) => ({
+      order,
+      isCorresponding,
+      name: author.name,
+      email: author.email,
+      affiliation: author.affiliation,
+      orcid: author.orcid,
+      researcher: author.researcher || null, // Ensure consistent null handling
+    })),
+  }));
+}
+
 export async function getAllPublications(
   limit = Infinity,
   offset = 0,
@@ -263,6 +355,15 @@ export const getCachedPaginatedPublications = cache(
   async (page: number, pageSize: number = DEFAULT_PAGE_SIZE) =>
     getPaginatedPublications(page, pageSize),
   ["publications-paginated"],
+  {
+    tags: [CACHED_PUBLICATIONS],
+    revalidate: 60 * 60 * 24, // 24 hours for paginated data
+  }
+);
+
+export const getCachedLatestPublications = cache(
+  async (limit = Infinity, offset = 0) => getLatestPublications(limit, offset),
+  ["latest-publications"],
   {
     tags: [CACHED_PUBLICATIONS],
     revalidate: 60 * 60 * 24, // 24 hours for paginated data

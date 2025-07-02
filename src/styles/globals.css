@@ -80,7 +80,8 @@
 }
 
 @theme inline {
-  --breakpoint-xxs: 23.75rem;
+  --breakpoint-xxs: 20rem;
+  --breakpoint-xsm: 23.75rem;
   --breakpoint-xs: 30rem;
 
   --font-sans: var(--font-sans);
@@ -149,13 +150,13 @@
     @apply bg-background text-foreground;
   }
   h1 {
-    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+    @apply scroll-m-20 text-3xl xsm:text-4xl font-extrabold tracking-tight lg:text-5xl;
   }
   h2 {
     @apply scroll-m-14 text-2xl font-bold tracking-tight lg:text-3xl;
   }
   h3 {
-    @apply scroll-m-12 text-lg lg:text-xl font-semibold tracking-tight leading-tight;
+    @apply scroll-m-12 text-lg lg:text-xl font-semibold tracking-tight leading-snug;
   }
   h4 {
     @apply scroll-m-10 lg:text-lg font-semibold tracking-tight leading-tight;

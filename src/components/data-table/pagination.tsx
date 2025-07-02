@@ -30,7 +30,7 @@ function DataTablePagination<TData>({
   return (
     <div
       className={cn(
-        "flex w-full flex-col-reverse items-center justify-between gap-2 overflow-x-auto xxs:flex-row sm:gap-4 text-muted-foreground text-xs",
+        "flex w-full flex-col-reverse items-center justify-between gap-2 overflow-x-auto xsm:flex-row sm:gap-4 text-muted-foreground text-xs",
         className
       )}
       {...props}
@@ -43,7 +43,7 @@ function DataTablePagination<TData>({
       )}
       <div
         className={cn(
-          "flex flex-col-reverse items-center gap-2 xxs:flex-row sm:gap-4",
+          "flex flex-col-reverse items-center gap-2 xsm:flex-row sm:gap-4",
           table.getFilteredSelectedRowModel().rows.length === 0 && "w-full"
         )}
       >

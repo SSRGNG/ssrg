@@ -28,7 +28,7 @@ function Footer({ className, ...props }: Props) {
       {...props}
     >
       <section className="container py-4 space-y-6">
-        <section className="grid xs:grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
+        <section className="grid xxs:grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
           {nav.slice(0, -1).map((item) => {
             return (
               <div key={item.title} className="space-y-3">
