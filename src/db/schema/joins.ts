@@ -1,21 +1,27 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   pgTable,
   primaryKey,
   text,
   uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 import {
   authors,
+  events,
   partners,
   projects,
   publications,
   researchAreas,
   researchers,
+  videos,
 } from "@/db/schema";
+import { PresenterRole, VideoResearcherRole } from "@/types";
 
 // Publication authors junction table
 export const publicationAuthors = pgTable(
@@ -107,5 +113,51 @@ export const researcherAreas = pgTable(
   (t) => [
     primaryKey({ columns: [t.researcherId, t.areaId] }),
     index("researcher_areas_area_idx").on(t.areaId),
+  ]
+);
+
+// Event presenter junction table
+export const eventPresenters = pgTable(
+  "event_presenters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    researcherId: uuid("researcher_id").references(() => researchers.id, {
+      onDelete: "set null",
+    }),
+    externalName: text("external_name"),
+    externalAffiliation: text("external_affiliation"),
+    role: varchar("role", { length: 20 }).$type<PresenterRole>().notNull(),
+    order: integer("order").notNull(),
+  },
+  (t) => [
+    index("event_presenters_event_idx").on(t.eventId),
+    index("event_presenters_researcher_idx").on(t.researcherId),
+    check(
+      "valid_presenter",
+      sql`${t.researcherId} IS NOT NULL OR ${t.externalName} IS NOT NULL`
+    ),
+  ]
+);
+
+// Video researcher junction table
+export const videoResearchers = pgTable(
+  "video_researchers",
+  {
+    videoId: uuid("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    researcherId: uuid("researcher_id")
+      .notNull()
+      .references(() => researchers.id, { onDelete: "cascade" }),
+    role: varchar("role", { length: 20 }).$type<VideoResearcherRole>(),
+    order: integer("order").default(0), // For ordering multiple researchers
+  },
+  (t) => [
+    primaryKey({ columns: [t.videoId, t.researcherId] }),
+    index("video_researchers_video_idx").on(t.videoId),
+    index("video_researchers_researcher_idx").on(t.researcherId),
   ]
 );

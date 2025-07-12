@@ -1,6 +1,6 @@
 "use client";
 
-import { type ColumnDef, type Row } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { Edit, Ellipsis, Eye, Trash2 } from "lucide-react";
 import * as React from "react";
 
@@ -23,24 +23,19 @@ import type {
   PortalResearcherPubs,
 } from "@/lib/actions/queries";
 import { cn, formatPublicationDate } from "@/lib/utils";
+import { getTypedValue } from "@/types/table";
 
 type PubType = PortalResearcherPubs[number];
 type Props = React.ComponentPropsWithoutRef<"div"> & {
   pubs: PortalResearcherPubs;
   researcher?: AuthResearcher;
+  pageSizeOptions?: number[];
 };
-
-// Rule of thumb: Only use getTypedValue for columns that have accessorKey defined in your columns array. For any other data access, use row.original.propertyName directly.
-function getTypedValue<TData, TValue>(
-  row: Row<TData>,
-  columnId: keyof TData
-): TValue {
-  return row.getValue(columnId as string) as TValue;
-}
 
 function PublicationsDataTable({
   pubs,
   researcher,
+  pageSizeOptions = [10, 20, 30, 40],
   className,
   ...props
 }: Props) {
@@ -157,7 +152,7 @@ function PublicationsDataTable({
       {
         accessorKey: "userAuthorOrder",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Author Role" />
+          <DataTableColumnHeader column={column} title="Your Role" />
         ),
         // header: "Role",
         cell: ({ row }) => {
@@ -170,6 +165,9 @@ function PublicationsDataTable({
               Co-Author (#{pub.userAuthorOrder + 1})
             </Badge>
           );
+        },
+        meta: {
+          displayName: "Role",
         },
       },
       {
@@ -240,6 +238,8 @@ function PublicationsDataTable({
       data={pubs}
       columns={columns}
       className={cn(className)}
+      noData="No publications."
+      pageSizeOptions={pageSizeOptions}
       context={researcher}
       filterFields={[
         { label: "Title", value: "title", placeholder: "Search by title..." },

@@ -12,6 +12,22 @@ export const roles = createEnum(
 // affiliate: External collaborators who have co-authored with your researchers
 // partner: Organizations you collaborate with member: Registered users with basic access
 
+export const videoCats = defineEnum(
+  "lecture",
+  "interview",
+  "presentation",
+  "panel_discussion",
+  "workshop",
+  "webinar",
+  "conference_talk",
+  "research_explanation",
+  "tutorial",
+  "documentary",
+  "debate",
+  "Q&A",
+  "other"
+);
+
 export const partners = createEnum("academic", "nonprofit", "government");
 
 export const events = createEnum(
@@ -57,4 +73,17 @@ export const publications = defineEnum(
   // "other"
 );
 
-export const barActions = defineEnum("publication", "project");
+export const videoResearcherRoles = defineEnum(
+  "presenter",
+  "interviewer",
+  "interviewee",
+  "moderator",
+  "panelist",
+  "host",
+  "guest",
+  "instructor",
+  "participant",
+  "other"
+);
+
+export const barActions = defineEnum("publication", "project", "video");

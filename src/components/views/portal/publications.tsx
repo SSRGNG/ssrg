@@ -11,7 +11,7 @@ async function Publications({ className, ...props }: Props) {
   const [userResult, pubs] = await Promise.all([
     getCurrentUserResearcher(),
     // researcherPublications(),
-    getResearcherPublications(),
+    getResearcherPublications({ limit: 5 }),
   ]);
 
   // const pubs = mapResearcherPublications(pubsData);
@@ -20,6 +20,7 @@ async function Publications({ className, ...props }: Props) {
     <PublicationsDataTable
       pubs={pubs}
       researcher={userResult.success ? userResult.researcher : undefined}
+      pageSizeOptions={[5, 3]}
       className={cn(className)}
       {...props}
     />

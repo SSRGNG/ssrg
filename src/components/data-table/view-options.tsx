@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getColumnDisplayName } from "@/types/table";
 
 type DataTableViewOptionsProps<TData> = React.ComponentPropsWithoutRef<
   typeof DropdownMenuTrigger
@@ -46,6 +47,8 @@ function DataTableViewOptions<TData>({
               typeof column.accessorFn !== "undefined" && column.getCanHide()
           )
           .map((column) => {
+            const displayName = getColumnDisplayName(column);
+
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
@@ -53,7 +56,8 @@ function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                <span className="truncate">{column.id}</span>
+                <span className="truncate">{displayName}</span>
+                {/* <span className="truncate">{column.id}</span> */}
               </DropdownMenuCheckboxItem>
             );
           })}

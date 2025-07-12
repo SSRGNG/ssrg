@@ -12,7 +12,7 @@ import { DataTableViewOptions } from "@/components/data-table/view-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { DataTableFilterField, TableMeta } from "@/types";
+import { getTableMeta, hasTableMeta } from "@/types/table";
 
 type DataTableToolbarProps<TData> = React.ComponentProps<"div"> & {
   table: Table<TData>;
@@ -25,23 +25,11 @@ function DataTableToolbar<TData>({
   ...props
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const meta = getTableMeta(table);
 
-  const { searchableColumns, filterableColumns } = table.options
-    .meta as unknown as {
-    searchableColumns: DataTableFilterField<TData>[];
-    filterableColumns: DataTableFilterField<TData>[];
-  };
-
-  // Type guard to check if table has the required meta structure for ToolbarActions
-  const hasToolbarMeta = (
-    table: Table<TData>
-  ): table is Table<TData> & {
-    options: {
-      meta: TableMeta<TData, unknown>;
-    };
-  } => {
-    return table.options.meta !== undefined;
-  };
+  // Safe access to meta properties with fallbacks
+  const searchableColumns = meta?.searchableColumns || [];
+  const filterableColumns = meta?.filterableColumns || [];
 
   return (
     <div
@@ -103,7 +91,7 @@ function DataTableToolbar<TData>({
         {children}
         <DataTableViewOptions table={table} />
         <DataTableCreateOptions table={table} />
-        {hasToolbarMeta(table) && <ToolbarActions table={table} />}
+        {hasTableMeta(table) && <ToolbarActions table={table} />}
       </div>
     </div>
   );

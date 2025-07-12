@@ -3,7 +3,6 @@ import {
   boolean,
   check,
   index,
-  integer,
   pgTable,
   text,
   timestamp,
@@ -11,8 +10,8 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { researchers, users } from "@/db/schema";
-import { Event, PresenterRole } from "@/types";
+import { users } from "@/db/schema";
+import { Event } from "@/types";
 
 export const events = pgTable(
   "events",
@@ -48,40 +47,40 @@ export const events = pgTable(
   ]
 );
 
-export const eventPresenters = pgTable(
-  "event_presenters",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    eventId: uuid("event_id")
-      .notNull()
-      .references(() => events.id, { onDelete: "cascade" }),
-    researcherId: uuid("researcher_id").references(() => researchers.id, {
-      onDelete: "set null",
-    }),
-    externalName: text("external_name"),
-    externalAffiliation: text("external_affiliation"),
-    role: varchar("role", { length: 20 }).$type<PresenterRole>().notNull(),
-    order: integer("order").notNull(),
-  },
-  (t) => [
-    // Create index for event lookup
-    index("event_presenters_event_idx").on(t.eventId),
-    // Create index for researcher lookup
-    index("event_presenters_researcher_idx").on(t.researcherId),
-    // Create unique index to prevent duplicate ordering per event
-    // index("event_presenters_order_idx").on(t.eventId, t.order).unique(),
-    // Ensure we have at least a researcher ID or external name
-    check(
-      "valid_presenter",
-      sql`${t.researcherId} IS NOT NULL OR ${t.externalName} IS NOT NULL`
-    ),
-    // Validate presenter role
-    // check(
-    //   "valid_presenter_role",
-    //   sql`${t.role} IN ('keynote', 'panelist', 'presenter', 'moderator', 'organizer')`
-    // ),
-  ]
-);
+// export const eventPresenters = pgTable(
+//   "event_presenters",
+//   {
+//     id: uuid("id").primaryKey().defaultRandom(),
+//     eventId: uuid("event_id")
+//       .notNull()
+//       .references(() => events.id, { onDelete: "cascade" }),
+//     researcherId: uuid("researcher_id").references(() => researchers.id, {
+//       onDelete: "set null",
+//     }),
+//     externalName: text("external_name"),
+//     externalAffiliation: text("external_affiliation"),
+//     role: varchar("role", { length: 20 }).$type<PresenterRole>().notNull(),
+//     order: integer("order").notNull(),
+//   },
+//   (t) => [
+//     // Create index for event lookup
+//     index("event_presenters_event_idx").on(t.eventId),
+//     // Create index for researcher lookup
+//     index("event_presenters_researcher_idx").on(t.researcherId),
+//     // Create unique index to prevent duplicate ordering per event
+//     // index("event_presenters_order_idx").on(t.eventId, t.order).unique(),
+//     // Ensure we have at least a researcher ID or external name
+//     check(
+//       "valid_presenter",
+//       sql`${t.researcherId} IS NOT NULL OR ${t.externalName} IS NOT NULL`
+//     ),
+//     // Validate presenter role
+//     // check(
+//     //   "valid_presenter_role",
+//     //   sql`${t.role} IN ('keynote', 'panelist', 'presenter', 'moderator', 'organizer')`
+//     // ),
+//   ]
+// );
 
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),

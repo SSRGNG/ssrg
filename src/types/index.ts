@@ -11,6 +11,8 @@ import {
   presenterRoles,
   publications as publicationsEnum,
   roles,
+  videoCats,
+  videoResearcherRoles,
 } from "@/config/enums";
 import {
   authors,
@@ -28,6 +30,7 @@ import {
   journalMetadataSchema,
   reportMetadataSchema,
 } from "@/lib/validations/publication";
+import { videoMetadataSchema } from "@/lib/validations/videos";
 
 export type Role = typeof roles.type;
 export type Partner = typeof partners.type;
@@ -37,6 +40,8 @@ export type PresenterRole = typeof presenterRoles.type;
 export type AccessLevel = typeof accessLevels.type;
 export type DatasetStatus = typeof datasetStatus.type;
 export type BarAction = typeof barActions.type;
+export type VideoCategory = typeof videoCats.type;
+export type VideoResearcherRole = typeof videoResearcherRoles.type;
 
 export type Researcher = (typeof researchers)[number];
 
@@ -117,27 +122,27 @@ type ExtractOptionKeys<T> = T extends { items: Array<{ options: infer O }> }
 export type ActionItem = typeof actions;
 export type ActionKey = ExtractOptionKeys<ActionItem>;
 
-export type DataTableOption = {
-  label: string;
-  value: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  withCount?: boolean;
-};
+// export type DataTableOption = {
+//   label: string;
+//   value: string;
+//   icon?: React.ComponentType<{ className?: string }>;
+//   withCount?: boolean;
+// };
 
-export type DataTableFilterField<TData> = {
-  label: string;
-  value: keyof TData;
-  placeholder?: string;
-  options?: DataTableOption[];
-};
+// export type DataTableFilterField<TData> = {
+//   label: string;
+//   value: keyof TData;
+//   placeholder?: string;
+//   options?: DataTableOption[];
+// };
 
-export type TableMeta<TData, TContext> = {
-  searchableColumns: DataTableFilterField<TData>[];
-  filterableColumns: DataTableFilterField<TData>[];
-  filterFields?: DataTableFilterField<TData>[];
-  barAction?: BarAction;
-  context?: TContext;
-};
+// export type TableMeta<TData, TContext> = {
+//   searchableColumns: DataTableFilterField<TData>[];
+//   filterableColumns: DataTableFilterField<TData>[];
+//   filterFields?: DataTableFilterField<TData>[];
+//   barAction?: BarAction;
+//   context?: TContext;
+// };
 export type StoredFile = {
   id: string;
   name: string;
@@ -156,6 +161,8 @@ export type PublicationMetadata =
   | BookChapterMetadata
   | ReportMetadata
   | Generic; // For flexible "other" types
+
+export type VideoMetadata = z.infer<typeof videoMetadataSchema>;
 
 export type ResearchAreasData = ReturnType<typeof mapResearchAreas>;
 export type PortalResearcherPubs = ReturnType<typeof mapResearcherPublications>;

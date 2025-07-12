@@ -1,6 +1,5 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import { GitBranchPlus } from "lucide-react";
 import * as React from "react";
 
@@ -23,19 +22,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { BarAction, TableMeta } from "@/types";
-
-import { CreatePublication } from "@/components/forms/create-publication";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { barActions } from "@/config/enums";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BarAction } from "@/types";
+import { getTableMeta, type ExtendedTable } from "@/types/table";
+
+import { CreatePublication } from "@/components/forms/create-publication";
 
 type ToolbarActionsProps<TData, TContext> = {
-  table: Table<TData> & {
-    options: {
-      meta: TableMeta<TData, TContext>;
-    };
-  };
+  table: ExtendedTable<TData, TContext>;
 };
 
 type FormComponentProps = React.ComponentPropsWithoutRef<"form"> & {
@@ -49,10 +45,13 @@ function ToolbarActions<TData, TContext>({
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
-  const meta = table.options.meta;
+  // Use the safe getter function
+  const meta = getTableMeta<TData, TContext>(table);
+
+  if (!meta?.barAction) return null;
+
   const { barAction, context } = meta;
 
-  if (!barAction) return null;
   const actionLabel = barActions.getLabel(barAction);
 
   const formMappings: Record<
@@ -61,6 +60,7 @@ function ToolbarActions<TData, TContext>({
   > = {
     publication: CreatePublication,
     project: () => null,
+    video: () => null,
   };
 
   const description = `You are creating a new ${barAction}`;

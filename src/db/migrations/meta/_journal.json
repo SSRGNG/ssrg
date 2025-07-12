@@ -127,6 +127,20 @@
       "when": 1749929854988,
       "tag": "0017_red_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1751962658541,
+      "tag": "0018_tough_squadron_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1752326186658,
+      "tag": "0019_condemned_overlord",
+      "breakpoints": true
     }
   ]
 }

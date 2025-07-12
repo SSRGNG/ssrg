@@ -6,7 +6,9 @@ import {
   desc,
   eq,
   getTableColumns,
+  ilike,
   isNotNull,
+  or,
   sql,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -22,6 +24,10 @@ import {
   researchers,
   users,
 } from "@/db/schema";
+import {
+  type PublicationQueryInput,
+  publicationQuerySchema,
+} from "@/lib/validations/params";
 
 export async function getPublications(limit = Infinity, offset = 0) {
   const results = await db.query.publications.findMany({
@@ -75,7 +81,23 @@ export async function getPublications(limit = Infinity, offset = 0) {
   }));
 }
 
-export async function getResearcherPublications() {
+export async function getResearcherPublications(
+  params: PublicationQueryInput = {}
+) {
+  const validatedParams = publicationQuerySchema.parse(params);
+  const {
+    page,
+    limit,
+    search,
+    type,
+    publishedAfter,
+    publishedBefore,
+    sortBy,
+    sortOrder,
+  } = validatedParams;
+
+  const offset = (page - 1) * limit;
+
   const userId = (await auth())?.user.id;
   if (!userId) redirect(appConfig.url);
 
@@ -87,23 +109,54 @@ export async function getResearcherPublications() {
   const authorProfiles = alias(authors, "authorProfiles");
   const authorResearchers = alias(researchers, "authorResearchers");
 
+  // Build all conditions first
+  const conditions = [];
+  conditions.push(eq(researchers.userId, userId));
+
+  // Additional filters
+  if (search) {
+    const searchPattern = `%${search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(publications.title, searchPattern),
+        ilike(publications.abstract, searchPattern),
+        ilike(publications.venue, searchPattern),
+        ilike(publications.doi, searchPattern)
+      )
+    );
+  }
+
+  if (type) {
+    conditions.push(eq(publications.type, type));
+  }
+
+  if (publishedAfter) {
+    conditions.push(sql`${publications.publicationDate} >= ${publishedAfter}`);
+  }
+
+  if (publishedBefore) {
+    conditions.push(sql`${publications.publicationDate} <= ${publishedBefore}`);
+  }
+
+  // Determine sort column - only allow specific sortable columns
+  const sortableColumns = {
+    publicationDate: publications.publicationDate,
+    title: publications.title,
+    citationCount: publications.citationCount,
+    createdAt: publications.created_at,
+  } as const;
+
+  const sortColumn =
+    sortableColumns[sortBy as keyof typeof sortableColumns] ||
+    publications.publicationDate;
+  const primaryOrderBy =
+    sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn);
+
   // Single query to get all publications for the authenticated researcher
   const results = await db
     .select({
       // Publication fields
       ...getTableColumns(publications),
-      // publicationId: publications.id,
-      // title: publications.title,
-      // type: publications.type,
-      // doi: publications.doi,
-      // publicationDate: publications.publicationDate,
-      // abstract: publications.abstract,
-      // link: publications.link,
-      // venue: publications.venue,
-      // metadata: publications.metadata,
-      // citationCount: publications.citationCount,
-      // lastCitationUpdate: publications.lastCitationUpdate,
-      // creatorId: publications.creatorId,
 
       // Current user's authorship details
       userAuthorOrder: publicationAuthors.order,
@@ -143,12 +196,10 @@ export async function getResearcherPublications() {
       authorResearchers,
       eq(authorProfiles.researcherId, authorResearchers.id)
     )
-    // .leftJoin(authorUsers, eq(authorResearchers.userId, authorUsers.id))
-    .where(eq(researchers.userId, userId))
-    .orderBy(
-      desc(publications.publicationDate),
-      asc(allPublicationAuthors.order)
-    );
+    .where(and(...conditions))
+    .orderBy(primaryOrderBy, asc(allPublicationAuthors.order))
+    .limit(limit)
+    .offset(offset);
 
   if (results.length === 0) return [];
 

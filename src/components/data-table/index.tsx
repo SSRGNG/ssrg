@@ -28,7 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { ActionKey, BarAction, DataTableFilterField } from "@/types";
+import type { ActionKey, BarAction } from "@/types";
+import { DataTableFilterField } from "@/types/table";
 
 type DataTableProps<TData, TValue, TContext> =
   React.ComponentPropsWithoutRef<"div"> & {
@@ -95,6 +96,7 @@ type DataTableProps<TData, TValue, TContext> =
     actionKey?: ActionKey;
     barAction?: BarAction;
     context?: TContext;
+    noData?: string;
   };
 
 function DataTable<TData, TValue, TContext>({
@@ -105,13 +107,14 @@ function DataTable<TData, TValue, TContext>({
   actionKey,
   barAction,
   context,
+  noData = "No Results.",
   pageSizeOptions = [10, 20, 30, 40],
   className,
   ...props
 }: DataTableProps<TData, TValue, TContext>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({ category: false });
+    React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -229,7 +232,7 @@ function DataTable<TData, TValue, TContext>({
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {noData}
                 </TableCell>
               </TableRow>
             )}

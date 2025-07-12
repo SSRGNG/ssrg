@@ -20,6 +20,7 @@ import {
   getAllPublications,
   getLatestPublications,
 } from "@/lib/queries/publications";
+import { getUserVideos } from "@/lib/queries/videos";
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<
@@ -34,6 +35,11 @@ export type Publications = Awaited<ReturnType<typeof getAllPublications>>;
 export type LatestPublications = Awaited<
   ReturnType<typeof getLatestPublications>
 >;
+
+export type PortalVideosWithPagination = Awaited<
+  ReturnType<typeof getUserVideos>
+>;
+export type PortalVideos = PortalVideosWithPagination["videos"];
 
 export type PortalResearcherPubs = Awaited<
   ReturnType<typeof getResearcherPublications>
