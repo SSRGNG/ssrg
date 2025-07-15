@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { videoCats } from "@/config/enums";
 import type { AuthResearcher, PortalVideos } from "@/lib/actions/queries";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, formatDate, formatNumber } from "@/lib/utils";
 import { getTypedValue } from "@/types/table";
 
 type PortalVideo = PortalVideos[number];
@@ -141,10 +141,10 @@ function VideosDataTable({
           <DataTableColumnHeader column={column} title="Views" />
         ),
         cell: ({ row }) => {
-          const viewCount = row.original.viewCount;
+          const viewCount = row.original.metadata?.viewCount;
           return (
             <div className="text-center">
-              {viewCount ? viewCount.toLocaleString() : 0}
+              {viewCount ? formatNumber(viewCount, { notation: "compact" }) : 0}
             </div>
           );
         },

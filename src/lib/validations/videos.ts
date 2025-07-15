@@ -24,6 +24,7 @@ export const videoMetadataSchema = z.object({
     .optional(),
   captions: z.boolean().optional(),
   quality: z.enum(["SD", "HD", "4K", "8K"]).optional(),
+  definition: z.string().optional(),
 
   // Research context
   relatedPublications: z

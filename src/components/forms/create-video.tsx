@@ -65,6 +65,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { videoCats, videoResearcherRoles } from "@/config/enums";
 import { AuthorSearchResult, AuthResearcher } from "@/lib/actions/queries";
 import { searchAuthors } from "@/lib/actions/search";
+import { createVideo, getYouTubeVideoData } from "@/lib/actions/videos";
 import { cn } from "@/lib/utils";
 import {
   createVideoSchema,
@@ -75,20 +76,6 @@ import {
 type FormControl = Control<CreateVideoInput>;
 
 type Researcher = AuthResearcher;
-
-type YouTubeVideoData = {
-  title: string;
-  description: string;
-  publishedAt: string;
-  duration: string;
-  thumbnailUrl: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  channelTitle: string;
-  language?: string;
-  captions: boolean;
-};
 
 type Props<TContext> = React.ComponentPropsWithoutRef<"form"> & {
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -101,23 +88,6 @@ type AuthorFieldsProps = {
   control: FormControl;
   researcher?: Researcher;
 };
-
-// YouTube API integration (you'll need to implement this)
-async function fetchYouTubeVideoData(
-  videoId: string
-): Promise<YouTubeVideoData | null> {
-  try {
-    // This would call your YouTube API endpoint
-    const response = await fetch(`/api/youtube/video/${videoId}`);
-    if (!response.ok) throw new Error("Failed to fetch video data");
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching YouTube data:", error);
-    return null;
-  }
-}
 
 function AuthorSelector({
   onSelect,
@@ -581,7 +551,8 @@ function CreateVideo<TContext>({
     const timeoutId = setTimeout(async () => {
       setIsLoadingYouTube(true);
       try {
-        const youtubeData = await fetchYouTubeVideoData(videoId);
+        const youtubeData = await getYouTubeVideoData(videoId);
+        // console.log({ youtubeData });
         if (youtubeData) {
           if (!form.getValues("title")) {
             form.setValue("title", youtubeData.title);
@@ -589,10 +560,11 @@ function CreateVideo<TContext>({
           if (!form.getValues("description")) {
             form.setValue("description", youtubeData.description);
           }
-          form.setValue("publishedAt", youtubeData.publishedAt);
+          form.setValue("publishedAt", youtubeData.publishedAt); // make a date
           form.setValue("metadata", {
             youtubeId: videoId,
             duration: youtubeData.duration,
+            definition: youtubeData.definition,
             thumbnailUrl: youtubeData.thumbnailUrl,
             viewCount: youtubeData.viewCount,
             likeCount: youtubeData.likeCount,
@@ -658,8 +630,7 @@ function CreateVideo<TContext>({
 
   const onSubmit = React.useCallback(
     (data: CreateVideoInput) => {
-      console.log("Form errors:", form.formState.errors);
-      console.log("Form data:", data);
+      // console.log("Form errors:", form.formState.errors);
 
       // Check if form is valid
       if (Object.keys(form.formState.errors).length > 0) {
@@ -679,48 +650,58 @@ function CreateVideo<TContext>({
 
           const metadata = {
             ...data.metadata,
-            youtubeId,
+            youtubeId: data.metadata?.youtubeId || youtubeId,
             duration: data.metadata?.duration || "PT0M0S",
           };
 
           const payload = {
             ...data,
             metadata,
+            youtubeId,
             publishedAt: new Date(data.publishedAt),
             recordedAt: data.recordedAt ? new Date(data.recordedAt) : undefined,
           };
 
-          console.log({ payload });
+          // console.log({ payload });
 
-          // const validAuthors = data.authors?.filter((a) => a.authorId) || [];
-          // if (validAuthors.length === 0) {
-          //   toast.error("No valid authors selected", {
-          //     description:
-          //       "At least one author or researcher must be selected.",
-          //   });
-          //   return;
-          // }
+          const result = await createVideo(payload);
 
-          // const cleanedData = {
-          //   ...data,
-          //   youtubeId,
-          //   publishedAt: new Date(data.publishedAt),
-          //   recordedAt: data.recordedAt ? new Date(data.recordedAt) : undefined,
-          //   authors: validAuthors.map(({ authorId, role, order }) => ({
-          //     authorId,
-          //     role,
-          //     order,
-          //   })),
-          // };
+          if (!result.success) {
+            if (result.error === "Duplicate youTube ID detected") {
+              toast.error("Duplicate Youtube ID", {
+                description: result.details as string,
+                action: result.duplicateId
+                  ? {
+                      label: "View Existing",
+                      onClick: () =>
+                        router.push(
+                          `/publications/videos/${result.duplicateId}`
+                        ),
+                    }
+                  : undefined,
+              });
+            } else {
+              // Handle different types of details
+              let description = result.error || "Failed to create video";
 
-          // console.log({ cleanedData });
+              if (result.details) {
+                if (Array.isArray(result.details)) {
+                  // Format Zod validation errors nicely
+                  const errorMessages = result.details
+                    .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+                    .join("; ");
+                  description = `${description}. ${errorMessages}`;
+                } else {
+                  description = result.details;
+                }
+              }
 
-          // const result = await createVideo(cleanedData);
-
-          // if (!result.success) {
-          //   toast.error(result.error || "Failed to create video");
-          //   return;
-          // }
+              toast.error("Validation Error", {
+                description: description,
+              });
+            }
+            return;
+          }
 
           toast.success("Success", {
             description: "Video created successfully!",
@@ -728,7 +709,6 @@ function CreateVideo<TContext>({
 
           form.reset();
           setIsOpen?.(false);
-          // router.push(`/videos/${result.video.id}`);
         } catch (error) {
           console.error("Failed to create video:", error);
           toast.error("Error", {

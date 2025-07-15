@@ -23,6 +23,8 @@ import {
   publications,
   researchers,
   users,
+  videoAuthors,
+  videos,
 } from "@/db/schema";
 import {
   type PublicationQueryInput,
@@ -450,13 +452,14 @@ export async function getUserStats() {
         data: {
           publicationCount: 0,
           totalCitations: 0,
+          videoCount: 0,
         },
       };
     }
 
     // Get publication count and total citations for the user
     // This counts publications where the user is an author (through their researcher profile)
-    const statsResult = await db
+    const publicationStatsResult = await db
       .select({
         publicationCount: sql<number>`COUNT(DISTINCT ${publications.id})::int`,
         totalCitations: sql<number>`COALESCE(SUM(${publications.citationCount}), 0)::int`,
@@ -474,13 +477,34 @@ export async function getUserStats() {
         )
       );
 
-    const stats = statsResult[0] || { publicationCount: 0, totalCitations: 0 };
+    // Get video count for the user
+    // This counts videos where the user is an author (through their researcher profile)
+    const videoStatsResult = await db
+      .select({
+        videoCount: sql<number>`COUNT(DISTINCT ${videos.id})::int`,
+      })
+      .from(videos)
+      .innerJoin(videoAuthors, eq(videos.id, videoAuthors.videoId))
+      .innerJoin(authors, eq(videoAuthors.authorId, authors.id))
+      .where(
+        and(
+          eq(authors.researcherId, researcherId),
+          isNotNull(videos.id) // Ensure we're counting valid videos
+        )
+      );
+
+    const publicationStats = publicationStatsResult[0] || {
+      publicationCount: 0,
+      totalCitations: 0,
+    };
+    const videoStats = videoStatsResult[0] || { videoCount: 0 };
 
     return {
       success: true as const,
       data: {
-        publicationCount: stats.publicationCount,
-        totalCitations: stats.totalCitations,
+        publicationCount: publicationStats.publicationCount,
+        totalCitations: publicationStats.totalCitations,
+        videoCount: videoStats.videoCount,
       },
     };
   } catch (error) {

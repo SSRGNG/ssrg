@@ -48,6 +48,7 @@ export const CACHED_RESEARCH_METHODOLOGIES = "cached-research-methodologies";
 export const CACHED_PROJECTS = "cached-projects";
 
 export const CACHED_PUBLICATIONS = "cached-publications";
+export const CACHED_VIDEOS = "cached-videos";
 
 export const DOI_REGEX = /^10\.[0-9]{4,}(\.[0-9]+)*\/[-._;()/:A-Z0-9]+$/i;
 export const ORCID_REGEX = /^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$/;

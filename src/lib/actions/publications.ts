@@ -639,7 +639,7 @@ export async function createPublication(data: CreatePublicationPayload) {
         }
       }
 
-      // 1. Create the publication record
+      // Create the publication record
       const [newPublication] = await tx
         .insert(publications)
         .values({
@@ -657,7 +657,7 @@ export async function createPublication(data: CreatePublicationPayload) {
         })
         .returning();
 
-      // 2. Process authors and create author records if needed
+      // Process authors and create author records if needed
       const authorInsertPromises = validatedData.authors.map(
         async (authorData) => {
           let authorId = authorData.id;
@@ -797,7 +797,7 @@ export async function createPublication(data: CreatePublicationPayload) {
       // Wait for all author processing to complete
       const processedAuthors = await Promise.all(authorInsertPromises);
 
-      // 3. Create publication-author relationships
+      // Create publication-author relationships
       const publicationAuthorData = processedAuthors.map(
         ({ authorId, authorData }) => ({
           publicationId: newPublication.id,
@@ -823,6 +823,7 @@ export async function createPublication(data: CreatePublicationPayload) {
     });
 
     revalidatePath("/portal");
+    revalidatePath("/portal/publications");
     // Return success response with the created publication
     return {
       success: true,

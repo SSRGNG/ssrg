@@ -22,6 +22,9 @@ async function Stats({ className, ...props }: Props) {
   const citationCount = userStatsResult.success
     ? userStatsResult.data.totalCitations
     : 0;
+  const videoCount = userStatsResult.success
+    ? userStatsResult.data.videoCount
+    : 0;
 
   const stats = [
     {
@@ -50,8 +53,8 @@ async function Stats({ className, ...props }: Props) {
     },
     {
       title: "Videos",
-      count: 0,
-      href: "#",
+      count: videoCount,
+      href: "/portal/videos",
       icon: "video" as Icons,
       textColor: "text-rose-600",
       bgColor: "bg-rose-600/10",
