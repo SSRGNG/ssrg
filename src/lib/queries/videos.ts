@@ -15,7 +15,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { appConfig } from "@/config";
 import { db } from "@/db";
-import { researchers, users, videoResearchers, videos } from "@/db/schema";
+import { authors, researchers, users, videoAuthors, videos } from "@/db/schema";
 import {
   videoQuerySchema,
   type VideoQueryInput,
@@ -31,7 +31,7 @@ export async function getAllVideos(params: VideoQueryInput = {}) {
     category,
     series,
     creatorId,
-    researcherId,
+    authorId,
     isPublic,
     isFeatured,
     publishedAfter,
@@ -67,8 +67,8 @@ export async function getAllVideos(params: VideoQueryInput = {}) {
     conditions.push(eq(videos.creatorId, creatorId));
   }
 
-  if (researcherId) {
-    conditions.push(eq(videoResearchers.researcherId, researcherId));
+  if (authorId) {
+    conditions.push(eq(videoAuthors.authorId, authorId));
   }
 
   if (isPublic !== undefined) {
@@ -115,7 +115,7 @@ export async function getAllVideos(params: VideoQueryInput = {}) {
     })
     .from(videos)
     .leftJoin(users, eq(videos.creatorId, users.id))
-    .leftJoin(videoResearchers, eq(videos.id, videoResearchers.videoId))
+    .leftJoin(videoAuthors, eq(videos.id, videoAuthors.videoId))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(orderByClause)
     .limit(limit)
@@ -125,7 +125,7 @@ export async function getAllVideos(params: VideoQueryInput = {}) {
   //  const countQuery = db
   //   .select({ count: count() })
   //   .from(videos)
-  //   .leftJoin(videoResearchers, eq(videos.id, videoResearchers.videoId))
+  //   .leftJoin(videoAuthors, eq(videos.id, videoAuthors.videoId))
   //   .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   // const [{ count: totalCount }] = await countQuery;
@@ -166,25 +166,23 @@ export async function getUserVideos(params: VideoQueryInput = {}) {
   const userId = (await auth())?.user.id;
   if (!userId) redirect(appConfig.url);
 
-  // First get the user's researcher ID if they are a researcher
-  const userResearcher = await db
-    .select({ researcherId: researchers.id })
-    .from(researchers)
+  // Get the user's author ID via researchers table
+  const userAuthor = await db
+    .select({ authorId: authors.id })
+    .from(authors)
+    .leftJoin(researchers, eq(authors.researcherId, researchers.id))
     .where(eq(researchers.userId, userId))
     .limit(1);
 
-  const researcherId = userResearcher[0]?.researcherId;
+  const authorId = userAuthor[0]?.authorId;
 
   // Build all conditions first
   const conditions = [];
 
-  // Base permission condition - user must be creator or researcher
+  // Base permission condition - user must be creator or associated author
   const basePermissionConditions = [eq(videos.creatorId, userId)];
-
-  if (researcherId) {
-    basePermissionConditions.push(
-      eq(videoResearchers.researcherId, researcherId)
-    );
+  if (authorId) {
+    basePermissionConditions.push(eq(videoAuthors.authorId, authorId));
   }
 
   const basePermissionCondition = or(...basePermissionConditions);
@@ -250,21 +248,18 @@ export async function getUserVideos(params: VideoQueryInput = {}) {
       creatorEmail: users.email,
       // User permissions
       isCreator: sql<boolean>`${videos.creatorId} = ${userId}`,
-      userRole: videoResearchers.role,
-      userOrder: videoResearchers.order,
+      userRole: videoAuthors.role,
+      userOrder: videoAuthors.order,
       // Total count using window function
       totalCount: sql<number>`count(*) over()`,
     })
     .from(videos)
     .leftJoin(users, eq(videos.creatorId, users.id))
-    // .leftJoin(videoResearchers, eq(videos.id, videoResearchers.videoId))
     .leftJoin(
-      videoResearchers,
+      videoAuthors,
       and(
-        eq(videos.id, videoResearchers.videoId),
-        researcherId
-          ? eq(videoResearchers.researcherId, researcherId)
-          : sql`false`
+        eq(videos.id, videoAuthors.videoId),
+        authorId ? eq(videoAuthors.authorId, authorId) : sql`false`
       )
     )
     .where(and(...conditions))
@@ -275,19 +270,19 @@ export async function getUserVideos(params: VideoQueryInput = {}) {
   // Transform results to include permission calculations
   const videosWithPermissions = results.map((video) => {
     const isCreator = video.isCreator;
-    const isResearcher = video.userRole !== null;
-    const isLeadResearcher = video.userOrder === 0;
+    const isAuthor = video.userRole !== null;
+    const isLeadAuthor = video.userOrder === 0;
 
     return {
       ...video,
       // Permission flags
-      canView: isCreator || isResearcher,
-      canEdit: isCreator || isResearcher,
-      canDelete: isCreator || isLeadResearcher,
+      canView: isCreator || isAuthor,
+      canEdit: isCreator || isAuthor,
+      canDelete: isCreator || isLeadAuthor,
       role: isCreator ? "creator" : video.userRole,
       isCreator,
-      isResearcher,
-      isLeadResearcher,
+      isAuthor,
+      isLeadAuthor,
     };
   });
 
@@ -295,12 +290,12 @@ export async function getUserVideos(params: VideoQueryInput = {}) {
   // const countQuery = db
   //   .select({ count: count() })
   //   .from(videos)
-  //   // .leftJoin(videoResearchers, eq(videos.id, videoResearchers.videoId))
+  //   // .leftJoin(videoAuthors, eq(videos.id, videoAuthors.videoId))
   //   .leftJoin(
-  //     videoResearchers,
+  //     videoAuthors,
   //     and(
-  //       eq(videos.id, videoResearchers.videoId),
-  //       researcherId ? eq(videoResearchers.researcherId, researcherId) : sql`false`
+  //       eq(videos.id, videoAuthors.videoId),
+  //       authorId ? eq(videoAuthors.authorId, authorId) : sql`false`
   //     )
   //   )
   //   .where(and(...conditions));
@@ -339,54 +334,52 @@ export async function getVideoWithResearchers(videoId: string) {
     return null;
   }
 
-  // Get all researchers for this video
-  const videoResearchersList = await db
+  // Get all authors for this video
+  const videoAuthorsList = await db
     .select({
-      researcherId: videoResearchers.researcherId,
-      role: videoResearchers.role,
-      order: videoResearchers.order,
-      researcherName: users.name,
-      researcherEmail: users.email,
-      researcherTitle: researchers.title,
-      researcherBio: researchers.bio,
+      authorId: videoAuthors.authorId,
+      role: videoAuthors.role,
+      order: videoAuthors.order,
+      authorName: authors.name,
+      authorEmail: authors.email,
+      authorAffiliation: authors.affiliation,
+      authorORCID: authors.orcid,
     })
-    .from(videoResearchers)
-    .leftJoin(researchers, eq(videoResearchers.researcherId, researchers.id))
-    .leftJoin(users, eq(researchers.userId, users.id))
-    .where(eq(videoResearchers.videoId, videoId))
-    .orderBy(asc(videoResearchers.order));
+    .from(videoAuthors)
+    .leftJoin(authors, eq(videoAuthors.authorId, authors.id))
+    .where(eq(videoAuthors.videoId, videoId))
+    .orderBy(asc(videoAuthors.order));
 
   return {
     ...video[0],
-    researchers: videoResearchersList,
+    authors: videoAuthorsList,
   };
 }
 
 // Helper function to check user permissions for a video
 export async function getUserVideoPermissions(videoId: string, userId: string) {
-  // First get the user's researcher ID if they are a researcher
-  const userResearcher = await db
-    .select({ researcherId: researchers.id })
-    .from(researchers)
+  // Get the user's author ID via researchers table
+  const userAuthor = await db
+    .select({ authorId: authors.id })
+    .from(authors)
+    .leftJoin(researchers, eq(authors.researcherId, researchers.id))
     .where(eq(researchers.userId, userId))
     .limit(1);
 
-  const researcherId = userResearcher[0]?.researcherId;
+  const authorId = userAuthor[0]?.authorId;
 
   const result = await db
     .select({
       isCreator: sql<boolean>`${videos.creatorId} = ${userId}`,
-      researcherRole: videoResearchers.role,
-      researcherOrder: videoResearchers.order,
+      authorRole: videoAuthors.role,
+      authorOrder: videoAuthors.order,
     })
     .from(videos)
     .leftJoin(
-      videoResearchers,
+      videoAuthors,
       and(
-        eq(videos.id, videoResearchers.videoId),
-        researcherId
-          ? eq(videoResearchers.researcherId, researcherId)
-          : sql`false`
+        eq(videos.id, videoAuthors.videoId),
+        authorId ? eq(videoAuthors.authorId, authorId) : sql`false`
       )
     )
     .where(eq(videos.id, videoId))
@@ -401,17 +394,17 @@ export async function getUserVideoPermissions(videoId: string, userId: string) {
     };
   }
 
-  const { isCreator, researcherRole, researcherOrder } = result[0];
-  const isResearcher = researcherRole !== null;
-  const isLeadResearcher = researcherOrder === 0;
+  const { isCreator, authorRole, authorOrder } = result[0];
+  const isAuthor = authorRole !== null;
+  const isLeadAuthor = authorOrder === 0;
 
   return {
-    canView: isCreator || isResearcher,
-    canEdit: isCreator || isResearcher,
-    canDelete: isCreator || isLeadResearcher,
-    role: isCreator ? "creator" : researcherRole,
+    canView: isCreator || isAuthor,
+    canEdit: isCreator || isAuthor,
+    canDelete: isCreator || isLeadAuthor,
+    role: isCreator ? "creator" : authorRole,
     isCreator,
-    isResearcher,
-    isLeadResearcher,
+    isAuthor,
+    isLeadAuthor,
   };
 }

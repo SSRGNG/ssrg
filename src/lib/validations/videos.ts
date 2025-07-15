@@ -58,8 +58,12 @@ export const videoSchema = z.object({
     .max(50, "YouTube ID too long"),
 
   // Timestamps
-  publishedAt: z.date(),
-  recordedAt: z.date().optional(),
+  publishedAt: z.string().datetime("Invalid date format").or(z.date()),
+  recordedAt: z
+    .string()
+    .datetime("Invalid date format")
+    .or(z.date())
+    .optional(),
 
   // Categorization
   category: videoCats.schema.optional(),
@@ -85,117 +89,127 @@ export const videoSchema = z.object({
 });
 
 // Video researcher relationship schema
-export const videoResearcherSchema = z.object({
+export const videoAuthorSchema = z.object({
   videoId: z.string().uuid("Invalid video ID"),
-  researcherId: z.string().uuid("Invalid researcher ID"),
+  authorId: z.string().uuid("Invalid author ID"),
   role: videoResearcherRoles.schema.optional(),
-  order: z.number().int().min(0).default(0),
+  order: z.number().int().min(0, "Order must be at least 0"),
 });
 
 // Create video schema (for API endpoints)
-export const createVideoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(500, "Title too long"),
-  description: z.string().max(5000, "Description too long").optional(),
-  youtubeUrl: z
-    .string()
-    .url("Invalid YouTube URL")
-    .refine(
-      (url) => url.includes("youtube.com") || url.includes("youtu.be"),
-      "Must be a valid YouTube URL"
-    ),
+export const createVideoSchema = videoSchema
+  .omit({
+    id: true,
+    youtubeId: true,
+    viewCount: true,
+    lastMetricsUpdate: true,
+    created_at: true,
+    updated_at: true,
+  })
+  .extend({
+    authors: z
+      .array(
+        videoAuthorSchema.omit({ videoId: true, authorId: true }).extend({
+          id: z.string().uuid("Invalid author ID").optional(),
+          researcherId: z
+            .string()
+            .uuid("Invalid researcher ID")
+            .optional()
+            .nullable(),
+          orcid: z.string().optional().nullable(),
+          name: z.string().min(2, "Author name must be at least 2 characters"),
+          email: z
+            .string()
+            .email({ message: "Please enter a valid email address" })
+            .optional()
+            .nullable(),
+          affiliation: z.string().optional().nullable(),
+        })
+      )
+      .optional(),
+    // authors: z
+    //   .array(
+    //     z.object({
+    //       authorId: z.string().uuid("Invalid author ID").optional(),
+    //       role: videoResearcherRoles.schema.optional(),
+    //       order: z.number().int().min(0).default(0),
+    //       type: z.enum(["researcher", "author"]).optional(),
+    //       name: z.string().optional(),
+    //       email: z.string().optional(),
+    //       affiliation: z.string().optional(),
+    //       userId: z.string().optional(),
+    //       title: z.string().optional(),
+    //       bio: z.string().optional(),
+    //       featured: z.boolean().optional(),
+    //       orcid: z.string().optional(),
+    //       avatar: z.string().optional(),
+    //       publicationCount: z.number().optional(),
+    //     })
+    //   )
+    //   .optional(),
+  });
+// export const createVideoSchema = z.object({
+//   title: z.string().min(1, "Title is required").max(500, "Title too long"),
+//   description: z.string().max(5000, "Description too long").optional(),
+//   youtubeUrl: z
+//     .string()
+//     .url("Invalid YouTube URL")
+//     .refine(
+//       (url) => url.includes("youtube.com") || url.includes("youtu.be"),
+//       "Must be a valid YouTube URL"
+//     ),
 
-  // Timestamps
-  publishedAt: z.string().datetime("Invalid date format").or(z.date()),
-  recordedAt: z
-    .string()
-    .datetime("Invalid date format")
-    .or(z.date())
-    .optional(),
+//   // Timestamps
+//   publishedAt: z.string().datetime("Invalid date format").or(z.date()),
+//   recordedAt: z
+//     .string()
+//     .datetime("Invalid date format")
+//     .or(z.date())
+//     .optional(),
 
-  // Categorization
-  category: videoCats.schema.optional(),
-  series: z.string().max(255, "Series name too long").optional(),
+//   // Categorization
+//   category: videoCats.schema.optional(),
+//   series: z.string().max(255, "Series name too long").optional(),
 
-  // Creator
-  creatorId: z.string().uuid("Invalid creator ID").optional(),
+//   // Creator
+//   creatorId: z.string().uuid("Invalid creator ID").optional(),
 
-  // Metadata
-  metadata: videoMetadataSchema.optional(),
+//   // Metadata
+//   metadata: videoMetadataSchema.optional(),
 
-  // Status
-  isPublic: z.boolean().default(true),
-  isFeatured: z.boolean().default(false),
+//   // Status
+//   isPublic: z.boolean().default(true),
+//   isFeatured: z.boolean().default(false),
 
-  // Associated researchers
-  researchers: z
-    .array(
-      z.object({
-        researcherId: z.string().uuid("Invalid researcher ID"),
-        role: videoResearcherRoles.schema.optional(),
-        order: z.number().int().min(0).default(0),
-      })
-    )
-    .optional(),
-});
+//   // Associated researchers
+//   researchers: z
+//     .array(
+//       z.object({
+//         authorId: z.string().uuid("Invalid author ID").optional(),
+//         role: videoResearcherRoles.schema.optional(),
+//         order: z.number().int().min(0).default(0),
+//         type: z.enum(["researcher", "author"]).optional(),
+//         name: z.string().optional(),
+//         email: z.string().optional(),
+//         affiliation: z.string().optional(),
+//         userId: z.string().optional(),
+//         title: z.string().optional(),
+//         bio: z.string().optional(),
+//         featured: z.boolean().optional(),
+//         orcid: z.string().optional(),
+//         avatar: z.string().optional(),
+//         publicationCount: z.number().optional(),
+//       })
+//     )
+//     .optional(),
+// });
 
 // Update video schema (all fields optional except id)
-export const updateVideoSchema = z.object({
-  id: z.string().uuid("Invalid video ID"),
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(500, "Title too long")
-    .optional(),
-  description: z.string().max(5000, "Description too long").optional(),
-  youtubeUrl: z
-    .string()
-    .url("Invalid YouTube URL")
-    .refine(
-      (url) => url.includes("youtube.com") || url.includes("youtu.be"),
-      "Must be a valid YouTube URL"
-    )
-    .optional(),
-
-  // Timestamps
-  publishedAt: z
-    .string()
-    .datetime("Invalid date format")
-    .or(z.date())
-    .optional(),
-  recordedAt: z
-    .string()
-    .datetime("Invalid date format")
-    .or(z.date())
-    .optional(),
-
-  // Categorization
-  category: videoCats.schema.optional(),
-  series: z.string().max(255, "Series name too long").optional(),
-
-  // Creator
-  creatorId: z.string().uuid("Invalid creator ID").optional(),
-
-  // Metadata
-  metadata: videoMetadataSchema.optional(),
-
-  // Status
-  isPublic: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-
-  // Associated researchers
-  researchers: z
-    .array(
-      z.object({
-        researcherId: z.string().uuid("Invalid researcher ID"),
-        role: videoResearcherRoles.schema.optional(),
-        order: z.number().int().min(0).default(0),
-      })
-    )
-    .optional(),
-});
+export const updateVideoSchema = createVideoSchema
+  .partial()
+  .extend({ id: z.string().uuid("Invalid video ID") });
 
 export type Video = z.infer<typeof videoSchema>;
-export type VideoResearcher = z.infer<typeof videoResearcherSchema>;
 export type CreateVideoInput = z.infer<typeof createVideoSchema>;
 export type UpdateVideoInput = z.infer<typeof updateVideoSchema>;
 

@@ -23,7 +23,7 @@ import {
   researchers,
   sessions,
   users,
-  videoResearchers,
+  videoAuthors,
   videos,
 } from "@/db/schema";
 
@@ -242,8 +242,8 @@ export const researchersRelations = relations(researchers, ({ one, many }) => ({
   leadProjects: many(projects, {
     relationName: "lead",
   }),
-  videos: many(videoResearchers, {
-    relationName: "researcherVideos",
+  videos: many(videoAuthors, {
+    relationName: "authorVideos",
   }),
   eventPresentations: many(eventPresenters),
 }));
@@ -290,27 +290,23 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     references: [users.id],
     relationName: "videoCreator",
   }),
-  // Researchers relation
-  researchers: many(videoResearchers, {
-    relationName: "videoResearchers",
+  // Authors relation
+  authors: many(videoAuthors, {
+    relationName: "videoAuthors",
   }),
 }));
 
-// Video researchers junction table relations
-export const videoResearchersRelations = relations(
-  videoResearchers,
-  ({ one }) => ({
-    // Video relation
-    video: one(videos, {
-      fields: [videoResearchers.videoId],
-      references: [videos.id],
-      relationName: "videoResearchers",
-    }),
-    // Researcher relation
-    researcher: one(researchers, {
-      fields: [videoResearchers.researcherId],
-      references: [researchers.id],
-      relationName: "researcherVideos",
-    }),
-  })
-);
+// Video authors junction table relations
+
+export const videoAuthorsRelations = relations(videoAuthors, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoAuthors.videoId],
+    references: [videos.id],
+    relationName: "videoAuthors",
+  }),
+  author: one(authors, {
+    fields: [videoAuthors.authorId],
+    references: [authors.id],
+    relationName: "authorVideos",
+  }),
+}));

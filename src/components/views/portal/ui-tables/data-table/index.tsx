@@ -28,7 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { ActionKey, BarAction, DataTableFilterField } from "@/types";
+import type { ActionKey, BarAction } from "@/types";
+import { DataTableFilterField } from "@/types/table";
 
 type DataTableProps<TData, TValue, TContext> =
   React.ComponentPropsWithoutRef<"div"> & {

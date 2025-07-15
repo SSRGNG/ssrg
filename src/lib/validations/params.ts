@@ -30,6 +30,7 @@ export const videoQuerySchema = z.object({
   series: z.string().optional(),
   creatorId: z.string().uuid().optional(),
   researcherId: z.string().uuid().optional(),
+  authorId: z.string().uuid().optional(),
   isPublic: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 

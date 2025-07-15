@@ -29,6 +29,7 @@ import { BarAction } from "@/types";
 import { getTableMeta, type ExtendedTable } from "@/types/table";
 
 import { CreatePublication } from "@/components/forms/create-publication";
+import { CreateVideo } from "@/components/forms/create-video";
 
 type ToolbarActionsProps<TData, TContext> = {
   table: ExtendedTable<TData, TContext>;
@@ -60,7 +61,7 @@ function ToolbarActions<TData, TContext>({
   > = {
     publication: CreatePublication,
     project: () => null,
-    video: () => null,
+    video: CreateVideo,
   };
 
   const description = `You are creating a new ${barAction}`;

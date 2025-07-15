@@ -209,14 +209,14 @@ function VideosDataTable({
             return <Badge variant="default">Creator</Badge>;
           }
 
-          if (video.isLeadResearcher) {
-            return <Badge variant="default">Lead Researcher</Badge>;
+          if (video.isLeadAuthor) {
+            return <Badge variant="default">Lead Author</Badge>;
           }
 
-          if (video.isResearcher && !video.isLeadResearcher) {
+          if (video.isAuthor && !video.isLeadAuthor) {
             return (
               <Badge variant="secondary">
-                Researcher{" "}
+                Author{" "}
                 {video.userOrder !== null ? `(#${video.userOrder + 1})` : ""}
               </Badge>
             );

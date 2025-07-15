@@ -1,15 +1,9 @@
 "use server";
 
-import { and, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, eq, ilike, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import {
-  authors,
-  publicationAuthors,
-  publications,
-  researchers,
-  users,
-} from "@/db/schema";
+import { authors, publications, researchers, users } from "@/db/schema";
 import { searchSchema } from "@/lib/validations";
 import { searchAuthorSchema } from "@/lib/validations/author";
 
@@ -26,28 +20,25 @@ export async function searchAuthors(query: string, limit: number = 20) {
     const { query: searchQuery, limit: searchLimit } = validation.data;
     const searchPattern = `%${searchQuery.trim()}%`;
 
-    // console.log({ searchPattern });
-
     // Search researchers (with user data) - these are platform users
     const researcherResults = await db
       .select({
-        id: researchers.id,
-        userId: researchers.userId,
+        researcherId: researchers.id,
+        // userId: researchers.userId,
         name: users.name,
         email: users.email,
         affiliation: users.affiliation,
-        title: researchers.title,
-        bio: researchers.bio,
-        featured: researchers.featured,
+        // title: researchers.title,
+        // bio: researchers.bio,
+        // featured: researchers.featured,
         orcid: researchers.orcid,
-        avatar: users.image,
-        // Get publication count directly in the query
-        publicationCount: sql<number>`(
-          SELECT COALESCE(COUNT(*), 0)::int 
-          FROM ${authors} a
-          JOIN ${publicationAuthors} pa ON a.id = pa.author_id
-          WHERE a.researcher_id = ${researchers.id}
-        )`,
+        // avatar: users.image,
+        // publicationCount: sql<number>`(
+        //   SELECT COALESCE(COUNT(*), 0)::int
+        //   FROM ${authors} a
+        //   JOIN ${publicationAuthors} pa ON a.id = pa.author_id
+        //   WHERE a.researcher_id = ${researchers.id}
+        // )`,
       })
       .from(researchers)
       .innerJoin(users, eq(researchers.userId, users.id))
@@ -61,7 +52,6 @@ export async function searchAuthors(query: string, limit: number = 20) {
       )
       .limit(Math.floor(searchLimit / 2));
 
-    // console.log({ researcherResults });
     // Search standalone authors (not linked to researchers) with publication count
     const authorResults = await db
       .select({
@@ -71,12 +61,11 @@ export async function searchAuthors(query: string, limit: number = 20) {
         affiliation: authors.affiliation,
         orcid: authors.orcid,
         researcherId: authors.researcherId,
-        // Get publication count directly in the query
-        publicationCount: sql<number>`(
-          SELECT COUNT(*)::int 
-          FROM ${publicationAuthors} 
-          WHERE ${publicationAuthors.authorId} = ${authors.id}
-        )`,
+        // publicationCount: sql<number>`(
+        //   SELECT COUNT(*)::int
+        //   FROM ${publicationAuthors}
+        //   WHERE ${publicationAuthors.authorId} = ${authors.id}
+        // )`,
       })
       .from(authors)
       .where(

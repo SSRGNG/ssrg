@@ -142,22 +142,22 @@ export const eventPresenters = pgTable(
   ]
 );
 
-// Video researcher junction table
-export const videoResearchers = pgTable(
-  "video_researchers",
+// Video author junction table
+export const videoAuthors = pgTable(
+  "video_authors",
   {
     videoId: uuid("video_id")
       .notNull()
       .references(() => videos.id, { onDelete: "cascade" }),
-    researcherId: uuid("researcher_id")
+    authorId: uuid("author_id")
       .notNull()
-      .references(() => researchers.id, { onDelete: "cascade" }),
+      .references(() => authors.id, { onDelete: "cascade" }),
     role: varchar("role", { length: 20 }).$type<VideoResearcherRole>(),
-    order: integer("order").default(0), // For ordering multiple researchers
+    order: integer("order").default(0),
   },
   (t) => [
-    primaryKey({ columns: [t.videoId, t.researcherId] }),
-    index("video_researchers_video_idx").on(t.videoId),
-    index("video_researchers_researcher_idx").on(t.researcherId),
+    primaryKey({ columns: [t.videoId, t.authorId] }),
+    index("video_authors_video_idx").on(t.videoId),
+    index("video_authors_author_idx").on(t.authorId),
   ]
 );

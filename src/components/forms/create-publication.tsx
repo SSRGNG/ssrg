@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 
 import { ErrorTitle } from "@/components/forms/error-title";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -305,16 +306,6 @@ function AuthorSelector({
     }
   }, [open]);
 
-  // Debug effect
-  // React.useEffect(() => {
-  //   console.log("Current search state:", {
-  //     query: searchQuery,
-  //     results: searchResults,
-  //     isSearching,
-  //     open,
-  //   });
-  // }, [searchResults, searchQuery, isSearching, open]);
-
   const handleAuthorCreated = (newAuthor: AuthorData) => {
     const authorResult: AuthorSearchResult = {
       type: "author",
@@ -349,17 +340,13 @@ function AuthorSelector({
           >
             {selectedAuthor ? (
               <div className="flex items-center gap-2">
-                {selectedAuthor.type === "researcher" && (
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={selectedAuthor.data.avatar ?? ""} />
-                    <AvatarFallback className="text-xs">
-                      {selectedAuthor.data.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
+                <UserAvatar
+                  user={{}}
+                  className="size-5"
+                  fallbackClassName="rounded-full"
+                  imageClassName="rounded-full"
+                  iconClassName="size-3"
+                />
                 <span className="truncate">
                   {getAuthorDisplayName(selectedAuthor)}
                 </span>
@@ -389,28 +376,19 @@ function AuthorSelector({
                   <CommandGroup heading="Search Results">
                     {searchResults.map((author) => (
                       <CommandItem
-                        key={`${author.type}-${author.data.id}`}
+                        key={`${author.type}-${author.data.name}`}
                         onSelect={() => {
                           onSelect(author);
                           setOpen(false);
                         }}
                         className="gap-3"
                       >
-                        {author.type === "researcher" ? (
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={author.data.avatar ?? ""} />
-                            <AvatarFallback className="text-xs">
-                              {author.data.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-                            <User className="h-3 w-3" />
-                          </div>
-                        )}
+                        <UserAvatar
+                          user={{ name: author.data.name }}
+                          className="rounded-full"
+                          fallbackClassName="rounded-full"
+                          imageClassName="rounded-full"
+                        />
                         <div className="flex flex-col flex-1 min-w-0">
                           <span className="truncate">{author.data.name}</span>
                           <span className="text-xs text-muted-foreground truncate">
@@ -464,7 +442,13 @@ function AuthorSelector({
                       onSelect={() => {
                         onSelect({
                           type: "researcher",
-                          data: { ...researcher, publicationCount: 0 },
+                          data: {
+                            researcherId: researcher.id,
+                            name: researcher.name,
+                            email: researcher.email,
+                            affiliation: researcher.affiliation,
+                            orcid: researcher.orcid,
+                          },
                         });
                         setOpen(false);
                       }}
@@ -703,22 +687,21 @@ function AuthorFields({
   const selectedAuthor = React.useMemo(() => {
     if (!currentAuthor) return null;
 
-    if (currentAuthor.researcherId && researcher) {
-      // Format as researcher
+    // If has researcherId but no id = researcher (platform user)
+    if (currentAuthor.researcherId && !currentAuthor.id) {
       return {
         type: "researcher" as const,
         data: {
-          id: researcher.id,
-          userId: researcher.userId,
-          name: researcher.name,
-          email: researcher.email,
-          affiliation: researcher.affiliation,
-          title: researcher.title || "",
-          bio: researcher.bio || "",
-          featured: researcher.featured || false,
-          orcid: researcher.orcid,
-          avatar: researcher.avatar,
-          publicationCount: 0,
+          researcherId: currentAuthor.researcherId,
+          name: currentAuthor.name,
+          email: currentAuthor.email || "",
+          affiliation: currentAuthor.affiliation || "",
+          orcid: currentAuthor.orcid || "",
+          // Only include avatar if this is the authenticated user
+          avatar:
+            currentAuthor.researcherId === researcher?.id
+              ? researcher.avatar
+              : null,
         },
       };
     } else if (currentAuthor.id) {
@@ -732,7 +715,6 @@ function AuthorFields({
           affiliation: currentAuthor.affiliation || "",
           orcid: currentAuthor.orcid || "",
           researcherId: currentAuthor.researcherId || null,
-          publicationCount: 0,
         },
       };
     }
@@ -796,21 +778,12 @@ function AuthorFields({
       {selectedAuthor && !isManualEntry && (
         <div className="p-3 bg-muted/50 rounded-lg">
           <div className="flex items-start gap-3">
-            {selectedAuthor.type === "researcher" ? (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={selectedAuthor.data.avatar ?? ""} />
-                <AvatarFallback>
-                  {selectedAuthor.data.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-background border flex items-center justify-center">
-                <User className="h-4 w-4" />
-              </div>
-            )}
+            <UserAvatar
+              user={{ image: selectedAuthor.data.avatar ?? "" }}
+              className="rounded-full"
+              fallbackClassName="rounded-full"
+              imageClassName="rounded-full"
+            />
             <div className="flex-1 min-w-0">
               <p className="font-medium">{selectedAuthor.data.name}</p>
               {selectedAuthor.data.email && (
@@ -1018,21 +991,6 @@ function CreatePublication<TContext>({
     [removeAuthor, form]
   );
 
-  const linkToResearcher = React.useCallback(
-    async (authorIndex: number, researcher: Researcher) => {
-      form.setValue(`authors.${authorIndex}.id`, undefined);
-      form.setValue(`authors.${authorIndex}.name`, researcher.name);
-      form.setValue(`authors.${authorIndex}.email`, researcher.email);
-      form.setValue(
-        `authors.${authorIndex}.affiliation`,
-        researcher.affiliation
-      );
-      form.setValue(`authors.${authorIndex}.orcid`, researcher.orcid);
-      form.setValue(`authors.${authorIndex}.researcherId`, researcher.id);
-    },
-    [form]
-  );
-
   // Optimized venue change handler
   const handleVenueChange = React.useCallback(
     (value: string) => {
@@ -1087,17 +1045,6 @@ function CreatePublication<TContext>({
 
       startTransition(async () => {
         try {
-          // console.log({ data });
-          // toast("You submitted the following values", {
-          //   description: (
-          //     <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          //       <code className="text-white">
-          //         {JSON.stringify(processedData, null, 2)}
-          //       </code>
-          //     </pre>
-          //   ),
-          // });
-
           const result = await createPublication(data);
 
           if (!result.success) {
@@ -1272,53 +1219,6 @@ function CreatePublication<TContext>({
             )}
           />
 
-          {/* <FormField
-            control={form.control}
-            name="publicationDate"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <ErrorTitle fieldState={fieldState} title="Publication Date" />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "px-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(new Date(field.value), "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="center">
-                    <Calendar
-                      // classNames={{ root: "w-full" }}
-                      mode="single"
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) => {
-                        field.onChange(date ? date.toISOString() : null);
-                      }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      captionLayout="dropdown"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  When this publication was released.
-                </FormDescription>
-              </FormItem>
-            )}
-          /> */}
-
           <FormField
             control={form.control}
             name="publicationDate"
@@ -1407,7 +1307,18 @@ function CreatePublication<TContext>({
 
         {/* Authors Section */}
         <div className="space-y-4">
-          <h3>Authors</h3>
+          {/* <h3>Authors</h3> */}
+          {authorFields.length === 0 ? (
+            <div className="flex items-center justify-between">
+              <h3>Authors</h3>
+              <Button type="button" variant="secondary" onClick={addAuthor}>
+                <PlusCircle />
+                Add Author
+              </Button>
+            </div>
+          ) : (
+            <h3>Authors</h3>
+          )}
           {authorFields.map((field, index) => (
             <AuthorFields
               key={field.id}
@@ -1418,31 +1329,40 @@ function CreatePublication<TContext>({
               researcher={researcher}
               onSelectExistingAuthor={(index, author) => {
                 if (author.type === "researcher") {
-                  linkToResearcher(index, author.data);
-                } else {
-                  form.setValue(`authors.${index}.id`, author.data.id);
+                  // Set researcher data - researcherId but no id
+                  form.setValue(`authors.${index}.id`, undefined);
                   form.setValue(`authors.${index}.name`, author.data.name);
-                  form.setValue(
-                    `authors.${index}.email`,
-                    author.data.email || ""
-                  );
+                  form.setValue(`authors.${index}.email`, author.data.email);
                   form.setValue(
                     `authors.${index}.affiliation`,
-                    author.data.affiliation || ""
+                    author.data.affiliation
                   );
+                  form.setValue(`authors.${index}.orcid`, author.data.orcid);
                   form.setValue(
-                    `authors.${index}.orcid`,
-                    author.data.orcid || ""
+                    `authors.${index}.researcherId`,
+                    author.data.researcherId
                   );
+                } else {
+                  // Set standalone author data - id but no researcherId
+                  form.setValue(`authors.${index}.id`, author.data.id);
+                  form.setValue(`authors.${index}.name`, author.data.name);
+                  form.setValue(`authors.${index}.email`, author.data.email);
+                  form.setValue(
+                    `authors.${index}.affiliation`,
+                    author.data.affiliation
+                  );
+                  form.setValue(`authors.${index}.orcid`, author.data.orcid);
                   form.setValue(`authors.${index}.researcherId`, null);
                 }
               }}
             />
           ))}
-          <Button type="button" variant="secondary" onClick={addAuthor}>
-            <PlusCircle />
-            Add Author
-          </Button>
+          {authorFields.length !== 0 && (
+            <Button type="button" variant="secondary" onClick={addAuthor}>
+              <PlusCircle />
+              Add Author
+            </Button>
+          )}
         </div>
         <Button
           type="submit"
