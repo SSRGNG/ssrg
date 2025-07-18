@@ -10,7 +10,7 @@ import { Publications } from "@/lib/actions/queries";
 import { cn, formatPublicationDate } from "@/lib/utils";
 import { ViewMode } from "@/types";
 
-type Props = React.ComponentProps<"article"> & {
+type Props = React.ComponentPropsWithoutRef<"article"> & {
   publication: Publications[number];
   viewMode: ViewMode;
 };

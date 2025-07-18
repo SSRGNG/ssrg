@@ -20,7 +20,7 @@ import {
   getAllPublications,
   getLatestPublications,
 } from "@/lib/queries/publications";
-import { getUserVideos } from "@/lib/queries/videos";
+import { getUserVideos, getVideos } from "@/lib/queries/videos";
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<
@@ -81,3 +81,6 @@ export type AuthorResult = Extract<AuthorSearchResult, { type: "author" }>;
 // Extract just the data types
 export type ResearcherData = ResearcherResult["data"];
 export type AuthorData = AuthorResult["data"];
+
+export type VideosWithPagination = Awaited<ReturnType<typeof getVideos>>;
+export type Videos = VideosWithPagination["videos"];

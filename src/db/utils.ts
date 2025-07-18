@@ -45,6 +45,28 @@ export function isConferencePaper(
   return pub.type === "conference_paper";
 }
 
+export function formatInText<T>(
+  authors: T[] | undefined | null,
+  nameExtractor: (author: T) => string,
+  formatName: (name: string) => string = (name) => name
+): string {
+  if (!authors || authors.length === 0) return "No authors";
+
+  const authorNames = authors.map((author) => {
+    const fullName = nameExtractor(author).trim();
+    return formatName(fullName);
+  });
+
+  if (authorNames.length === 1) {
+    return authorNames[0];
+  } else if (authorNames.length === 2) {
+    return `${authorNames[0]} & ${authorNames[1]}`;
+  } else {
+    // APA style for 3 or more authors
+    return `${authorNames[0]} et al.`;
+  }
+}
+
 export function formatInTextCitation(
   authors: PortalResearcherPubs[number]["authors"]
 ): string {

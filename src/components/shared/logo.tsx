@@ -4,7 +4,9 @@ import { Icons } from "@/components/shared/icons";
 import { appConfig } from "@/config";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentProps<typeof Link>;
+type Props = Omit<React.ComponentProps<typeof Link>, "href"> & {
+  href?: string;
+};
 
 function Logo({ href = "/", className, ...props }: Props) {
   return (

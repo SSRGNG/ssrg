@@ -217,7 +217,6 @@ function UserNav({
         </DropdownMenu>
       ) : (
         <Logo
-          href={"/"}
           className="w-full py-1.5 px-2 rounded-md"
           onClick={() => setIsOpen(false)}
         />

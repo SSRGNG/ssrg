@@ -28,7 +28,7 @@ function Header({ blur, publications, className, ...props }: Props) {
       {...props}
     >
       <section className="container py-3 flex items-center gap-4 md:gap-2.5 lg:gap-6">
-        <Logo href={"/"} />
+        <Logo />
         <MainNav items={appConfig.mainNav} blur={blur} />
         {publications ? (
           <div className="w-full flex items-center gap-2.5">

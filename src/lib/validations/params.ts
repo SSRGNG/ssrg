@@ -31,8 +31,9 @@ export const videoQuerySchema = z.object({
   creatorId: z.string().uuid().optional(),
   researcherId: z.string().uuid().optional(),
   authorId: z.string().uuid().optional(),
-  isPublic: z.boolean().optional(),
+  isPublic: z.boolean().default(true),
   isFeatured: z.boolean().optional(),
+  filterByAcademics: z.boolean().default(false),
 
   // Date filters
   publishedAfter: z.string().datetime().or(z.date()).optional(),

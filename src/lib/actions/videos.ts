@@ -434,6 +434,7 @@ export async function createVideo(data: VideoPayload) {
             videoId: newVideo.id,
             authorId,
             order: authorData.order,
+            role: authorData.role ?? null,
           })
         );
 

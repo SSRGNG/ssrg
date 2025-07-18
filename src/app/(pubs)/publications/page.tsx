@@ -62,6 +62,12 @@ export default async function Publications({
           baseUrl="/publications"
           searchParams={{ sort: sortBy, view: viewMode }}
         />
+        {filteredPublications.length === 0 && (
+          <React.Fragment>
+            <h1 className="text-lg">Publications</h1>
+            <small>There are no publications yet</small>
+          </React.Fragment>
+        )}
       </React.Suspense>
     </Page>
   );
