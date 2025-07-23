@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { ErrorTitle } from "@/components/forms/error-title";
 import { Icons } from "@/components/shared/icons";
+import { ImageSelector } from "@/components/shared/image-selector";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -121,6 +122,7 @@ function CreateResearchArea({ setIsOpen, className, ...props }: Props) {
       }
     });
   }
+
   return (
     <Form {...form}>
       <form
@@ -218,13 +220,15 @@ function CreateResearchArea({ setIsOpen, className, ...props }: Props) {
               <FormItem>
                 <ErrorTitle fieldState={fieldState} title="Image URL" />
                 <FormControl>
-                  <Input
-                    placeholder="e.g., /images/research/communities.webp"
-                    {...field}
+                  <ImageSelector
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    triggerClassName="w-full"
+                    placeholder="Upload or Select Image"
                   />
                 </FormControl>
                 <FormDescription>
-                  Path to the image representing this research area
+                  Upload a new image or select from previously uploaded images
                 </FormDescription>
               </FormItem>
             )}

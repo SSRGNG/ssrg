@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { ErrorTitle } from "@/components/forms/error-title";
 import { Icons } from "@/components/shared/icons";
+import { ImageSelector } from "@/components/shared/image-selector";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -45,7 +46,6 @@ type Props = React.ComponentPropsWithoutRef<"form"> & {
   researchArea: Area;
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
 type IconName = keyof typeof Icons;
 
 const iconNames = Object.keys(Icons) as IconName[];
@@ -235,13 +235,19 @@ function UpdateResearchArea({
               <FormItem>
                 <ErrorTitle fieldState={fieldState} title="Image URL" />
                 <FormControl>
-                  <Input
+                  {/* <Input
                     placeholder="e.g., /images/research/communities.webp"
                     {...field}
+                  /> */}
+                  <ImageSelector
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    triggerClassName="w-full"
+                    placeholder="Upload or Select Image"
                   />
                 </FormControl>
                 <FormDescription>
-                  Path to the image representing this research area
+                  Upload a new image or select from previously uploaded images
                 </FormDescription>
               </FormItem>
             )}

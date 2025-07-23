@@ -60,6 +60,13 @@ export const accessLevels = createEnum(
   "confidential"
 );
 
+export const fileCats = createEnum(
+  "research_image",
+  "profile_picture",
+  "document",
+  "general"
+);
+
 export const publications = defineEnum(
   "journal_article",
   "conference_paper",

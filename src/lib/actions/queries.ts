@@ -8,6 +8,7 @@ import {
   getResearchFrameworks,
   getResearchMethodologies,
 } from "@/lib/queries/admin";
+import { getResearchImages } from "@/lib/queries/files";
 import {
   authResearcher,
   getCurrentUserResearcher,
@@ -21,6 +22,8 @@ import {
   getLatestPublications,
 } from "@/lib/queries/publications";
 import { getUserVideos, getVideos } from "@/lib/queries/videos";
+
+export type ResearchImages = Awaited<ReturnType<typeof getResearchImages>>;
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<

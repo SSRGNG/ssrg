@@ -1,4 +1,5 @@
 export * from "@/db/schema/auth";
+export * from "@/db/schema/dataset";
 export * from "@/db/schema/events";
 export * from "@/db/schema/joins";
 export * from "@/db/schema/partners";

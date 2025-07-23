@@ -5,7 +5,6 @@ import {
   integer,
   jsonb,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   uuid,
@@ -13,22 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { projects, publications, researchers, users } from "@/db/schema";
-import { AccessLevel, DatasetStatus } from "@/types";
-
-// export const datasetStatusEnum = pgEnum("dataset_status", [
-//   "draft",
-//   "processing",
-//   "active",
-//   "archived",
-//   "deprecated"
-// ]);
-
-// export const accessLevelEnum = pgEnum("access_level", [
-//   "public",
-//   "restricted",
-//   "private",
-//   "confidential"
-// ]);
+import { AccessLevel, DatasetStatus, FileCategory } from "@/types";
 
 export const datasets = pgTable(
   "datasets",
@@ -46,8 +30,6 @@ export const datasets = pgTable(
 
     // Metadata
     version: varchar("version", { length: 20 }).default("1.0").notNull(),
-    // status: datasetStatusEnum("status").default("draft").notNull(),
-    // accessLevel: accessLevelEnum("access_level").default("private").notNull(),
     status: varchar("status", { length: 50 })
       .$type<DatasetStatus>()
       .default("draft")
@@ -120,6 +102,21 @@ export const files = pgTable(
     path: text("path").notNull(),
     url: text("url"),
 
+    // UploadThing specific fields
+    uploadthingKey: text("uploadthing_key").unique(), // UploadThing file key
+    uploadthingUrl: text("uploadthing_url"), // UploadThing CDN URL
+
+    // File categorization
+    category: varchar("category", { length: 50 })
+      .$type<FileCategory>()
+      .default("general")
+      .notNull(),
+    tags: text("tags"), // Comma-separated tags for better organization
+
+    // Enhanced metadata
+    altText: text("alt_text"), // For images - accessibility
+    caption: text("caption"), // Optional caption/description
+
     // References - what this file belongs to
     projectId: uuid("project_id").references(() => projects.id),
     publicationId: uuid("publication_id").references(() => publications.id),
@@ -131,105 +128,110 @@ export const files = pgTable(
     isPublic: boolean("is_public").default(false).notNull(),
 
     created_at: timestamp("created_at").defaultNow().notNull(),
+    updated_at: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (t) => [
     index("files_project_idx").on(t.projectId),
     index("files_publication_idx").on(t.publicationId),
     index("files_dataset_idx").on(t.datasetId),
     index("files_uploader_idx").on(t.uploadedBy),
+    index("files_category_idx").on(t.category),
+    index("files_key_idx").on(t.uploadthingKey),
   ]
 );
 
-// =====================
-// ADDITIONAL JUNCTION TABLES
-// =====================
+// // =====================
+// // ADDITIONAL JUNCTION TABLES
+// // =====================
 
-// Project publications relationship
-export const projectPublications = pgTable(
-  "project_publications",
-  {
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
-    publicationId: uuid("publication_id")
-      .notNull()
-      .references(() => publications.id, { onDelete: "cascade" }),
-    created_at: timestamp("created_at").defaultNow().notNull(),
-  },
-  (t) => [
-    primaryKey({ columns: [t.projectId, t.publicationId] }),
-    index("project_pubs_project_idx").on(t.projectId),
-  ]
-);
+// // Project publications relationship
+// export const projectPublications = pgTable(
+//   "project_publications",
+//   {
+//     projectId: uuid("project_id")
+//       .notNull()
+//       .references(() => projects.id, { onDelete: "cascade" }),
+//     publicationId: uuid("publication_id")
+//       .notNull()
+//       .references(() => publications.id, { onDelete: "cascade" }),
+//     created_at: timestamp("created_at").defaultNow().notNull(),
+//   },
+//   (t) => [
+//     primaryKey({ columns: [t.projectId, t.publicationId] }),
+//     index("project_pubs_project_idx").on(t.projectId),
+//   ]
+// );
 
-// Project datasets relationship
-export const projectDatasets = pgTable(
-  "project_datasets",
-  {
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
-    datasetId: uuid("dataset_id")
-      .notNull()
-      .references(() => datasets.id, { onDelete: "cascade" }),
-    created_at: timestamp("created_at").defaultNow().notNull(),
-  },
-  (t) => [
-    primaryKey({ columns: [t.projectId, t.datasetId] }),
-    index("project_datasets_project_idx").on(t.projectId),
-  ]
-);
+// // Project datasets relationship
+// export const projectDatasets = pgTable(
+//   "project_datasets",
+//   {
+//     projectId: uuid("project_id")
+//       .notNull()
+//       .references(() => projects.id, { onDelete: "cascade" }),
+//     datasetId: uuid("dataset_id")
+//       .notNull()
+//       .references(() => datasets.id, { onDelete: "cascade" }),
+//     created_at: timestamp("created_at").defaultNow().notNull(),
+//   },
+//   (t) => [
+//     primaryKey({ columns: [t.projectId, t.datasetId] }),
+//     index("project_datasets_project_idx").on(t.projectId),
+//   ]
+// );
 
-// Publication datasets relationship (datasets used in publications)
-export const publicationDatasets = pgTable(
-  "publication_datasets",
-  {
-    publicationId: uuid("publication_id")
-      .notNull()
-      .references(() => publications.id, { onDelete: "cascade" }),
-    datasetId: uuid("dataset_id")
-      .notNull()
-      .references(() => datasets.id, { onDelete: "cascade" }),
-    created_at: timestamp("created_at").defaultNow().notNull(),
-  },
-  (t) => [
-    primaryKey({ columns: [t.publicationId, t.datasetId] }),
-    index("pub_datasets_pub_idx").on(t.publicationId),
-  ]
-);
+// // Publication datasets relationship (datasets used in publications)
+// export const publicationDatasets = pgTable(
+//   "publication_datasets",
+//   {
+//     publicationId: uuid("publication_id")
+//       .notNull()
+//       .references(() => publications.id, { onDelete: "cascade" }),
+//     datasetId: uuid("dataset_id")
+//       .notNull()
+//       .references(() => datasets.id, { onDelete: "cascade" }),
+//     created_at: timestamp("created_at").defaultNow().notNull(),
+//   },
+//   (t) => [
+//     primaryKey({ columns: [t.publicationId, t.datasetId] }),
+//     index("pub_datasets_pub_idx").on(t.publicationId),
+//   ]
+// );
 
-// =====================
-// EXPORT CONFIGURATIONS
-// =====================
+// // =====================
+// // EXPORT CONFIGURATIONS
+// // =====================
 
-// For different export/report configurations
-export const exportConfigs = pgTable(
-  "export_configs",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: varchar("name", { length: 255 }).notNull(),
-    type: varchar("type", { length: 50 }).notNull(), // "pdf", "csv", "json", "excel"
+// // For different export/report configurations
+// export const exportConfigs = pgTable(
+//   "export_configs",
+//   {
+//     id: uuid("id").primaryKey().defaultRandom(),
+//     name: varchar("name", { length: 255 }).notNull(),
+//     type: varchar("type", { length: 50 }).notNull(), // "pdf", "csv", "json", "excel"
 
-    // What to export
-    entityType: varchar("entity_type", { length: 50 }).notNull(), // "projects", "publications", "datasets"
+//     // What to export
+//     entityType: varchar("entity_type", { length: 50 }).notNull(), // "projects", "publications", "datasets"
 
-    // Configuration
-    config: jsonb("config").notNull(), // JSON configuration for export
+//     // Configuration
+//     config: jsonb("config").notNull(), // JSON configuration for export
 
-    // Access
-    createdBy: uuid("created_by")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    isPublic: boolean("is_public").default(false).notNull(),
+//     // Access
+//     createdBy: uuid("created_by")
+//       .notNull()
+//       .references(() => users.id, { onDelete: "cascade" }),
+//     isPublic: boolean("is_public").default(false).notNull(),
 
-    created_at: timestamp("created_at").defaultNow().notNull(),
-    updated_at: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (t) => [
-    index("export_configs_type_idx").on(t.type),
-    index("export_configs_entity_idx").on(t.entityType),
-    index("export_configs_creator_idx").on(t.createdBy),
-  ]
-);
+//     created_at: timestamp("created_at").defaultNow().notNull(),
+//     updated_at: timestamp("updated_at")
+//       .default(sql`CURRENT_TIMESTAMP`)
+//       .notNull(),
+//   },
+//   (t) => [
+//     index("export_configs_type_idx").on(t.type),
+//     index("export_configs_entity_idx").on(t.entityType),
+//     index("export_configs_creator_idx").on(t.createdBy),
+//   ]
+// );

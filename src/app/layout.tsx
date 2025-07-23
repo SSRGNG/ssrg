@@ -1,5 +1,8 @@
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import type { Metadata } from "next";
+import { extractRouterConfig } from "uploadthing/server";
 
+import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { ThemeProvider } from "@/components/providers/theme";
 import { TailwindIndicator } from "@/components/shared/tailwind-indicator";
 import { Toaster } from "@/components/ui/sonner";
@@ -31,6 +34,7 @@ export default function RootLayout({
           fontMono.variable
         )}
       >
+        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

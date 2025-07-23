@@ -7,6 +7,7 @@ import {
   barActions,
   datasetStatus,
   events,
+  fileCats,
   partners,
   presenterRoles,
   publications as publicationsEnum,
@@ -38,6 +39,7 @@ export type PublicationType = typeof publicationsEnum.type;
 export type Event = typeof events.type;
 export type PresenterRole = typeof presenterRoles.type;
 export type AccessLevel = typeof accessLevels.type;
+export type FileCategory = typeof fileCats.type;
 export type DatasetStatus = typeof datasetStatus.type;
 export type BarAction = typeof barActions.type;
 export type VideoCategory = typeof videoCats.type;
