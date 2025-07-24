@@ -4,6 +4,7 @@ import * as React from "react";
 import { Pagination } from "@/components/shared/pagination";
 import { Page } from "@/components/shell";
 import { Card } from "@/components/views/publications/videos/card";
+import { Modal } from "@/components/views/publications/videos/modal";
 import { getCachedPaginatedVideos } from "@/lib/queries/videos";
 import { cn } from "@/lib/utils";
 import { SortOption, ViewMode } from "@/types";
@@ -29,37 +30,45 @@ export default async function Videos({
     typeof params.view === "string" ? params.view : "detailed"
   ) as ViewMode;
 
-  // Ensure page is valid
   const validPage = Math.max(1, isNaN(page) ? 1 : page);
 
   const { videos, pagination } = await getCachedPaginatedVideos({
     page: validPage,
   });
 
-  // console.log({ videos });
-  // console.log("authors: ", videos[0].authors);
-
+  // Extract minimal data for the modal
+  const videoData = videos.map((v) => ({
+    youtubeId: v.youtubeId,
+    title: v.title,
+  }));
   return (
-    <Page
-      variant={"publications"}
-      className={cn(viewMode === "detailed" ? "grid-cols-1" : "md:grid-cols-2")}
-    >
-      {videos.map((video, idx) => (
-        <Card key={video.id} video={video} idx={idx} viewMode={viewMode} />
-      ))}
-      <Pagination
-        className={cn(viewMode === "compact" && "md:col-span-2")}
-        currentPage={pagination.page}
-        totalPages={pagination.totalPages}
-        baseUrl="/publications"
-        searchParams={{ sort: sortBy, view: viewMode }}
-      />
-      {videos.length === 0 && (
-        <React.Fragment>
-          <h1 className="text-lg">Videos</h1>
-          <small>There are no video contents yet</small>
-        </React.Fragment>
-      )}
-    </Page>
+    <React.Fragment>
+      <Page
+        variant={"publications"}
+        className={cn(
+          viewMode === "detailed" ? "grid-cols-1" : "md:grid-cols-2"
+        )}
+      >
+        {videos.map((video, idx) => (
+          <Card key={video.id} video={video} idx={idx} viewMode={viewMode} />
+        ))}
+        <Pagination
+          className={cn(viewMode === "compact" && "md:col-span-2")}
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          baseUrl="/publications"
+          searchParams={{ sort: sortBy, view: viewMode }}
+        />
+        {videos.length === 0 && (
+          <React.Fragment>
+            <h1 className="text-lg">Videos</h1>
+            <small>There are no video contents yet</small>
+          </React.Fragment>
+        )}
+      </Page>
+
+      {/* Modal rendered at page level */}
+      <Modal videos={videoData} />
+    </React.Fragment>
   );
 }

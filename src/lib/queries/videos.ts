@@ -24,6 +24,43 @@ import {
   type VideoQueryInput,
 } from "@/lib/validations/params";
 
+export async function getVideoByYoutubeId(youtubeId: string) {
+  try {
+    const video = await db.query.videos.findFirst({
+      where: eq(videos.youtubeId, youtubeId),
+      with: {
+        authors: {
+          columns: { order: true, role: true },
+          with: {
+            author: {
+              columns: {
+                name: true,
+                email: true,
+                affiliation: true,
+                orcid: true,
+              },
+              with: {
+                researcher: {
+                  columns: { id: true, title: true, orcid: true },
+                },
+              },
+            },
+          },
+          orderBy: (a, { asc }) => [asc(a.order)],
+        },
+        // Add any relations you want to include
+      },
+    });
+
+    if (!video) {
+      throw new Error(`Video with YouTubeID ${youtubeId} not found`);
+    }
+    return video;
+  } catch (error) {
+    throw error;
+  }
+}
+
 // Get all videos (for public publications/videos page)
 export async function getVideos(params: VideoQueryInput = {}) {
   const validatedParams = videoQuerySchema.parse(params);

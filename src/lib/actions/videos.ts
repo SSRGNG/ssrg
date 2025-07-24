@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -499,6 +499,25 @@ export async function createVideo(data: VideoPayload) {
   }
 }
 
+export async function updateVideoViewCount(videoId: string) {
+  try {
+    await db
+      .update(videos)
+      .set({
+        viewCount: sql`${videos.viewCount} + 1`,
+        lastMetricsUpdate: new Date(),
+      })
+      .where(eq(videos.youtubeId, videoId));
+
+    // Revalidate the videos cache
+    revalidateTag(CACHED_VIDEOS);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update video view count:", error);
+    return { success: false, error: "Failed to update view count" };
+  }
+}
 // {
 //     "title": "Community Development",
 //     "description": "some description",

@@ -22,7 +22,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function FocusArea({
+export default async function PublicationDetailsPage({
   params,
 }: {
   params: Promise<{ slug: string }>;

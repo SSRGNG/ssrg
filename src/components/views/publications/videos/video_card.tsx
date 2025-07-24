@@ -1,298 +1,306 @@
-// import { ExternalLink, Eye, Layers, Play, Tag, Users } from "lucide-react";
-// import * as React from "react";
+"use client";
 
-// import { Badge } from "@/components/ui/badge";
-// import { videoCats } from "@/config/enums";
-// import { Videos } from "@/lib/actions/queries";
-// import { cn } from "@/lib/utils";
-// import { ViewMode } from "@/types";
+import { formatDistanceToNowStrict } from "date-fns";
+import { ExternalLink, Link2, Play, Tag, Users, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import * as React from "react";
 
-// type VideoType = Videos[number];
-// type Props = React.ComponentPropsWithoutRef<"article"> & {
-//   video: VideoType;
-//   viewMode: ViewMode;
-// };
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Card as LinkCard,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { videoCats } from "@/config/enums";
+import { formatInText } from "@/db/utils";
+import { Videos } from "@/lib/actions/queries";
+import { cn } from "@/lib/utils";
+import { ViewMode } from "@/types";
 
-// const formatViewCount = (count?: number) => {
-//   if (!count) return "0 views";
-//   if (count < 1000) return `${count} views`;
-//   if (count < 1000000) return `${(count / 1000).toFixed(1)}K views`;
-//   return `${(count / 1000000).toFixed(1)}M views`;
-// };
+type VideoType = Videos[number];
+type Props = React.ComponentPropsWithoutRef<typeof LinkCard> & {
+  video: VideoType;
+  idx: number;
+  viewMode: ViewMode;
+  onViewCountUpdate?: (videoId: string, newCount: number) => void;
+};
 
-// const formatInTextCitation = (authors: VideoType["authors"]) => {
-//   if (authors.length === 0) return "";
-//   if (authors.length === 1) return authors[0].name;
-//   if (authors.length === 2) return `${authors[0].name} & ${authors[1].name}`;
-//   return `${authors[0].name} et al.`;
-// };
+const formatViewCount = (count?: number) => {
+  if (!count) return "0 views";
+  if (count < 1000) return `${count} views`;
+  if (count < 1000000) return `${(count / 1000).toFixed(1)}K views`;
+  return `${(count / 1000000).toFixed(1)}M views`;
+};
 
-// const CategoryBadge = React.memo(
-//   ({ category }: { category: NonNullable<VideoType["category"]> }) => (
-//     <Badge variant={"brand"} className="uppercase tracking-wide">
-//       <Tag className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-//       {videoCats.getLabel(category)}
-//     </Badge>
-//   )
-// );
-// CategoryBadge.displayName = "CategoryBadge";
+const formatInTextCitation = (authors: VideoType["authors"]) => {
+  return formatInText(authors, (author) => author.name);
+};
 
-// const ViewCount = React.memo(({ count }: { count: number }) => (
-//   <div
-//     className="flex items-center gap-1 text-sm text-muted-foreground"
-//     title={`${formatViewCount(count)}`}
-//   >
-//     <Eye className="size-4" strokeWidth={1.5} aria-hidden="true" />
-//     <span className="sr-only">Views: </span>
-//     {formatViewCount(count)}
-//   </div>
-// ));
-// ViewCount.displayName = "ViewCount";
+const AuthorList = React.memo(
+  ({
+    authors,
+    compact = false,
+  }: {
+    authors: VideoType["authors"];
+    compact?: boolean;
+  }) => (
+    <div className="flex items-start gap-1.5 text-sm">
+      <Users
+        className="size-4 mt-0.5 text-muted-foreground flex-shrink-0"
+        strokeWidth={1.5}
+        aria-hidden="true"
+      />
+      <div className={compact ? "truncate" : ""}>
+        <span className="sr-only">Contributors: </span>
+        {compact ? (
+          <span className="text-muted-foreground">
+            {formatInTextCitation(authors)}
+          </span>
+        ) : (
+          authors.map((author, index) => (
+            <span key={`${author.name}-${index}`}>
+              <span className="font-medium text-muted-foreground">
+                {author.name}
+              </span>
+              {author.role && (
+                <span className="text-muted-foreground/70 text-xs ml-1">
+                  ({author.role})
+                </span>
+              )}
+              {author.affiliation && (
+                <span className="text-muted-foreground/70 text-xs ml-1">
+                  - {author.affiliation}
+                </span>
+              )}
+              {index < authors.length - 1 && (
+                <span className="text-muted-foreground">, </span>
+              )}
+            </span>
+          ))
+        )}
+      </div>
+    </div>
+  )
+);
+AuthorList.displayName = "AuthorList";
 
-// const AuthorList = React.memo(
-//   ({
-//     authors,
-//     compact = false,
-//   }: {
-//     authors: VideoType["authors"];
-//     compact?: boolean;
-//   }) => (
-//     <div className="flex items-start gap-1.5 text-sm">
-//       <Users
-//         className="size-4 mt-0.5 text-muted-foreground flex-shrink-0"
-//         strokeWidth={1.5}
-//         aria-hidden="true"
-//       />
-//       <div className={compact ? "truncate" : ""}>
-//         <span className="sr-only">Contributors: </span>
-//         {compact ? (
-//           <span className="text-muted-foreground">
-//             {formatInTextCitation(authors)}
-//           </span>
-//         ) : (
-//           authors.map((author, index) => (
-//             <span key={`${author.name}-${index}`}>
-//               <span className="font-medium text-muted-foreground">
-//                 {author.name}
-//               </span>
-//               {author.role && (
-//                 <span className="text-muted-foreground/70 text-xs ml-1">
-//                   ({author.role})
-//                 </span>
-//               )}
-//               {author.affiliation && (
-//                 <span className="text-muted-foreground/70 text-xs ml-1">
-//                   - {author.affiliation}
-//                 </span>
-//               )}
-//               {index < authors.length - 1 && (
-//                 <span className="text-muted-foreground">, </span>
-//               )}
-//             </span>
-//           ))
-//         )}
-//       </div>
-//     </div>
-//   )
-// );
-// AuthorList.displayName = "AuthorList";
+const ExternalLinks = React.memo(
+  ({ video, compact = false }: { video: VideoType; compact?: boolean }) => {
+    const links = [];
 
-// const ExternalLinks = React.memo(
-//   ({ video, compact = false }: { video: VideoType; compact?: boolean }) => {
-//     const links = [];
+    // Always show YouTube link
+    links.push(
+      <a
+        key="youtube"
+        href={video.youtubeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-brand hover:text-brand/80 transition-colors"
+        aria-label="Watch on YouTube"
+      >
+        {compact ? "YouTube" : "Watch on YouTube"}
+        <ExternalLink className="size-3" strokeWidth={1.5} aria-hidden="true" />
+      </a>
+    );
 
-//     // Always show YouTube link
-//     links.push(
-//       <a
-//         key="youtube"
-//         href={video.youtubeUrl}
-//         target="_blank"
-//         rel="noopener noreferrer"
-//         className="inline-flex items-center gap-1 text-brand hover:text-brand/80 transition-colors"
-//         aria-label="Watch on YouTube"
-//       >
-//         Watch on YouTube{" "}
-//         <ExternalLink className="size-3" strokeWidth={1.5} aria-hidden="true" />
-//       </a>
-//     );
+    links.push(
+      <Link
+        key={video.id}
+        href={`/publications/videos/${video.youtubeId}`}
+        className="inline-flex items-center gap-1 text-brand hover:text-brand/80 transition-colors"
+        aria-label="View abstract"
+      >
+        View Details{" "}
+        <Link2 className="size-3" strokeWidth={1.5} aria-hidden="true" />
+      </Link>
+    );
 
-//     return (
-//       <div
-//         className={cn(
-//           "flex items-center gap-4 text-xs font-medium",
-//           compact ? "flex-wrap" : ""
-//         )}
-//       >
-//         {links}
-//       </div>
-//     );
-//   }
-// );
-// ExternalLinks.displayName = "ExternalLinks";
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-2.5 text-xs font-medium",
+          compact ? "flex-wrap" : ""
+        )}
+      >
+        {links}
+      </div>
+    );
+  }
+);
+ExternalLinks.displayName = "ExternalLinks";
 
-// const VideoThumbnail = React.memo(
-//   ({ video, isCompact }: { video: VideoType; isCompact: boolean }) => {
-//     return (
-//       <div
-//         className={cn(
-//           "relative bg-gray-100 rounded-lg overflow-hidden group-hover:shadow-md transition-shadow",
-//           isCompact ? "aspect-video w-full" : "aspect-video w-full max-w-xs"
-//         )}
-//       >
-//         {video.metadata?.thumbnailUrl ? (
-//           <img
-//             src={video.metadata.thumbnailUrl}
-//             alt={video.title}
-//             className="w-full h-full object-cover"
-//             loading="lazy"
-//           />
-//         ) : (
-//           <div className="w-full h-full flex items-center justify-center bg-muted">
-//             <Play className="size-8 text-muted-foreground" />
-//           </div>
-//         )}
+// New component for the clickable thumbnail
+const VideoThumbnail = React.memo(
+  ({
+    video,
+    isPlaying,
+    onPlay,
+    onClose,
+    className,
+  }: {
+    video: VideoType;
+    isPlaying: boolean;
+    onPlay: () => void;
+    onClose: () => void;
+    className?: string;
+  }) => {
+    return (
+      <div className={cn("relative group cursor-pointer", className)}>
+        {!isPlaying ? (
+          <>
+            {video.metadata?.thumbnailUrl ? (
+              <Image
+                src={video.metadata.thumbnailUrl}
+                alt={video.title}
+                height={800}
+                width={450}
+                className="h-full w-full object-cover aspect-[24/9]"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted aspect-[24/9]">
+                <Play className="size-8 text-muted-foreground" />
+              </div>
+            )}
 
-//         {/* Play overlay */}
-//         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
-//           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-//             <div className="bg-muted backdrop-blur-sm rounded-full p-2">
-//               <Play className="size-6 text-red-600 fill-current" />
-//             </div>
-//           </div>
-//         </div>
+            {/* Play overlay */}
+            <div
+              className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors"
+              onClick={onPlay}
+            >
+              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
+                <Play className="size-8 text-red-600 fill-current" />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="relative w-full aspect-[24/9]">
+            <iframe
+              src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
+              title={video.title}
+              className="w-full h-full rounded-md"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute top-2 right-2 z-10"
+              onClick={onClose}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        )}
 
-//         {/* Featured badge */}
-//         {video.isFeatured && (
-//           <div className="absolute top-2 left-2">
-//             <Badge className="bg-yellow-500 text-white border-yellow-600">
-//               Featured
-//             </Badge>
-//           </div>
-//         )}
-//       </div>
-//     );
-//   }
-// );
-// VideoThumbnail.displayName = "VideoThumbnail";
+        {/* Badges overlay - only show when not playing */}
+        {!isPlaying && (
+          <div className="absolute top-2 left-2 inline-flex items-center gap-1">
+            {video.isFeatured && (
+              <>
+                <Badge variant={"brand"}>Featured</Badge>
+                <Separator
+                  orientation="vertical"
+                  className="bg-brand data-[orientation=vertical]:h-4"
+                />
+              </>
+            )}
+            {video.category && (
+              <Badge variant={"brand"}>
+                <Tag
+                  className="size-3.5"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                {videoCats.getLabel(video.category)}
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+VideoThumbnail.displayName = "VideoThumbnail";
 
-// function VideoCard({ video, viewMode, className, ...props }: Props) {
-//   const isCompact = viewMode === "compact";
-//   const viewCount = video.metadata?.viewCount ?? 0;
+function Card({
+  video,
+  idx,
+  viewMode,
+  className,
+  onViewCountUpdate,
+  ...props
+}: Props) {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const isCompact = viewMode === "compact";
 
-//   return (
-//     <article
-//       className={cn(
-//         "group bg-card text-card-foreground rounded-xl border p-4 sm:p-6 shadow-sm",
-//         "hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 space-y-2.5",
-//         "cursor-pointer transition-all duration-200",
-//         className
-//       )}
-//       // onClick={() => window.open(video.youtubeUrl, "_blank")}
-//       {...props}
-//     >
-//       {isCompact ? (
-//         /* Compact Layout */
-//         <React.Fragment>
-//           {/* Header with category and date */}
-//           <header className="flex items-center justify-between gap-2">
-//             <div className="flex items-center gap-2 min-w-0 flex-1">
-//               {video.category && <CategoryBadge category={video.category} />}
-//               <span className="text-muted-foreground/50" aria-hidden="true">
-//                 •
-//               </span>
-//               <time
-//                 className="text-sm text-muted-foreground whitespace-nowrap"
-//                 dateTime={String(video.publishedAt)}
-//               >
-//                 {/* {formatPublicationDate(
-//                   video.publishedAt.toISOString().split("T")[0]
-//                 )} */}
-//                 {new Date(video.publishedAt).toLocaleDateString()}
-//               </time>
-//             </div>
-//             <ViewCount count={viewCount} />
-//           </header>
+  // Use the more recent/accurate view count
+  const viewCount = Math.max(
+    video.viewCount || 0,
+    video.metadata?.viewCount || 0
+  );
 
-//           {/* Main content */}
-//           <div className="space-y-2.5">
-//             <h3 className="text-base md:text-lg font-medium line-clamp-2">
-//               {video.title}
-//             </h3>
+  const handlePlay = React.useCallback(() => {
+    setIsPlaying(true);
+    // Optionally update view count when user plays video
+    if (onViewCountUpdate) {
+      onViewCountUpdate(video.id, viewCount + 1);
+    }
+  }, [video.id, viewCount, onViewCountUpdate]);
 
-//             {video.series && (
-//               <p className="text-sm text-muted-foreground/70 font-medium truncate">
-//                 <Layers className="inline size-3 mr-1" />
-//                 {video.series}
-//               </p>
-//             )}
-//           </div>
+  const handleClose = React.useCallback(() => {
+    setIsPlaying(false);
+  }, []);
 
-//           {/* Authors */}
-//           <AuthorList authors={video.authors} compact={isCompact} />
+  return (
+    <LinkCard
+      className={cn(
+        "gap-0 py-0 sm:py-0 overflow-hidden",
+        idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse",
+        className
+      )}
+      {...props}
+    >
+      <CardHeader className="px-0 sm:px-0 md:w-2/3 grid-rows-[auto] relative">
+        <VideoThumbnail
+          video={video}
+          isPlaying={isPlaying}
+          onPlay={handlePlay}
+          onClose={handleClose}
+        />
+      </CardHeader>
 
-//           {/* Footer with links */}
-//           <footer className="flex items-center justify-between gap-4 pt-1">
-//             <ExternalLinks video={video} compact={isCompact} />
-//           </footer>
-//         </React.Fragment>
-//       ) : (
-//         /* Detailed Layout */
-//         <React.Fragment>
-//           {/* Header with category and date */}
-//           <header className="flex items-center justify-between gap-2">
-//             <div className="flex items-center gap-2 min-w-0 flex-1">
-//               {video.category && <CategoryBadge category={video.category} />}
-//               <span className="text-muted-foreground/50" aria-hidden="true">
-//                 •
-//               </span>
-//               <time
-//                 className="text-sm text-muted-foreground whitespace-nowrap"
-//                 dateTime={String(video.publishedAt)}
-//               >
-//                 {/* {formatPublicationDate(
-//                   video.publishedAt.toISOString().split("T")[0]
-//                 )} */}
-//                 {new Date(video.publishedAt).toLocaleDateString()}
-//               </time>
-//             </div>
-//             <ViewCount count={viewCount} />
-//           </header>
+      <CardContent className="space-y-2.5 py-4 sm:py-6 md:w-2/3 leading-none">
+        <CardTitle className="text-base md:text-lg font-medium line-clamp-2">
+          {video.title}
+        </CardTitle>
 
-//           {/* Video content with thumbnail */}
-//           <div className="flex gap-4">
-//             <VideoThumbnail video={video} isCompact={isCompact} />
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{formatViewCount(viewCount)}</span>
+          <span>•</span>
+          <span>
+            {formatDistanceToNowStrict(new Date(video.publishedAt), {
+              addSuffix: true,
+            })}
+          </span>
+        </div>
 
-//             <div className="flex-1 space-y-2.5 min-w-0">
-//               <h3 className="text-base md:text-lg font-medium line-clamp-2">
-//                 {video.title}
-//               </h3>
+        {video.description && !isCompact && (
+          <CardDescription className="line-clamp-3 text-muted-foreground/70">
+            {video.description}
+          </CardDescription>
+        )}
 
-//               {video.series && (
-//                 <p className="text-sm text-muted-foreground/70 font-medium line-clamp-1">
-//                   <Layers className="inline size-3 mr-1" />
-//                   {video.series}
-//                 </p>
-//               )}
+        <AuthorList authors={video.authors} compact={isCompact} />
+        <ExternalLinks video={video} compact={isCompact} />
+      </CardContent>
+    </LinkCard>
+  );
+}
 
-//               {video.description && (
-//                 <p className="text-sm text-muted-foreground line-clamp-3">
-//                   {video.description}
-//                 </p>
-//               )}
-
-//               {/* Authors */}
-//               <AuthorList authors={video.authors} compact={false} />
-
-//               {/* Footer with links */}
-//               <footer className="pt-1">
-//                 <ExternalLinks video={video} compact={false} />
-//               </footer>
-//             </div>
-//           </div>
-//         </React.Fragment>
-//       )}
-//     </article>
-//   );
-// }
-
-// export { VideoCard };
+export { Card };

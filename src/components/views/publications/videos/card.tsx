@@ -1,6 +1,5 @@
 import { formatDistanceToNowStrict } from "date-fns";
-import { ExternalLink, Link2, Play, Tag, Users } from "lucide-react";
-import Image from "next/image";
+import { ExternalLink, Link2, Tag, Users } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -13,6 +12,7 @@ import {
   Card as LinkCard,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Thumbnail } from "@/components/views/publications/videos/thumbnail";
 import { videoCats } from "@/config/enums";
 import { formatInText } from "@/db/utils";
 import { Videos } from "@/lib/actions/queries";
@@ -35,10 +35,6 @@ const formatViewCount = (count?: number) => {
 
 const formatInTextCitation = (authors: VideoType["authors"]) => {
   return formatInText(authors, (author) => author.name);
-  // if (authors.length === 0) return "";
-  // if (authors.length === 1) return authors[0].name;
-  // if (authors.length === 2) return `${authors[0].name} & ${authors[1].name}`;
-  // return `${authors[0].name} et al.`;
 };
 
 const AuthorList = React.memo(
@@ -133,12 +129,24 @@ const ExternalLinks = React.memo(
 );
 ExternalLinks.displayName = "ExternalLinks";
 
+function VideoThumbnailWrapper({ video }: { video: VideoType }) {
+  return (
+    <Thumbnail
+      videoId={video.youtubeId}
+      title={video.title}
+      thumbnailUrl={video.metadata?.thumbnailUrl}
+    />
+  );
+}
+
 function Card({ video, idx, viewMode, className, ...props }: Props) {
   const isCompact = viewMode === "compact";
-  const viewCount = video.metadata?.viewCount ?? 0;
+  const viewCount = Math.max(
+    video.viewCount || 0,
+    video.metadata?.viewCount || 0
+  );
 
   return (
-    // <Link className={cn("grid group", className)} href={href} {...props}>
     <LinkCard
       className={cn(
         "gap-0 py-0 sm:py-0 overflow-hidden",
@@ -148,27 +156,9 @@ function Card({ video, idx, viewMode, className, ...props }: Props) {
       {...props}
     >
       <CardHeader className="px-0 sm:px-0 md:w-2/3 grid-rows-[auto] relative">
-        {video.metadata?.thumbnailUrl ? (
-          <Image
-            src={video.metadata.thumbnailUrl}
-            alt={video.title}
-            height={800}
-            width={450}
-            className={cn("h-full w-full object-cover aspect-[24/9]")}
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-muted aspect-[24/9">
-            <Play className="size-8 text-muted-foreground" />
-          </div>
-        )}
-        {/* Play overlay */}
-        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-          <div className="bg-muted backdrop-blur-sm rounded-full p-2">
-            <Play className="size-6 text-red-600 fill-current" />
-          </div>
-        </div>
-        <div className="absolute top-2 left-2 inline-flex items-center gap-1">
+        <VideoThumbnailWrapper video={video} />
+        {/* Badges overlay */}
+        <div className="absolute top-2 left-2 inline-flex items-center gap-1 z-10 pointer-events-none">
           {video.isFeatured && (
             <React.Fragment>
               <Badge variant={"brand"}>Featured</Badge>
@@ -208,7 +198,6 @@ function Card({ video, idx, viewMode, className, ...props }: Props) {
         <ExternalLinks video={video} compact={isCompact} />
       </CardContent>
     </LinkCard>
-    // </Link>
   );
 }
 
