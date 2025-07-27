@@ -77,16 +77,26 @@ function Main({ items, user, ...props }: Props) {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
+                  // asChild={!item.disabled}
                   tooltip={item.title}
+                  disabled={item.disabled}
                   className={cn(
                     item.isActive &&
-                      "bg-sidebar-accent text-sidebar-accent-foreground"
+                      "bg-sidebar-accent text-sidebar-accent-foreground",
+                    item.disabled && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <a href={item.href}>
-                    <Icon />
-                    <span>{item.title}</span>
-                  </a>
+                  {item.disabled ? (
+                    <span>
+                      <Icon />
+                      <span>{item.title}</span>
+                    </span>
+                  ) : (
+                    <a href={item.href}>
+                      <Icon />
+                      <span>{item.title}</span>
+                    </a>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ) : (
@@ -95,14 +105,17 @@ function Main({ items, user, ...props }: Props) {
                 asChild
                 defaultOpen={item.isExpanded}
                 className="group/collapsible"
+                disabled={item.disabled}
               >
                 <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
+                  <CollapsibleTrigger asChild disabled={item.disabled}>
                     <SidebarMenuButton
                       tooltip={item.title}
+                      disabled={item.disabled}
                       className={cn(
                         item.isActive &&
-                          "bg-sidebar-accent text-sidebar-accent-foreground"
+                          "bg-sidebar-accent text-sidebar-accent-foreground",
+                        item.disabled && "opacity-50 cursor-not-allowed"
                       )}
                     >
                       {item.icon && <Icon />}
@@ -119,15 +132,26 @@ function Main({ items, user, ...props }: Props) {
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
+                                // asChild={!subItem.disabled}
+                                // disabled={subItem.disabled}
                                 className={cn(
                                   subItem.isActive &&
-                                    "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    "bg-sidebar-accent text-sidebar-accent-foreground",
+                                  subItem.disabled &&
+                                    "opacity-50 cursor-not-allowed"
                                 )}
                               >
-                                <a href={subItem.href}>
-                                  <SubIcon />
-                                  <span>{subItem.title}</span>
-                                </a>
+                                {subItem.disabled ? (
+                                  <span>
+                                    <SubIcon />
+                                    <span>{subItem.title}</span>
+                                  </span>
+                                ) : (
+                                  <a href={subItem.href}>
+                                    <SubIcon />
+                                    <span>{subItem.title}</span>
+                                  </a>
+                                )}
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           )

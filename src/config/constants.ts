@@ -130,6 +130,7 @@ export const appNav: AppNavItem[] = [
     description: "Current and past research initiatives",
     roles: ["admin", "researcher"],
     icon: "research",
+    disabled: true,
     items: [],
   },
   {
@@ -138,6 +139,7 @@ export const appNav: AppNavItem[] = [
     description: "Access research datasets and resources",
     roles: ["admin", "researcher"],
     icon: "database",
+    disabled: true,
     items: [],
   },
 ];

@@ -81,6 +81,7 @@ export type AppNavItem = {
   icon: Icons;
   isActive?: boolean;
   isExpanded?: boolean;
+  disabled?: boolean;
   items: AppNavItem[];
 };
 
