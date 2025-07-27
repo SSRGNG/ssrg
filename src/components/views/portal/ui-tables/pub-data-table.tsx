@@ -3,9 +3,20 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Edit, Ellipsis, Eye, Trash2 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -18,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { publications } from "@/config/enums";
 import { formatInTextCitation } from "@/db/utils";
+import { deletePublication } from "@/lib/actions/publications";
 import type {
   AuthResearcher,
   PortalResearcherPubs,
@@ -39,7 +51,43 @@ function PublicationsDataTable({
   className,
   ...props
 }: Props) {
-  // const [isPending, startTransition] = React.useTransition();
+  const [isPending, startTransition] = React.useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [publicationToDelete, setPublicationToDelete] =
+    React.useState<PubType | null>(null);
+
+  const handleDeleteClick = (pub: PubType) => {
+    setPublicationToDelete(pub);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!publicationToDelete) return;
+
+    startTransition(async () => {
+      try {
+        const result = await deletePublication(publicationToDelete.id);
+
+        if (result.success) {
+          toast.success("Publication deleted successfully", {
+            description: `"${publicationToDelete.title}" has been removed from your publications.`,
+          });
+        } else {
+          toast.error("Failed to delete publication", {
+            description: result.details || result.error,
+          });
+        }
+      } catch (error) {
+        console.error("Delete publication error:", error);
+        toast.error("An unexpected error occurred", {
+          description: "Please try again later.",
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setPublicationToDelete(null);
+      }
+    });
+  };
 
   const columns = React.useMemo<ColumnDef<PubType>[]>(
     () => [
@@ -83,9 +131,6 @@ function PublicationsDataTable({
         cell: ({ row }) => {
           return publications.getLabel(row.original.type);
         },
-        // filterFn: (row, id, value: string[]) => {
-        //   return value.includes(row.getValue(id));
-        // },
         filterFn: "includesString",
       },
       {
@@ -94,7 +139,6 @@ function PublicationsDataTable({
           <DataTableColumnHeader column={column} title="Venue" />
         ),
         cell: ({ row }) => {
-          // const venue = getTypedValue<PubType, string | null>(row, "venue");
           const venue = row.original.venue;
           return (
             <span className="whitespace-normal line-clamp-2">
@@ -144,7 +188,6 @@ function PublicationsDataTable({
           <DataTableColumnHeader column={column} title="Citations" />
         ),
         cell: ({ row }) => {
-          // const count = getTypedValue<PubType, number | null>(row, "citationCount");
           const count = row.original.citationCount;
           return <div className="text-center">{count ?? 0}</div>;
         },
@@ -154,7 +197,6 @@ function PublicationsDataTable({
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Your Role" />
         ),
-        // header: "Role",
         cell: ({ row }) => {
           const pub = row.original;
           if (pub.isLeadAuthor) {
@@ -212,13 +254,9 @@ function PublicationsDataTable({
                 )}
                 {pub.canDelete && (
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Implement delete functionality
-                      console.log("Delete publication:", pub.id);
-                    }}
-                    // disabled={isPending}
-                    disabled
-                    className="text-red-600 focus:text-red-600"
+                    onClick={() => handleDeleteClick(pub)}
+                    disabled={isPending}
+                    className="text-rose-600 focus:text-rose-600"
                   >
                     <Trash2 />
                     Delete
@@ -231,30 +269,55 @@ function PublicationsDataTable({
         },
       },
     ],
-    []
+    [isPending]
   );
   return (
-    <DataTable
-      data={pubs}
-      columns={columns}
-      className={cn(className)}
-      noData="No publications."
-      pageSizeOptions={pageSizeOptions}
-      context={researcher}
-      filterFields={[
-        { label: "Title", value: "title", placeholder: "Search by title..." },
-        {
-          label: "Type",
-          value: "type",
-          options: publications.items.map((item) => ({
-            ...item,
-            withCount: true,
-          })),
-        },
-      ]}
-      barAction="publication"
-      {...props}
-    />
+    <React.Fragment>
+      <DataTable
+        data={pubs}
+        columns={columns}
+        className={cn(className)}
+        noData="No publications."
+        pageSizeOptions={pageSizeOptions}
+        context={researcher}
+        filterFields={[
+          { label: "Title", value: "title", placeholder: "Search by title..." },
+          {
+            label: "Type",
+            value: "type",
+            options: publications.items.map((item) => ({
+              ...item,
+              withCount: true,
+            })),
+          },
+        ]}
+        barAction="publication"
+        {...props}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Publication</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{publicationToDelete?.title}
+              &quot;? This action cannot be undone and will remove the
+              publication and all associated author relationships.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isPending}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </React.Fragment>
   );
 }
 

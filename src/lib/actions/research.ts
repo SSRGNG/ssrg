@@ -1,7 +1,7 @@
 "use server";
 
 import { eq, sql } from "drizzle-orm";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
@@ -196,111 +196,6 @@ export async function updateResearchFramework(
     };
   }
 }
-
-// New function for creating multiple methodologies
-// export async function createMultipleResearchMethodologies(
-//   data: MultipleMethodologiesPayload
-// ) {
-//   try {
-//     // Validate the input data
-//     const validatedData = multipleMethodologiesSchema.parse(data);
-
-//     // Check authentication and authorization
-//     const session = await auth();
-//     if (!session || session.user.role !== "admin") {
-//       return {
-//         error:
-//           "Unauthorized. You must be an admin to create research methodologies.",
-//       };
-//     }
-
-//     // Prepare titles for checks (normalize early)
-//     const inputMethodologies = validatedData.methodologies.map(m => ({
-//         ...m,
-//         normalizedTitle: m.title.toLowerCase().trim(),
-//     }));
-//     const normalizedTitles = inputMethodologies.map(m => m.normalizedTitle);
-
-//     // Check for duplicate titles within the submission
-//     const duplicateTitlesInSubmission = normalizedTitles.filter(
-//       (title, index) => normalizedTitles.indexOf(title) !== index
-//     );
-
-//     if (duplicateTitlesInSubmission.length > 0) {
-//       return {
-//         error: `Duplicate titles found within submission: ${[
-//           ...new Set(duplicateTitlesInSubmission),
-//         ].join(", ")}`,
-//       };
-//     }
-
-//     // Check for existing methodologies with the same titles in the database
-//     if (normalizedTitles.length > 0) { // Only query if there are titles to check
-//         const existingMethodologies = await db
-//         .select({ title: researchMethodologies.title })
-//         .from(researchMethodologies)
-//         .where(
-//             // Drizzle's sql.raw or a specific operator might be cleaner,
-//             // but direct SQL with sql tagged template is also common for complex expressions.
-//             // Using lower(trim(column)) IN (values)
-//             sql`LOWER(TRIM(${researchMethodologies.title})) IN ${normalizedTitles}`
-//         );
-
-//         if (existingMethodologies.length > 0) {
-//             const existingTitles = existingMethodologies.map((m) => m.title);
-//             return {
-//             error: `Methodologies with these titles already exist in DB: ${existingTitles.join(
-//                 ", "
-//             )}`,
-//             };
-//         }
-//     }
-
-//     // Prepare values for insertion, excluding normalizedTitle helper property
-//     const methodologiesToInsert = inputMethodologies.map(({ normalizedTitle, ...rest }) => rest);
-
-//     // Insert all methodologies in a transaction using a single statement
-//     const newMethodologies = await db.transaction(async (tx) => {
-//       if (methodologiesToInsert.length === 0) {
-//         return []; // Nothing to insert
-//       }
-//       const inserted = await tx
-//         .insert(researchMethodologies)
-//         .values(methodologiesToInsert) // Drizzle handles multiple values objects
-//         .returning();
-//       return inserted;
-//     });
-
-//     // Revalidate cache
-//     revalidateTag(CACHED_RESEARCH_METHODOLOGIES);
-
-//     return {
-//       success: true,
-//       data: newMethodologies,
-//       count: newMethodologies.length,
-//     };
-//   } catch (err) {
-//     console.error("Failed to create research methodologies:", err);
-
-//     if (err instanceof z.ZodError) {
-//       return {
-//         error: "Validation failed",
-//         details: err.errors,
-//       };
-//     }
-
-//     // Handle specific database errors (PostgreSQL unique violation)
-//     if (err && typeof err === 'object' && 'code' in err && err.code === "23505") {
-//       return {
-//         error: "One or more methodologies with these titles already exist (database constraint).",
-//       };
-//     }
-
-//     return {
-//       error: "Failed to create research methodologies. Please try again.",
-//     };
-//   }
-// }
 
 export async function createMultipleResearchMethodologies(
   data: MultipleMethodologiesPayload
@@ -655,6 +550,328 @@ export async function bulkCreateResearchMethodologies(
 
     return {
       error: "Failed to create research methodologies. Please try again.",
+    };
+  }
+}
+
+export async function deleteResearchFramework(frameworkId: string) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session) {
+      return {
+        success: false,
+        error: "Invalid authorization",
+        details: "You must be logged in to delete research frameworks",
+      };
+    }
+
+    if (session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research frameworks",
+      };
+    }
+
+    // Validate framework ID
+    if (!frameworkId || typeof frameworkId !== "string") {
+      return {
+        success: false,
+        error: "Invalid framework ID",
+        details: "Framework ID is required and must be a valid string",
+      };
+    }
+
+    // Check if framework exists
+    const existingFramework = await db
+      .select({
+        id: researchFrameworks.id,
+        title: researchFrameworks.title,
+      })
+      .from(researchFrameworks)
+      .where(eq(researchFrameworks.id, frameworkId))
+      .limit(1);
+
+    if (existingFramework.length === 0) {
+      return {
+        success: false,
+        error: "Research framework not found",
+        details:
+          "The research framework does not exist or may have already been deleted",
+      };
+    }
+
+    // Delete the framework
+    const deletedFramework = await db
+      .delete(researchFrameworks)
+      .where(eq(researchFrameworks.id, frameworkId))
+      .returning({
+        id: researchFrameworks.id,
+        title: researchFrameworks.title,
+      });
+
+    if (deletedFramework.length === 0) {
+      return {
+        success: false,
+        error: "Failed to delete research framework",
+        details: "An error occurred while deleting the framework",
+      };
+    }
+
+    const framework = deletedFramework[0];
+
+    // Revalidate relevant paths and tags
+    revalidateTag(CACHED_RESEARCH_FRAMEWORKS);
+    revalidatePath("/admin");
+    revalidatePath("/admin/core");
+
+    return {
+      success: true,
+      message: `Research framework "${framework.title}" deleted successfully`,
+      deletedFramework: {
+        id: framework.id,
+        title: framework.title,
+      },
+    };
+  } catch (error) {
+    console.error("Research framework deletion error:", error);
+
+    // Handle specific database errors
+    if (error instanceof Error) {
+      if (error.message.includes("foreign key constraint")) {
+        return {
+          success: false,
+          error: "Cannot delete research framework",
+          details:
+            "Framework is being used by other resources and cannot be deleted",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to delete research framework",
+      details: "An unexpected error occurred while deleting the framework",
+    };
+  }
+}
+
+export async function deleteResearchMethodology(methodologyId: string) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session) {
+      return {
+        success: false,
+        error: "Invalid authorization",
+        details: "You must be logged in to delete research methodologies",
+      };
+    }
+
+    if (session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research methodologies",
+      };
+    }
+
+    // Validate methodology ID
+    if (!methodologyId || typeof methodologyId !== "string") {
+      return {
+        success: false,
+        error: "Invalid methodology ID",
+        details: "Methodology ID is required and must be a valid string",
+      };
+    }
+
+    // Check if methodology exists
+    const existingMethodology = await db
+      .select({
+        id: researchMethodologies.id,
+        title: researchMethodologies.title,
+      })
+      .from(researchMethodologies)
+      .where(eq(researchMethodologies.id, methodologyId))
+      .limit(1);
+
+    if (existingMethodology.length === 0) {
+      return {
+        success: false,
+        error: "Research methodology not found",
+        details:
+          "The research methodology does not exist or may have already been deleted",
+      };
+    }
+
+    // Delete the methodology
+    const deletedMethodology = await db
+      .delete(researchMethodologies)
+      .where(eq(researchMethodologies.id, methodologyId))
+      .returning({
+        id: researchMethodologies.id,
+        title: researchMethodologies.title,
+      });
+
+    if (deletedMethodology.length === 0) {
+      return {
+        success: false,
+        error: "Failed to delete research methodology",
+        details: "An error occurred while deleting the methodology",
+      };
+    }
+
+    const methodology = deletedMethodology[0];
+
+    // Revalidate relevant paths and tags
+    revalidateTag(CACHED_RESEARCH_METHODOLOGIES);
+    revalidatePath("/admin");
+    revalidatePath("/admin/core");
+
+    return {
+      success: true,
+      message: `Research methodology "${methodology.title}" deleted successfully`,
+      deletedMethodology: {
+        id: methodology.id,
+        title: methodology.title,
+      },
+    };
+  } catch (error) {
+    console.error("Research methodology deletion error:", error);
+
+    // Handle specific database errors
+    if (error instanceof Error) {
+      if (error.message.includes("foreign key constraint")) {
+        return {
+          success: false,
+          error: "Cannot delete research methodology",
+          details:
+            "Methodology is being used by other resources and cannot be deleted",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to delete research methodology",
+      details: "An unexpected error occurred while deleting the methodology",
+    };
+  }
+}
+
+export async function deleteMultipleResearchFrameworks(frameworkIds: string[]) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session || session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research frameworks",
+      };
+    }
+
+    if (!Array.isArray(frameworkIds) || frameworkIds.length === 0) {
+      return {
+        success: false,
+        error: "Invalid input",
+        details: "Framework IDs must be a non-empty array",
+      };
+    }
+
+    const results = [];
+    const errors = [];
+
+    // Process each framework individually
+    for (const frameworkId of frameworkIds) {
+      const result = await deleteResearchFramework(frameworkId);
+      if (result.success) {
+        results.push(result.deletedFramework);
+      } else {
+        errors.push({
+          frameworkId,
+          error: result.error,
+          details: result.details,
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deletedCount: results.length,
+      deletedFrameworks: results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully deleted ${results.length} framework(s)${
+        errors.length > 0 ? `, ${errors.length} failed` : ""
+      }`,
+    };
+  } catch (error) {
+    console.error("Bulk framework deletion error:", error);
+    return {
+      success: false,
+      error: "Failed to delete frameworks",
+      details: "An unexpected error occurred during bulk deletion",
+    };
+  }
+}
+
+export async function deleteMultipleResearchMethodologies(
+  methodologyIds: string[]
+) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session || session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research methodologies",
+      };
+    }
+
+    if (!Array.isArray(methodologyIds) || methodologyIds.length === 0) {
+      return {
+        success: false,
+        error: "Invalid input",
+        details: "Methodology IDs must be a non-empty array",
+      };
+    }
+
+    const results = [];
+    const errors = [];
+
+    // Process each methodology individually
+    for (const methodologyId of methodologyIds) {
+      const result = await deleteResearchMethodology(methodologyId);
+      if (result.success) {
+        results.push(result.deletedMethodology);
+      } else {
+        errors.push({
+          methodologyId,
+          error: result.error,
+          details: result.details,
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deletedCount: results.length,
+      deletedMethodologies: results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully deleted ${
+        results.length
+      } methodology/methodologies${
+        errors.length > 0 ? `, ${errors.length} failed` : ""
+      }`,
+    };
+  } catch (error) {
+    console.error("Bulk methodology deletion error:", error);
+    return {
+      success: false,
+      error: "Failed to delete methodologies",
+      details: "An unexpected error occurred during bulk deletion",
     };
   }
 }

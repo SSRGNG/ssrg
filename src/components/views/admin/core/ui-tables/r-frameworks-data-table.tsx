@@ -1,11 +1,22 @@
 "use client";
 
 import { type ColumnDef, type Row } from "@tanstack/react-table";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Trash2 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditResearchFramework } from "@/components/views/admin/core/edit-research-framework";
 import { AdminFrameworksData } from "@/lib/actions/queries";
+import { deleteResearchFramework } from "@/lib/actions/research";
 import { cn } from "@/lib/utils";
 
 type RFrameworkType = AdminFrameworksData[number];
@@ -32,7 +44,43 @@ function getTypedValue<TData, TValue>(
 }
 
 function RFrameworksDataTable({ frameworks, className, ...props }: Props) {
-  // const [isPending, startTransition] = React.useTransition();
+  const [isPending, startTransition] = React.useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [frameworkToDelete, setFrameworkToDelete] =
+    React.useState<RFrameworkType | null>(null);
+
+  const handleDeleteClick = (framework: RFrameworkType) => {
+    setFrameworkToDelete(framework);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!frameworkToDelete) return;
+
+    startTransition(async () => {
+      try {
+        const result = await deleteResearchFramework(frameworkToDelete.id);
+
+        if (result.success) {
+          toast.success("Research framework deleted successfully", {
+            description: `"${frameworkToDelete.title}" has been removed.`,
+          });
+        } else {
+          toast.error("Failed to delete research framework", {
+            description: result.details || result.error,
+          });
+        }
+      } catch (error) {
+        console.error("Delete framework error:", error);
+        toast.error("An unexpected error occurred", {
+          description: "Please try again later.",
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setFrameworkToDelete(null);
+      }
+    });
+  };
 
   const columns = React.useMemo<ColumnDef<RFrameworkType>[]>(
     () => [
@@ -96,21 +144,11 @@ function RFrameworksDataTable({ frameworks, className, ...props }: Props) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  // onClick={() => {
-                  //   startTransition(() => {
-                  //     row.toggleSelected(false);
-
-                  //     toast.promise(deleteExpense({ id: row.original.id }), {
-                  //       loading: "Deleting...",
-                  //       success: () =>
-                  //         "Expense transaction deleted successfully.",
-                  //       error: (err: unknown) => getErrorMessage(err),
-                  //     });
-                  //   });
-                  // }}
-                  // disabled={isPending}
-                  disabled
+                  onClick={() => handleDeleteClick(frame)}
+                  disabled={isPending}
+                  className="text-rose-600 focus:text-rose-600"
                 >
+                  <Trash2 className="size-4" />
                   Delete
                   <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                 </DropdownMenuItem>
@@ -120,23 +158,49 @@ function RFrameworksDataTable({ frameworks, className, ...props }: Props) {
         },
       },
     ],
-    []
+    [isPending]
   );
+
   return (
-    <DataTable
-      data={frameworks}
-      columns={columns}
-      className={cn(className)}
-      filterFields={[
-        {
-          label: "Description",
-          value: "description",
-          placeholder: "Filter by description...",
-        },
-      ]}
-      actionKey="framework"
-      {...props}
-    />
+    <React.Fragment>
+      <DataTable
+        data={frameworks}
+        columns={columns}
+        className={cn(className)}
+        filterFields={[
+          {
+            label: "Description",
+            value: "description",
+            placeholder: "Filter by description...",
+          },
+        ]}
+        actionKey="framework"
+        {...props}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Research Framework</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{frameworkToDelete?.title}
+              &quot;? This action cannot be undone and will permanently remove
+              the framework.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isPending}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isPending ? "Deleting..." : "Delete Framework"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </React.Fragment>
   );
 }
 

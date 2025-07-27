@@ -1,11 +1,22 @@
 "use client";
 
 import { type ColumnDef, type Row } from "@tanstack/react-table";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Trash2 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditResearchMethodology } from "@/components/views/admin/core/edit-research-methodology";
 import { AdminMethodologiesData } from "@/lib/actions/queries";
+import { deleteResearchMethodology } from "@/lib/actions/research";
 import { cn } from "@/lib/utils";
 
 type RMethodologyType = AdminMethodologiesData[number];
@@ -36,7 +48,43 @@ function RMethodologiesDataTable({
   className,
   ...props
 }: Props) {
-  // const [isPending, startTransition] = React.useTransition();
+  const [isPending, startTransition] = React.useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [methodologyToDelete, setMethodologyToDelete] =
+    React.useState<RMethodologyType | null>(null);
+
+  const handleDeleteClick = (methodology: RMethodologyType) => {
+    setMethodologyToDelete(methodology);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!methodologyToDelete) return;
+
+    startTransition(async () => {
+      try {
+        const result = await deleteResearchMethodology(methodologyToDelete.id);
+
+        if (result.success) {
+          toast.success("Research methodology deleted successfully", {
+            description: `"${methodologyToDelete.title}" has been removed.`,
+          });
+        } else {
+          toast.error("Failed to delete research methodology", {
+            description: result.details || result.error,
+          });
+        }
+      } catch (error) {
+        console.error("Delete methodology error:", error);
+        toast.error("An unexpected error occurred", {
+          description: "Please try again later.",
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setMethodologyToDelete(null);
+      }
+    });
+  };
 
   const columns = React.useMemo<ColumnDef<RMethodologyType>[]>(
     () => [
@@ -100,21 +148,11 @@ function RMethodologiesDataTable({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  // onClick={() => {
-                  //   startTransition(() => {
-                  //     row.toggleSelected(false);
-
-                  //     toast.promise(deleteExpense({ id: row.original.id }), {
-                  //       loading: "Deleting...",
-                  //       success: () =>
-                  //         "Expense transaction deleted successfully.",
-                  //       error: (err: unknown) => getErrorMessage(err),
-                  //     });
-                  //   });
-                  // }}
-                  // disabled={isPending}
-                  disabled
+                  onClick={() => handleDeleteClick(meth)}
+                  disabled={isPending}
+                  className="text-rose-600 focus:text-rose-600"
                 >
+                  <Trash2 className="size-4" />
                   Delete
                   <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
                 </DropdownMenuItem>
@@ -124,23 +162,49 @@ function RMethodologiesDataTable({
         },
       },
     ],
-    []
+    [isPending]
   );
+
   return (
-    <DataTable
-      data={methodologies}
-      columns={columns}
-      className={cn(className)}
-      filterFields={[
-        {
-          label: "Description",
-          value: "description",
-          placeholder: "Filter by description...",
-        },
-      ]}
-      actionKey="methodology"
-      {...props}
-    />
+    <React.Fragment>
+      <DataTable
+        data={methodologies}
+        columns={columns}
+        className={cn(className)}
+        filterFields={[
+          {
+            label: "Description",
+            value: "description",
+            placeholder: "Filter by description...",
+          },
+        ]}
+        actionKey="methodology"
+        {...props}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Research Methodology</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{methodologyToDelete?.title}
+              &quot;? This action cannot be undone and will permanently remove
+              the methodology.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isPending}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isPending ? "Deleting..." : "Delete Methodology"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </React.Fragment>
   );
 }
 

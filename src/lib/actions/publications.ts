@@ -10,6 +10,7 @@ import {
   authors,
   publicationAuthors,
   publications,
+  researchAreaPublications,
   researchers,
   users,
 } from "@/db/schema";
@@ -785,8 +786,6 @@ export async function createPublication(data: CreatePublicationPayload) {
             }
           }
 
-          revalidateTag(CACHED_PUBLICATIONS);
-
           return {
             authorId,
             authorData,
@@ -815,13 +814,22 @@ export async function createPublication(data: CreatePublicationPayload) {
 
       // 4. Handle research areas if provided
       if (validatedData.areas && validatedData.areas.length > 0) {
-        console.log("Research areas to be implemented:", validatedData.areas);
-        // TODO: Implement research areas logic
+        // Prepare research area publications data
+        const researchAreaPubData = validatedData.areas.map(
+          ({ order, researchAreaId }) => ({
+            researchAreaId,
+            publicationId: newPublication.id,
+            order,
+          })
+        );
+
+        await tx.insert(researchAreaPublications).values(researchAreaPubData);
       }
 
       return newPublication;
     });
 
+    revalidateTag(CACHED_PUBLICATIONS);
     revalidatePath("/portal");
     revalidatePath("/portal/publications");
     // Return success response with the created publication
@@ -885,6 +893,225 @@ export async function createPublication(data: CreatePublicationPayload) {
     return {
       success: false,
       error: "Failed to create publication",
+    };
+  }
+}
+
+export async function deletePublication(publicationId: string) {
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin", "researcher"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User does not have permission to delete publications",
+      };
+    }
+
+    const userId = user.id;
+
+    // Validate publication ID
+    if (!publicationId || typeof publicationId !== "string") {
+      return {
+        success: false,
+        error: "Invalid publication ID",
+        details: "Publication ID is required and must be a valid string",
+      };
+    }
+
+    // Check if publication exists and verify permissions
+    const publicationQuery = await db
+      .select({
+        id: publications.id,
+        title: publications.title,
+        creatorId: publications.creatorId,
+        userAuthorOrder: publicationAuthors.order,
+        minAuthorOrder:
+          sql<number>`MIN(${publicationAuthors.order}) OVER (PARTITION BY ${publications.id})`.as(
+            "minAuthorOrder"
+          ),
+      })
+      .from(publications)
+      .innerJoin(
+        publicationAuthors,
+        eq(publicationAuthors.publicationId, publications.id)
+      )
+      .innerJoin(authors, eq(authors.id, publicationAuthors.authorId))
+      .innerJoin(researchers, eq(researchers.id, authors.researcherId))
+      .where(
+        and(eq(publications.id, publicationId), eq(researchers.userId, userId))
+      )
+      .limit(1);
+
+    if (publicationQuery.length === 0) {
+      return {
+        success: false,
+        error: "Publication not found",
+        details: "Publication does not exist or you don't have access to it",
+      };
+    }
+
+    const publication = publicationQuery[0];
+
+    // Check deletion permissions:
+    // 1. User is admin OR
+    // 2. User is the creator OR
+    // 3. User is the lead author (lowest order number)
+    const canDelete =
+      user.role === "admin" ||
+      publication.creatorId === userId ||
+      publication.userAuthorOrder === publication.minAuthorOrder;
+
+    if (!canDelete) {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details:
+          "You can only delete publications you created or where you are the lead author",
+      };
+    }
+
+    // Start transaction to ensure data consistency
+    const result = await db.transaction(async (tx) => {
+      // Delete publication-author relationships first (foreign key constraint)
+      await tx
+        .delete(publicationAuthors)
+        .where(eq(publicationAuthors.publicationId, publicationId));
+
+      await tx
+        .delete(researchAreaPublications)
+        .where(eq(researchAreaPublications.publicationId, publicationId));
+
+      // Finally, delete the publication
+      const deletedPublication = await tx
+        .delete(publications)
+        .where(eq(publications.id, publicationId))
+        .returning({
+          id: publications.id,
+          title: publications.title,
+        });
+
+      if (deletedPublication.length === 0) {
+        throw new Error("Failed to delete publication");
+      }
+
+      return deletedPublication[0];
+    });
+
+    // Revalidate relevant paths and tags
+    revalidateTag(CACHED_PUBLICATIONS);
+    revalidatePath("/portal");
+    revalidatePath("/portal/publications");
+
+    return {
+      success: true,
+      message: `Publication "${result.title}" deleted successfully`,
+      deletedPublication: {
+        id: result.id,
+        title: result.title,
+      },
+    };
+  } catch (error) {
+    console.error("Publication deletion error:", error);
+
+    // Handle specific database errors
+    if (error instanceof Error) {
+      if (error.message.includes("foreign key constraint")) {
+        return {
+          success: false,
+          error: "Cannot delete publication",
+          details: "Publication has associated data that must be removed first",
+        };
+      }
+
+      if (error.message.includes("not found")) {
+        return {
+          success: false,
+          error: "Publication not found",
+          details: "The publication may have already been deleted",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to delete publication",
+      details: "An unexpected error occurred while deleting the publication",
+    };
+  }
+}
+
+// Optional: Bulk delete function for multiple publications
+export async function deleteMultiplePublications(publicationIds: string[]) {
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin", "researcher"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User does not have permission to delete publications",
+      };
+    }
+
+    if (!Array.isArray(publicationIds) || publicationIds.length === 0) {
+      return {
+        success: false,
+        error: "Invalid input",
+        details: "Publication IDs must be a non-empty array",
+      };
+    }
+
+    // const userId = user.id;
+    const results = [];
+    const errors = [];
+
+    // Process each publication individually to maintain proper permission checks
+    for (const publicationId of publicationIds) {
+      const result = await deletePublication(publicationId);
+      if (result.success) {
+        results.push(result.deletedPublication);
+      } else {
+        errors.push({
+          publicationId,
+          error: result.error,
+          details: result.details,
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deletedCount: results.length,
+      deletedPublications: results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully deleted ${results.length} publication(s)${
+        errors.length > 0 ? `, ${errors.length} failed` : ""
+      }`,
+    };
+  } catch (error) {
+    console.error("Bulk publication deletion error:", error);
+    return {
+      success: false,
+      error: "Failed to delete publications",
+      details: "An unexpected error occurred during bulk deletion",
     };
   }
 }

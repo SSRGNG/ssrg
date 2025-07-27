@@ -1,13 +1,13 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
 import { CACHED_VIDEOS } from "@/config/constants";
 import { db } from "@/db";
-import { authors } from "@/db/schema";
+import { authors, researchers } from "@/db/schema";
 import { env } from "@/env";
 import { isRoleAllowed } from "@/lib/utils";
 
@@ -518,49 +518,231 @@ export async function updateVideoViewCount(videoId: string) {
     return { success: false, error: "Failed to update view count" };
   }
 }
-// {
-//     "title": "Community Development",
-//     "description": "some description",
-//     "youtubeUrl": "https://www.youtube.com/watch?v=iHzzSao6ypE",
-//     "publishedAt": "2025-07-14T23:19:21.860Z",
-//     "recordedAt": "2025-06-30T23:00:00.000Z",
-//     "category": "research_explanation",
-//     "series": "S-E2",
-//     "creatorId": "628cdb45-2960-47ac-9a71-e00a99a9162b",
-//     "metadata": {
-//         "youtubeId": "iHzzSao6ypE",
-//         "duration": "PT0M0S"
-//     },
-//     "isPublic": true,
-//     "isFeatured": false,
-//     "authors": [
-//         {
-//             "role": "host",
-//             "order": 0,
-//             "researcherId": "65eeb6e0-db6c-45ba-8f3d-d03f11b54137",
-//             "orcid": null,
-//             "name": "Richmond Davis",
-//             "email": "emrrich@gmail.com",
-//             "affiliation": "Resydia inc"
-//         },
-//         {
-//             "role": "host",
-//             "order": 1,
-//             "researcherId": "7d1d8a64-8763-4033-b35e-b7ae3c43c955",
-//             "orcid": "0000-0002-1787-536X",
-//             "name": "Prince Chiagozie Ekoh",
-//             "email": "Princechiagozie.ekoh@gmail.com",
-//             "affiliation": "University of Calgary"
-//         },
-//         {
-//             "role": "host",
-//             "order": 2,
-//             "id": "aac1a65b-5801-4507-b085-336bdc9e64ee",
-//             "researcherId": null,
-//             "orcid": null,
-//             "name": "Irene R. Davis",
-//             "email": "irene@resydia.com",
-//             "affiliation": "Resydia"
-//         }
-//     ]
-// }
+
+export async function deleteVideo(videoId: string) {
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin", "researcher"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User does not have permission to delete videos",
+      };
+    }
+
+    const userId = user.id;
+
+    // Validate video ID
+    if (!videoId || typeof videoId !== "string") {
+      return {
+        success: false,
+        error: "Invalid video ID",
+        details: "Video ID is required and must be a valid string",
+      };
+    }
+
+    // Get the user's author ID via researchers table
+    const userAuthor = await db
+      .select({ authorId: authors.id })
+      .from(authors)
+      .leftJoin(researchers, eq(authors.researcherId, researchers.id))
+      .where(eq(researchers.userId, userId))
+      .limit(1);
+
+    const authorId = userAuthor[0]?.authorId;
+
+    // Check if video exists and verify permissions
+    const videoQuery = await db
+      .select({
+        id: videos.id,
+        title: videos.title,
+        creatorId: videos.creatorId,
+        userOrder: videoAuthors.order,
+        minAuthorOrder:
+          sql<number>`MIN(${videoAuthors.order}) OVER (PARTITION BY ${videos.id})`.as(
+            "minAuthorOrder"
+          ),
+      })
+      .from(videos)
+      .leftJoin(
+        videoAuthors,
+        and(
+          eq(videoAuthors.videoId, videos.id),
+          authorId ? eq(videoAuthors.authorId, authorId) : sql`false`
+        )
+      )
+      .where(eq(videos.id, videoId))
+      .limit(1);
+
+    if (videoQuery.length === 0) {
+      return {
+        success: false,
+        error: "Video not found",
+        details: "Video does not exist or you don't have access to it",
+      };
+    }
+
+    const video = videoQuery[0];
+
+    // Check deletion permissions:
+    // 1. User is admin OR
+    // 2. User is the creator OR
+    // 3. User is the lead author (lowest order number)
+    const isCreator = video.creatorId === userId;
+    const isLeadAuthor =
+      video.userOrder !== null && video.userOrder === video.minAuthorOrder;
+
+    const canDelete = user.role === "admin" || isCreator || isLeadAuthor;
+
+    if (!canDelete) {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details:
+          "You can only delete videos you created or where you are the lead author",
+      };
+    }
+
+    // Start transaction to ensure data consistency
+    const result = await db.transaction(async (tx) => {
+      // Delete video-author relationships first (foreign key constraint)
+      await tx.delete(videoAuthors).where(eq(videoAuthors.videoId, videoId));
+
+      // Delete research area associations if they exist
+      // TODO: Add research area deletion when implemented
+      // await tx
+      //   .delete(videoResearchAreas)
+      //   .where(eq(videoResearchAreas.videoId, videoId));
+
+      // Finally, delete the video
+      const deletedVideo = await tx
+        .delete(videos)
+        .where(eq(videos.id, videoId))
+        .returning({
+          id: videos.id,
+          title: videos.title,
+        });
+
+      if (deletedVideo.length === 0) {
+        throw new Error("Failed to delete video");
+      }
+
+      return deletedVideo[0];
+    });
+
+    // Revalidate relevant paths and tags
+    revalidateTag(CACHED_VIDEOS);
+    revalidatePath("/portal");
+    revalidatePath("/portal/videos");
+
+    return {
+      success: true,
+      message: `Video "${result.title}" deleted successfully`,
+      deletedVideo: {
+        id: result.id,
+        title: result.title,
+      },
+    };
+  } catch (error) {
+    console.error("Video deletion error:", error);
+
+    // Handle specific database errors
+    if (error instanceof Error) {
+      if (error.message.includes("foreign key constraint")) {
+        return {
+          success: false,
+          error: "Cannot delete video",
+          details: "Video has associated data that must be removed first",
+        };
+      }
+
+      if (error.message.includes("not found")) {
+        return {
+          success: false,
+          error: "Video not found",
+          details: "The video may have already been deleted",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to delete video",
+      details: "An unexpected error occurred while deleting the video",
+    };
+  }
+}
+
+// Optional: Bulk delete function for multiple videos
+export async function deleteMultipleVideos(videoIds: string[]) {
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin", "researcher"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User does not have permission to delete videos",
+      };
+    }
+
+    if (!Array.isArray(videoIds) || videoIds.length === 0) {
+      return {
+        success: false,
+        error: "Invalid input",
+        details: "Video IDs must be a non-empty array",
+      };
+    }
+
+    const results = [];
+    const errors = [];
+
+    // Process each video individually to maintain proper permission checks
+    for (const videoId of videoIds) {
+      const result = await deleteVideo(videoId);
+      if (result.success) {
+        results.push(result.deletedVideo);
+      } else {
+        errors.push({
+          videoId,
+          error: result.error,
+          details: result.details,
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deletedCount: results.length,
+      deletedVideos: results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully deleted ${results.length} video(s)${
+        errors.length > 0 ? `, ${errors.length} failed` : ""
+      }`,
+    };
+  } catch (error) {
+    console.error("Bulk video deletion error:", error);
+    return {
+      success: false,
+      error: "Failed to delete videos",
+      details: "An unexpected error occurred during bulk deletion",
+    };
+  }
+}

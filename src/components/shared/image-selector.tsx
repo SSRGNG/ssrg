@@ -154,14 +154,6 @@ function ImageSelector({
                   e.currentTarget.style.display = "none";
                 }}
               />
-              {/* <img
-                src={value}
-                alt="Selected image"
-                className="w-12 h-12 object-cover rounded border shadow-sm group-hover:shadow-md transition-shadow"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              /> */}
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-background rounded-full flex items-center justify-center">
                 <Sparkles className="size-2 text-white" />
               </div>
@@ -171,7 +163,9 @@ function ImageSelector({
                 <ImageIcon className="size-3 text-primary" />
                 Selected Image
               </p>
-              <p className="text-xs text-muted-foreground truncate">{value}</p>
+              <p className="text-xs text-muted-foreground break-all overflow-hidden max-h-8 leading-tight">
+                {value}
+              </p>
             </div>
             <Button
               type="button"

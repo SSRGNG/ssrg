@@ -3,9 +3,20 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Edit, Ellipsis, ExternalLink, Eye, Play, Trash2 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/column-header";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -18,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { videoCats } from "@/config/enums";
 import type { AuthResearcher, PortalVideos } from "@/lib/actions/queries";
+import { deleteVideo } from "@/lib/actions/videos";
 import { cn, formatDate, formatNumber } from "@/lib/utils";
 import { getTypedValue } from "@/types/table";
 
@@ -35,6 +47,45 @@ function VideosDataTable({
   className,
   ...props
 }: Props) {
+  const [isPending, startTransition] = React.useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [videoToDelete, setVideoToDelete] = React.useState<PortalVideo | null>(
+    null
+  );
+
+  const handleDeleteClick = (video: PortalVideo) => {
+    setVideoToDelete(video);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!videoToDelete) return;
+
+    startTransition(async () => {
+      try {
+        const result = await deleteVideo(videoToDelete.id);
+
+        if (result.success) {
+          toast.success("Video deleted successfully", {
+            description: `"${videoToDelete.title}" has been removed from your videos.`,
+          });
+        } else {
+          toast.error("Failed to delete video", {
+            description: result.details || result.error,
+          });
+        }
+      } catch (error) {
+        console.error("Delete video error:", error);
+        toast.error("An unexpected error occurred", {
+          description: "Please try again later.",
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setVideoToDelete(null);
+      }
+    });
+  };
+
   const columns = React.useMemo<ColumnDef<PortalVideo>[]>(
     () => [
       {
@@ -257,23 +308,20 @@ function VideosDataTable({
                     Watch on YouTube
                   </DropdownMenuItem>
                 )}
+                {(video.canEdit || video.canDelete) && (
+                  <DropdownMenuSeparator />
+                )}
                 {video.canEdit && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Edit />
-                      Edit Video
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem>
+                    <Edit />
+                    Edit Video
+                  </DropdownMenuItem>
                 )}
                 {video.canDelete && (
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Implement delete functionality
-                      console.log("Delete video:", video.id);
-                    }}
-                    disabled
-                    className="text-red-600 focus:text-red-600"
+                    onClick={() => handleDeleteClick(video)}
+                    disabled={isPending}
+                    className="text-rose-600 focus:text-rose-600"
                   >
                     <Trash2 />
                     Delete
@@ -286,31 +334,56 @@ function VideosDataTable({
         },
       },
     ],
-    []
+    [isPending]
   );
 
   return (
-    <DataTable
-      data={vids}
-      columns={columns}
-      className={cn(className)}
-      noData="No videos."
-      pageSizeOptions={pageSizeOptions}
-      context={researcher}
-      filterFields={[
-        { label: "Title", value: "title", placeholder: "Search by title..." },
-        {
-          label: "Category",
-          value: "category",
-          options: videoCats.items.map((item) => ({
-            ...item,
-            withCount: true,
-          })),
-        },
-      ]}
-      barAction="video"
-      {...props}
-    />
+    <React.Fragment>
+      <DataTable
+        data={vids}
+        columns={columns}
+        className={cn(className)}
+        noData="No videos."
+        pageSizeOptions={pageSizeOptions}
+        context={researcher}
+        filterFields={[
+          { label: "Title", value: "title", placeholder: "Search by title..." },
+          {
+            label: "Category",
+            value: "category",
+            options: videoCats.items.map((item) => ({
+              ...item,
+              withCount: true,
+            })),
+          },
+        ]}
+        barAction="video"
+        {...props}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Video</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{videoToDelete?.title}
+              &quot;? This action cannot be undone and will remove the video and
+              all associated author relationships.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isPending}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </React.Fragment>
   );
 }
 

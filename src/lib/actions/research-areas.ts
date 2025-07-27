@@ -1,7 +1,7 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { revalidateTag } from "next/cache";
+import { eq, sql } from "drizzle-orm";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
@@ -304,6 +304,214 @@ export async function updateResearchArea(
 
     return {
       error: "Failed to update research area. Please try again.",
+    };
+  }
+}
+
+export async function deleteResearchArea(researchAreaId: string) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session) {
+      return {
+        success: false,
+        error: "Invalid authorization",
+        details: "You must be logged in to delete research areas",
+      };
+    }
+
+    if (session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research areas",
+      };
+    }
+
+    // Validate research area ID
+    if (!researchAreaId || typeof researchAreaId !== "string") {
+      return {
+        success: false,
+        error: "Invalid research area ID",
+        details: "Research area ID is required and must be a valid string",
+      };
+    }
+
+    // Check if research area exists
+    const existingArea = await db
+      .select({
+        id: researchAreas.id,
+        title: researchAreas.title,
+      })
+      .from(researchAreas)
+      .where(eq(researchAreas.id, researchAreaId))
+      .limit(1);
+
+    if (existingArea.length === 0) {
+      return {
+        success: false,
+        error: "Research area not found",
+        details:
+          "The research area does not exist or may have already been deleted",
+      };
+    }
+
+    // const researchArea = existingArea[0];
+
+    // Check if research area has associated publications
+    const associatedPublications = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(researchAreaPublications)
+      .where(eq(researchAreaPublications.researchAreaId, researchAreaId));
+
+    const publicationCount = associatedPublications[0]?.count || 0;
+
+    // Start transaction to ensure data consistency
+    const result = await db.transaction(async (tx) => {
+      // Delete all related data in the correct order (foreign key constraints)
+
+      // Delete research area publications associations
+      await tx
+        .delete(researchAreaPublications)
+        .where(eq(researchAreaPublications.researchAreaId, researchAreaId));
+
+      // Delete research area findings
+      await tx
+        .delete(researchAreaFindings)
+        .where(eq(researchAreaFindings.researchAreaId, researchAreaId));
+
+      // Delete research area methods
+      await tx
+        .delete(researchAreaMethods)
+        .where(eq(researchAreaMethods.researchAreaId, researchAreaId));
+
+      // Delete research area questions
+      await tx
+        .delete(researchAreaQuestions)
+        .where(eq(researchAreaQuestions.researchAreaId, researchAreaId));
+
+      // Finally, delete the research area itself
+      const deletedArea = await tx
+        .delete(researchAreas)
+        .where(eq(researchAreas.id, researchAreaId))
+        .returning({
+          id: researchAreas.id,
+          title: researchAreas.title,
+        });
+
+      if (deletedArea.length === 0) {
+        throw new Error("Failed to delete research area");
+      }
+
+      return deletedArea[0];
+    });
+
+    // Revalidate relevant paths and tags
+    revalidateTag(CACHED_RESEARCH_AREAS);
+    revalidatePath("/admin");
+    revalidatePath("/admin/core");
+
+    return {
+      success: true,
+      message: `Research area "${result.title}" deleted successfully`,
+      deletedResearchArea: {
+        id: result.id,
+        title: result.title,
+      },
+      associatedPublications: publicationCount,
+    };
+  } catch (error) {
+    console.error("Research area deletion error:", error);
+
+    // Handle specific database errors
+    if (error instanceof Error) {
+      if (error.message.includes("foreign key constraint")) {
+        return {
+          success: false,
+          error: "Cannot delete research area",
+          details:
+            "Research area has associated data that must be removed first",
+        };
+      }
+
+      if (error.message.includes("not found")) {
+        return {
+          success: false,
+          error: "Research area not found",
+          details: "The research area may have already been deleted",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to delete research area",
+      details: "An unexpected error occurred while deleting the research area",
+    };
+  }
+}
+
+// Optional: Bulk delete function for multiple research areas
+export async function deleteMultipleResearchAreas(researchAreaIds: string[]) {
+  try {
+    // Check authentication and authorization
+    const session = await auth();
+    if (!session) {
+      return {
+        success: false,
+        error: "Invalid authorization",
+        details: "You must be logged in to delete research areas",
+      };
+    }
+
+    if (session.user.role !== "admin") {
+      return {
+        success: false,
+        error: "Insufficient permissions",
+        details: "You must be an admin to delete research areas",
+      };
+    }
+
+    if (!Array.isArray(researchAreaIds) || researchAreaIds.length === 0) {
+      return {
+        success: false,
+        error: "Invalid input",
+        details: "Research area IDs must be a non-empty array",
+      };
+    }
+
+    const results = [];
+    const errors = [];
+
+    // Process each research area individually to maintain proper validation
+    for (const researchAreaId of researchAreaIds) {
+      const result = await deleteResearchArea(researchAreaId);
+      if (result.success) {
+        results.push(result.deletedResearchArea);
+      } else {
+        errors.push({
+          researchAreaId,
+          error: result.error,
+          details: result.details,
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      deletedCount: results.length,
+      deletedResearchAreas: results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: `Successfully deleted ${results.length} research area(s)${
+        errors.length > 0 ? `, ${errors.length} failed` : ""
+      }`,
+    };
+  } catch (error) {
+    console.error("Bulk research area deletion error:", error);
+    return {
+      success: false,
+      error: "Failed to delete research areas",
+      details: "An unexpected error occurred during bulk deletion",
     };
   }
 }

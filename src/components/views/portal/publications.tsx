@@ -10,12 +10,9 @@ type Props = React.ComponentPropsWithoutRef<"div">;
 async function Publications({ className, ...props }: Props) {
   const [userResult, pubs] = await Promise.all([
     getCurrentUserResearcher(),
-    // researcherPublications(),
     getResearcherPublications({ limit: 5 }),
   ]);
 
-  // const pubs = mapResearcherPublications(pubsData);
-  // console.log({ userResult });
   return (
     <PublicationsDataTable
       pubs={pubs}
