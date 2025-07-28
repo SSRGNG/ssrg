@@ -21,7 +21,7 @@ const core_features = [
   { title: "Methodologies", icon: "methods" as Icons },
   { title: "Projects", icon: "projects" as Icons },
 ];
-export default function Admin() {
+export default function CoreFeatures() {
   return (
     <Shell variant={"portal"}>
       <Tabs defaultValue={core_features[0].title}>
