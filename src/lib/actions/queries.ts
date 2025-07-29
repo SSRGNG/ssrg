@@ -3,10 +3,12 @@
 import { searchAuthors, searchPublications } from "@/lib/actions/search";
 import {
   getProjects,
+  getPublicationTypeDistribution,
   getResearchAreas,
   getResearchers,
   getResearchFrameworks,
   getResearchMethodologies,
+  getVideoCategoryDistribution,
 } from "@/lib/queries/admin";
 import { getResearchImages } from "@/lib/queries/files";
 import {
@@ -32,6 +34,13 @@ export type AdminFrameworksData = Awaited<
 export type AdminMethodologiesData = Awaited<
   ReturnType<typeof getResearchMethodologies>
 >;
+export type AdminPubTypes = Awaited<
+  ReturnType<typeof getPublicationTypeDistribution>
+>;
+export type AdminVideosTypes = Awaited<
+  ReturnType<typeof getVideoCategoryDistribution>
+>;
+
 export type AdminProjectsData = Awaited<ReturnType<typeof getProjects>>;
 export type PortalPublications = Awaited<ReturnType<typeof getPublications>>;
 export type Publications = Awaited<ReturnType<typeof getAllPublications>>;

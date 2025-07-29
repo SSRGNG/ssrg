@@ -76,6 +76,36 @@ export const TYPE_CONFIG = {
   },
 } as const;
 
+export const CHART_COLOR_PALETTES = {
+  default: [
+    "oklch(0.646 0.222 41.116)", // chart-1
+    "oklch(0.6 0.118 184.704)", // chart-2
+    "oklch(0.398 0.07 227.392)", // chart-3
+    "oklch(0.828 0.189 84.429)", // chart-4
+    "oklch(0.769 0.188 70.08)", // chart-5
+  ],
+  vibrant: [
+    "oklch(0.65 0.25 0)", // Red
+    "oklch(0.7 0.2 120)", // Green
+    "oklch(0.6 0.2 240)", // Blue
+    "oklch(0.75 0.2 60)", // Yellow
+    "oklch(0.65 0.2 300)", // Purple
+    "oklch(0.7 0.2 180)", // Cyan
+    "oklch(0.7 0.25 30)", // Orange
+    "oklch(0.6 0.2 270)", // Violet
+  ],
+  muted: [
+    "oklch(0.5 0.1 0)", // Muted red
+    "oklch(0.6 0.08 120)", // Muted green
+    "oklch(0.45 0.08 240)", // Muted blue
+    "oklch(0.65 0.1 60)", // Muted yellow
+    "oklch(0.5 0.1 300)", // Muted purple
+    "oklch(0.55 0.08 180)", // Muted cyan
+    "oklch(0.6 0.12 30)", // Muted orange
+    "oklch(0.45 0.08 270)", // Muted violet
+  ],
+};
+
 export const keywords = [
   appFullName,
   appName,

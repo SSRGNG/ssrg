@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import * as React from "react";
 
+import { StatsSkeleton } from "@/components/shared/loading-skeleton";
 import { Shell } from "@/components/shell";
+import { Charts, Stats } from "@/components/views/admin";
 
 export const metadata: Metadata = {
   title: `Admin`,
@@ -8,8 +11,13 @@ export const metadata: Metadata = {
 
 export default function Admin() {
   return (
-    <Shell variant={"portal"}>
-      <h2>Admin</h2>
+    <Shell variant={"portal"} className="space-y-4">
+      <React.Suspense fallback={<StatsSkeleton />}>
+        <Stats />
+      </React.Suspense>
+      <React.Suspense fallback={<p>Loading...</p>}>
+        <Charts />
+      </React.Suspense>
     </Shell>
   );
 }

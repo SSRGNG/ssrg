@@ -444,3 +444,20 @@ export function formatPublicationDate(dateString: string | null) {
   }
   return dateString;
 }
+
+export const generateHSLColor = (
+  index: number,
+  total: number,
+  saturation = 70,
+  lightness = 50
+): string => {
+  const hue = Math.floor((360 / total) * index);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+};
+
+export const generateOKLCHColor = (index: number, total: number): string => {
+  const hue = Math.floor((360 / total) * index);
+  const lightness = 0.5 + (index % 3) * 0.1; // Vary lightness slightly
+  const chroma = 0.15 + (index % 2) * 0.05; // Vary chroma slightly
+  return `oklch(${lightness.toFixed(3)} ${chroma.toFixed(3)} ${hue})`;
+};

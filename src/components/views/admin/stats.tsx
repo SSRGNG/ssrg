@@ -8,75 +8,79 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getUserStats } from "@/lib/queries/portal";
+import { getAdminStats } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<"section">;
 
 async function Stats({ className, ...props }: Props) {
-  const userStatsResult = await getUserStats();
+  const adminStats = await getAdminStats();
 
   const {
-    publicationCount = 0,
-    totalCitations = 0,
-    videoCount = 0,
-  } = userStatsResult.success ? userStatsResult.data : {};
-  // const publicationCount = userStatsResult.success
-  //   ? userStatsResult.data.publicationCount
-  //   : 0;
-  // const citationCount = userStatsResult.success
-  //   ? userStatsResult.data.totalCitations
-  //   : 0;
-  // const videoCount = userStatsResult.success
-  //   ? userStatsResult.data.videoCount
-  //   : 0;
+    totalUsers = 0,
+    totalPublications = 0,
+    totalProjects = 0,
+    totalAreas = 0,
+    activeResearchers = 0,
+    totalVideos = 0,
+  } = adminStats.success ? adminStats.data : {};
 
   const stats = [
     {
+      title: "Users",
+      count: totalUsers,
+      href: "/admin/users",
+      icon: "users" as Icons,
+      textColor: "text-fuchsia-600",
+      bgColor: "bg-fuchsia-600/10",
+    },
+    {
+      title: "Researchers",
+      count: activeResearchers,
+      href: "#",
+      icon: "award" as Icons,
+      textColor: "text-indigo-600",
+      bgColor: "bg-indigo-600/10",
+    },
+    {
       title: "Publications",
-      count: publicationCount,
-      href: "/portal/publications",
+      count: totalPublications,
+      href: "#",
       icon: "publications" as Icons,
       textColor: "text-emerald-600",
       bgColor: "bg-emerald-600/10",
     },
-    // {
-    //   title: "Projects",
-    //   count: 0,
-    //   href: "/portal/projects",
-    //   icon: "research" as Icons,
-    //   textColor: "text-blue-600",
-    //   bgColor: "bg-blue-600/10",
-    // },
-    {
-      title: "Citations",
-      count: totalCitations,
-      href: "#",
-      icon: "quote" as Icons,
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-600/10",
-    },
     {
       title: "Videos",
-      count: videoCount,
-      href: "/portal/videos",
+      count: totalVideos,
+      href: "#",
       icon: "video" as Icons,
       textColor: "text-rose-600",
       bgColor: "bg-rose-600/10",
     },
     {
-      title: "Datasets",
-      count: 0,
-      href: "/portal/data",
-      icon: "database" as Icons,
-      textColor: "text-orange-600",
-      bgColor: "bg-orange-600/10",
+      title: "Projects",
+      count: totalProjects,
+      href: "/admin/core",
+      icon: "projects" as Icons,
+      textColor: "text-purple-600",
+      bgColor: "bg-purple-600/10",
+    },
+    {
+      title: "Research Areas",
+      count: totalAreas,
+      href: "/admin/core",
+      icon: "focusAreas" as Icons,
+      textColor: "text-amber-600",
+      bgColor: "bg-amber-600/10",
     },
   ];
-
   return (
     <section
-      className={cn("grid xs:grid-cols-2 md:grid-cols-4 gap-4", className)}
+      className={cn(
+        "grid xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4",
+        className
+      )}
       {...props}
     >
       {stats.map((stat, idx) => (

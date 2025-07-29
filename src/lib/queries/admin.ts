@@ -1,8 +1,9 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { count, desc, eq, like, or, sql } from "drizzle-orm";
 import { unstable_cache as cache } from "next/cache";
 
+import { auth } from "@/auth";
 import {
   CACHED_FORMATTED_RESEARCHER,
   CACHED_FORMATTED_RESEARCHERS,
@@ -13,11 +14,404 @@ import {
 } from "@/config/constants";
 import { db } from "@/db";
 import {
+  authors,
+  projects,
+  publicationAuthors,
+  publications,
+  researchAreas,
   researcherAreas,
   researcherEducation,
   researcherExpertise,
   researchers,
+  users,
+  videoAuthors,
+  videos,
 } from "@/db/schema";
+import { isRoleAllowed } from "@/lib/utils";
+import { Role } from "@/types";
+
+export async function getAdminStats() {
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+    const allowedRole = isRoleAllowed(["admin", "researcher"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User does not have permission to view stats",
+      };
+    }
+    const [
+      totalUsersResult,
+      totalPublicationsResult,
+      totalProjectsResult,
+      totalAreasResult,
+      activeResearchersResult,
+      totalVideosResult,
+    ] = await Promise.all([
+      db.select({ count: count() }).from(users),
+      db.select({ count: count() }).from(publications),
+      db.select({ count: count() }).from(projects),
+      db.select({ count: count() }).from(researchAreas),
+      db
+        .select({ count: count() })
+        .from(researchers)
+        .leftJoin(users, eq(researchers.userId, users.id))
+        .where(or(eq(users.role, "researcher"), eq(users.role, "admin"))),
+      db.select({ count: count() }).from(videos),
+    ]);
+
+    return {
+      success: true as const,
+      data: {
+        totalUsers: totalUsersResult[0]?.count || 0,
+        totalPublications: totalPublicationsResult[0]?.count || 0,
+        totalProjects: totalProjectsResult[0]?.count || 0,
+        totalAreas: totalAreasResult[0]?.count || 0,
+        activeResearchers: activeResearchersResult[0]?.count || 0,
+        totalVideos: totalVideosResult[0]?.count || 0,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching admin stats:", error);
+    return {
+      success: false as const,
+      error: "Failed to fetch admin statistics",
+    };
+  }
+}
+
+// Publication type distribution
+export async function getPublicationTypeDistribution() {
+  const result = await db
+    .select({
+      type: publications.type,
+      count: count(),
+    })
+    .from(publications)
+    .groupBy(publications.type)
+    .orderBy(desc(count()));
+
+  return result;
+}
+
+// Video category distribution
+export async function getVideoCategoryDistribution() {
+  const result = await db
+    .select({
+      category: videos.category,
+      count: count(),
+    })
+    .from(videos)
+    .groupBy(videos.category)
+    .orderBy(desc(count()));
+
+  return result;
+}
+
+// Monthly activity data
+export async function getMonthlyActivity(months: number = 6) {
+  const monthsAgo = new Date();
+  monthsAgo.setMonth(monthsAgo.getMonth() - months);
+
+  const [publicationsActivity, usersActivity, projectsActivity] =
+    await Promise.all([
+      db
+        .select({
+          month: sql<string>`TO_CHAR(${publications.created_at}, 'Mon')`,
+          count: count(),
+        })
+        .from(publications)
+        .where(sql`${publications.created_at} >= ${monthsAgo}`)
+        .groupBy(
+          sql`TO_CHAR(${publications.created_at}, 'Mon'), EXTRACT(month FROM ${publications.created_at})`
+        )
+        .orderBy(sql`EXTRACT(month FROM ${publications.created_at})`),
+
+      db
+        .select({
+          month: sql<string>`TO_CHAR(${users.createdAt}, 'Mon')`,
+          count: count(),
+        })
+        .from(users)
+        .where(sql`${users.createdAt} >= ${monthsAgo}`)
+        .groupBy(
+          sql`TO_CHAR(${users.createdAt}, 'Mon'), EXTRACT(month FROM ${users.createdAt})`
+        )
+        .orderBy(sql`EXTRACT(month FROM ${users.createdAt})`),
+
+      db
+        .select({
+          month: sql<string>`TO_CHAR(${projects.created_at}, 'Mon')`,
+          count: count(),
+        })
+        .from(projects)
+        .where(sql`${projects.created_at} >= ${monthsAgo}`)
+        .groupBy(
+          sql`TO_CHAR(${projects.created_at}, 'Mon'), EXTRACT(month FROM ${projects.created_at})`
+        )
+        .orderBy(sql`EXTRACT(month FROM ${projects.created_at})`),
+    ]);
+
+  // Combine the data by month
+  const monthlyData = publicationsActivity.map((pub) => ({
+    month: pub.month,
+    publications: pub.count,
+    users: usersActivity.find((u) => u.month === pub.month)?.count || 0,
+    projects: projectsActivity.find((p) => p.month === pub.month)?.count || 0,
+  }));
+
+  return monthlyData;
+}
+
+// User Management Queries
+export async function getAllUsersWithStats() {
+  const result = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      affiliation: users.affiliation,
+      createdAt: users.createdAt,
+      image: users.image,
+      // Researcher info if exists
+      researcherId: researchers.id,
+      bio: researchers.bio,
+      // Publication count
+      publicationCount: sql<number>`COALESCE(pub_counts.count, 0)`,
+      // Video count
+      videoCount: sql<number>`COALESCE(video_counts.count, 0)`,
+      // Project count (as lead researcher)
+      projectCount: sql<number>`COALESCE(project_counts.count, 0)`,
+    })
+    .from(users)
+    .leftJoin(researchers, eq(users.id, researchers.userId))
+    // Publication count subquery
+    .leftJoin(
+      sql`(
+        SELECT pa.author_id, COUNT(*) as count 
+        FROM ${publicationAuthors} pa 
+        JOIN ${authors} a ON pa.author_id = a.id 
+        WHERE a.researcher_id IS NOT NULL 
+        GROUP BY pa.author_id
+      ) as pub_counts`,
+      sql`pub_counts.author_id = (SELECT id FROM authors WHERE researcher_id = ${researchers.id})`
+    )
+    // Video count subquery
+    .leftJoin(
+      sql`(
+        SELECT va.author_id, COUNT(*) as count 
+        FROM ${videoAuthors} va 
+        JOIN ${authors} a ON va.author_id = a.id 
+        WHERE a.researcher_id IS NOT NULL 
+        GROUP BY va.author_id
+      ) as video_counts`,
+      sql`video_counts.author_id = (SELECT id FROM authors WHERE researcher_id = ${researchers.id})`
+    )
+    // Project count subquery
+    .leftJoin(
+      sql`(
+        SELECT lead_researcher_id, COUNT(*) as count 
+        FROM ${projects} 
+        GROUP BY lead_researcher_id
+      ) as project_counts`,
+      sql`project_counts.lead_researcher_id = ${researchers.id}`
+    )
+    .orderBy(desc(users.createdAt));
+
+  return result;
+}
+
+export async function getUsersByRole(role: Role) {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(users.role, role))
+    .orderBy(desc(users.createdAt));
+}
+
+export async function searchUsers(searchTerm: string) {
+  return await db
+    .select()
+    .from(users)
+    .where(
+      or(
+        like(users.name, `%${searchTerm}%`),
+        like(users.email, `%${searchTerm}%`),
+        like(users.affiliation, `%${searchTerm}%`)
+      )
+    )
+    .orderBy(desc(users.createdAt));
+}
+
+export async function getUserWithDetails(userId: string) {
+  try {
+    if (!userId || typeof userId !== "string") {
+      throw new Error("Invalid userId provided");
+    }
+    const result = await db
+      .select({
+        // User info
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        affiliation: users.affiliation,
+        createdAt: users.createdAt,
+        image: users.image,
+        // Researcher info
+        researcherId: researchers.id,
+        bio: researchers.bio,
+        orcid: researchers.orcid,
+        x: researchers.x,
+      })
+      .from(users)
+      .leftJoin(researchers, eq(users.id, researchers.userId))
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (result.length === 0) return null;
+
+    const user = result[0];
+
+    // Get researcher's publications if they are a researcher
+    const [publicationsResult, videosResult, projectsResult, areasResult] =
+      user.researcherId
+        ? await Promise.all([
+            db
+              .select({
+                id: publications.id,
+                title: publications.title,
+                type: publications.type,
+                venue: publications.venue,
+                publicationDate: publications.publicationDate,
+                citationCount: publications.citationCount,
+              })
+              .from(publications)
+              .leftJoin(
+                publicationAuthors,
+                eq(publications.id, publicationAuthors.publicationId)
+              )
+              .innerJoin(authors, eq(publicationAuthors.authorId, authors.id))
+              .where(eq(authors.researcherId, user.researcherId))
+              .orderBy(desc(publications.created_at)),
+            db
+              .select({
+                id: videos.id,
+                title: videos.title,
+                youtubeUrl: videos.youtubeUrl,
+                publishedAt: videos.publishedAt,
+                viewCount: videos.viewCount,
+                category: videos.category,
+              })
+              .from(videos)
+              .leftJoin(videoAuthors, eq(videos.id, videoAuthors.videoId))
+              .leftJoin(authors, eq(videoAuthors.authorId, authors.id))
+              .where(eq(authors.researcherId, user.researcherId))
+              .orderBy(desc(videos.created_at)),
+            db
+              .select({
+                id: projects.id,
+                title: projects.title,
+                description: projects.description,
+                period: projects.period,
+                location: projects.location,
+              })
+              .from(projects)
+              .where(eq(projects.leadResearcherId, user.researcherId))
+              .orderBy(desc(projects.created_at)),
+            db
+              .select({
+                id: researchAreas.id,
+                title: researchAreas.title,
+                description: researchAreas.description,
+              })
+              .from(researchAreas)
+              .leftJoin(
+                researcherAreas,
+                eq(researchAreas.id, researcherAreas.areaId)
+              )
+              .where(eq(researcherAreas.researcherId, user.researcherId)),
+          ])
+        : [null, null, null, null];
+
+    return {
+      ...user,
+      publications: publicationsResult,
+      videos: videosResult,
+      projects: projectsResult,
+      researchAreas: areasResult,
+    };
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    throw new Error("Failed to fetch user details");
+  }
+}
+
+// Get recent activity for dashboard
+export async function getRecentActivity(limit: number = 10) {
+  // This is a simplified version - you might want to create a more comprehensive activity log
+  const recentPublications = await db
+    .select({
+      type: sql<string>`'publication'`,
+      userName: users.name,
+      action: sql<string>`'uploaded a new ' || ${publications.type}`,
+      createdAt: publications.created_at,
+      title: publications.title,
+    })
+    .from(publications)
+    .leftJoin(users, eq(publications.creatorId, users.id))
+    .orderBy(desc(publications.created_at))
+    .limit(limit);
+
+  const recentUsers = await db
+    .select({
+      type: sql<string>`'user'`,
+      userName: users.name,
+      action: sql<string>`'registered as a ' || ${users.role}`,
+      createdAt: users.createdAt,
+      title: sql<string>`null`,
+    })
+    .from(users)
+    .orderBy(desc(users.createdAt))
+    .limit(limit);
+
+  const recentProjects = await db
+    .select({
+      type: sql<string>`'project'`,
+      userName: users.name,
+      action: sql<string>`'created project'`,
+      createdAt: projects.created_at,
+      title: projects.title,
+    })
+    .from(projects)
+    .leftJoin(researchers, eq(projects.leadResearcherId, researchers.id))
+    .leftJoin(users, eq(researchers.userId, users.id))
+    .orderBy(desc(projects.created_at))
+    .limit(limit);
+
+  // Combine and sort all activities
+  const allActivities = [
+    ...recentPublications,
+    ...recentUsers,
+    ...recentProjects,
+  ]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, limit);
+
+  return allActivities;
+}
 
 export async function getResearchAreas(limit = Infinity, offset = 0) {
   return await db.query.researchAreas.findMany({

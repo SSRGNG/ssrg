@@ -19,8 +19,11 @@ import {
   credentialsSchema,
   type SignupPayload,
   signupSchema,
+  UpdateUserPayload,
+  updateUserSchema,
 } from "@/lib/validations/auth";
-import { eq } from "drizzle-orm";
+import { Role } from "@/types";
+import { eq, sql } from "drizzle-orm";
 
 export const signinCredential = async (input: CredentialsPayload) => {
   const parsedCredentials = credentialsSchema.safeParse(input);
@@ -189,6 +192,48 @@ export const authWithCredentials = async (
 
 export async function invalidateCache(tag: string) {
   revalidateTag(tag);
+}
+
+// Update user
+export async function updateUser(userId: string, updates: UpdateUserPayload) {
+  try {
+    const parsedResult = updateUserSchema.safeParse(updates);
+
+    if (!parsedResult.success) {
+      return {
+        error: "Invalid input",
+        details: parsedResult.error.format(),
+      };
+    }
+    const validatedData = parsedResult.data;
+    const result = await db
+      .update(users)
+      .set(validatedData)
+      .where(eq(users.id, userId))
+      .returning();
+
+    return result[0];
+  } catch (error) {
+    console.error("Error updating user details:", error);
+    throw new Error("Failed to update user details");
+  }
+}
+
+// Delete user
+export async function deleteUser(userId: string) {
+  await db.delete(users).where(eq(users.id, userId));
+}
+
+// Bulk operations
+export async function bulkUpdateUserRole(userIds: string[], newRole: Role) {
+  await db
+    .update(users)
+    .set({ role: newRole })
+    .where(sql`${users.id} = ANY(${userIds})`);
+}
+
+export async function bulkDeleteUsers(userIds: string[]) {
+  await db.delete(users).where(sql`${users.id} = ANY(${userIds})`);
 }
 
 export async function getNonResearchers() {
