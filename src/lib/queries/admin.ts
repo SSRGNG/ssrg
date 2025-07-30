@@ -1,6 +1,6 @@
 import "server-only";
 
-import { count, desc, eq, like, or, sql } from "drizzle-orm";
+import { count, desc, eq, gte, like, or, sql } from "drizzle-orm";
 import { unstable_cache as cache } from "next/cache";
 
 import { auth } from "@/auth";
@@ -12,6 +12,7 @@ import {
   CACHED_RESEARCH_FRAMEWORKS,
   CACHED_RESEARCH_METHODOLOGIES,
 } from "@/config/constants";
+import { publications as pubEnums, videoCats } from "@/config/enums";
 import { db } from "@/db";
 import {
   authors,
@@ -121,49 +122,66 @@ export async function getMonthlyActivity(months: number = 6) {
   const monthsAgo = new Date();
   monthsAgo.setMonth(monthsAgo.getMonth() - months);
 
-  const [publicationsActivity, usersActivity, projectsActivity] =
-    await Promise.all([
-      db
-        .select({
-          month: sql<string>`TO_CHAR(${publications.created_at}, 'Mon')`,
-          count: count(),
-        })
-        .from(publications)
-        .where(sql`${publications.created_at} >= ${monthsAgo}`)
-        .groupBy(
-          sql`TO_CHAR(${publications.created_at}, 'Mon'), EXTRACT(month FROM ${publications.created_at})`
-        )
-        .orderBy(sql`EXTRACT(month FROM ${publications.created_at})`),
+  const [
+    publicationsActivity,
+    videosActivity,
+    usersActivity,
+    projectsActivity,
+  ] = await Promise.all([
+    db
+      .select({
+        month: sql<string>`TO_CHAR(${publications.created_at}, 'Mon')`,
+        count: count(),
+      })
+      .from(publications)
+      .where(gte(publications.created_at, monthsAgo))
+      .groupBy(
+        sql`TO_CHAR(${publications.created_at}, 'Mon'), EXTRACT(month FROM ${publications.created_at})`
+      )
+      .orderBy(sql`EXTRACT(month FROM ${publications.created_at})`),
 
-      db
-        .select({
-          month: sql<string>`TO_CHAR(${users.createdAt}, 'Mon')`,
-          count: count(),
-        })
-        .from(users)
-        .where(sql`${users.createdAt} >= ${monthsAgo}`)
-        .groupBy(
-          sql`TO_CHAR(${users.createdAt}, 'Mon'), EXTRACT(month FROM ${users.createdAt})`
-        )
-        .orderBy(sql`EXTRACT(month FROM ${users.createdAt})`),
+    db
+      .select({
+        month: sql<string>`TO_CHAR(${videos.created_at}, 'Mon')`,
+        count: count(),
+      })
+      .from(videos)
+      .where(gte(videos.created_at, monthsAgo))
+      .groupBy(
+        sql`TO_CHAR(${videos.created_at}, 'Mon'), EXTRACT(month FROM ${videos.created_at})`
+      )
+      .orderBy(sql`EXTRACT(month FROM ${videos.created_at})`),
 
-      db
-        .select({
-          month: sql<string>`TO_CHAR(${projects.created_at}, 'Mon')`,
-          count: count(),
-        })
-        .from(projects)
-        .where(sql`${projects.created_at} >= ${monthsAgo}`)
-        .groupBy(
-          sql`TO_CHAR(${projects.created_at}, 'Mon'), EXTRACT(month FROM ${projects.created_at})`
-        )
-        .orderBy(sql`EXTRACT(month FROM ${projects.created_at})`),
-    ]);
+    db
+      .select({
+        month: sql<string>`TO_CHAR(${users.createdAt}, 'Mon')`,
+        count: count(),
+      })
+      .from(users)
+      .where(gte(users.createdAt, monthsAgo))
+      .groupBy(
+        sql`TO_CHAR(${users.createdAt}, 'Mon'), EXTRACT(month FROM ${users.createdAt})`
+      )
+      .orderBy(sql`EXTRACT(month FROM ${users.createdAt})`),
+
+    db
+      .select({
+        month: sql<string>`TO_CHAR(${projects.created_at}, 'Mon')`,
+        count: count(),
+      })
+      .from(projects)
+      .where(gte(projects.created_at, monthsAgo))
+      .groupBy(
+        sql`TO_CHAR(${projects.created_at}, 'Mon'), EXTRACT(month FROM ${projects.created_at})`
+      )
+      .orderBy(sql`EXTRACT(month FROM ${projects.created_at})`),
+  ]);
 
   // Combine the data by month
   const monthlyData = publicationsActivity.map((pub) => ({
     month: pub.month,
     publications: pub.count,
+    videos: videosActivity.find((v) => v.month === pub.month)?.count || 0,
     users: usersActivity.find((u) => u.month === pub.month)?.count || 0,
     projects: projectsActivity.find((p) => p.month === pub.month)?.count || 0,
   }));
@@ -356,29 +374,51 @@ export async function getUserWithDetails(userId: string) {
   }
 }
 
-// Get recent activity for dashboard
-export async function getRecentActivity(limit: number = 10) {
-  // This is a simplified version - you might want to create a more comprehensive activity log
+// Get recent activity for admin dashboard
+export async function getRecentActivity(limit: number = 5) {
   const recentPublications = await db
     .select({
-      type: sql<string>`'publication'`,
+      type: sql<string>`'publications'`,
       userName: users.name,
-      action: sql<string>`'uploaded a new ' || ${publications.type}`,
+      action: sql<string>`'published'`,
       createdAt: publications.created_at,
       title: publications.title,
+      rawType: publications.type,
     })
     .from(publications)
     .leftJoin(users, eq(publications.creatorId, users.id))
     .orderBy(desc(publications.created_at))
     .limit(limit);
 
+  const recentVideos = await db
+    .select({
+      type: sql<string>`'video'`,
+      userName: users.name,
+      action: sql<string>`'uploaded'`,
+      createdAt: videos.created_at,
+      title: videos.title,
+      rawType: videos.category,
+    })
+    .from(videos)
+    .leftJoin(users, eq(videos.creatorId, users.id))
+    .orderBy(desc(videos.created_at))
+    .limit(limit);
+
   const recentUsers = await db
     .select({
       type: sql<string>`'user'`,
       userName: users.name,
-      action: sql<string>`'registered as a ' || ${users.role}`,
+      action: sql<string>`'registered as ' || CASE
+        WHEN ${users.role} = 'admin' THEN 'an admin'
+        WHEN ${users.role} = 'researcher' THEN 'a researcher'
+        WHEN ${users.role} = 'affiliate' THEN 'an affiliate'
+        WHEN ${users.role} = 'partner' THEN 'a partner'
+        WHEN ${users.role} = 'member' THEN 'a member'
+        ELSE 'a user'
+      END`,
       createdAt: users.createdAt,
       title: sql<string>`null`,
+      rawType: sql<string>`null`,
     })
     .from(users)
     .orderBy(desc(users.createdAt))
@@ -386,11 +426,12 @@ export async function getRecentActivity(limit: number = 10) {
 
   const recentProjects = await db
     .select({
-      type: sql<string>`'project'`,
+      type: sql<string>`'projects'`,
       userName: users.name,
       action: sql<string>`'created project'`,
       createdAt: projects.created_at,
       title: projects.title,
+      rawType: sql<string>`null`,
     })
     .from(projects)
     .leftJoin(researchers, eq(projects.leadResearcherId, researchers.id))
@@ -398,9 +439,29 @@ export async function getRecentActivity(limit: number = 10) {
     .orderBy(desc(projects.created_at))
     .limit(limit);
 
+  // Type-safe processing functions
+  const processPublications = (items: typeof recentPublications) =>
+    items.map((item) => ({
+      ...item,
+      action:
+        item.rawType && pubEnums.values.includes(item.rawType)
+          ? `Uploaded a new ${pubEnums.getLabel(item.rawType)}`
+          : `Uploaded a new ${item.rawType || "publication"}`,
+    }));
+
+  const processVideos = (items: typeof recentVideos) =>
+    items.map((item) => ({
+      ...item,
+      action:
+        item.rawType && videoCats.values.includes(item.rawType)
+          ? `uploaded a new ${videoCats.getLabel(item.rawType)} video`
+          : `uploaded a new ${item.rawType || "video"}`,
+    }));
+
   // Combine and sort all activities
   const allActivities = [
-    ...recentPublications,
+    ...processPublications(recentPublications),
+    ...processVideos(recentVideos),
     ...recentUsers,
     ...recentProjects,
   ]
@@ -412,6 +473,82 @@ export async function getRecentActivity(limit: number = 10) {
 
   return allActivities;
 }
+// export async function getRecentActivity(limit: number = 5) {
+//   // This is a simplified version - you might want to create a more comprehensive activity log
+//   const recentPublications = await db
+//     .select({
+//       type: sql<string>`'publications'`,
+//       userName: users.name,
+//       action: sql<string>`'uploaded a new ' || ${publications.type}`,
+//       createdAt: publications.created_at,
+//       title: publications.title,
+//     })
+//     .from(publications)
+//     .leftJoin(users, eq(publications.creatorId, users.id))
+//     .orderBy(desc(publications.created_at))
+//     .limit(limit);
+
+//   const recentVideos = await db
+//     .select({
+//       type: sql<string>`'video'`,
+//       userName: users.name,
+//       action: sql<string>`'uploaded a new ' || ${videos.category}`,
+//       createdAt: videos.created_at,
+//       title: videos.title,
+//     })
+//     .from(videos)
+//     .leftJoin(users, eq(videos.creatorId, users.id))
+//     .orderBy(desc(videos.created_at))
+//     .limit(limit);
+
+//   const recentUsers = await db
+//     .select({
+//       type: sql<string>`'user'`,
+//       userName: users.name,
+//       action: sql<string>`'registered as ' || CASE
+//         WHEN ${users.role} = 'admin' THEN 'an admin'
+//         WHEN ${users.role} = 'researcher' THEN 'a researcher'
+//         WHEN ${users.role} = 'affiliate' THEN 'an affiliate'
+//         WHEN ${users.role} = 'partner' THEN 'a partner'
+//         WHEN ${users.role} = 'member' THEN 'a member'
+//         ELSE 'a user'
+//       END`,
+//       createdAt: users.createdAt,
+//       title: sql<string>`null`,
+//     })
+//     .from(users)
+//     .orderBy(desc(users.createdAt))
+//     .limit(limit);
+
+//   const recentProjects = await db
+//     .select({
+//       type: sql<string>`'projects'`,
+//       userName: users.name,
+//       action: sql<string>`'created project'`,
+//       createdAt: projects.created_at,
+//       title: projects.title,
+//     })
+//     .from(projects)
+//     .leftJoin(researchers, eq(projects.leadResearcherId, researchers.id))
+//     .leftJoin(users, eq(researchers.userId, users.id))
+//     .orderBy(desc(projects.created_at))
+//     .limit(limit);
+
+//   // Combine and sort all activities
+//   const allActivities = [
+//     ...recentPublications,
+//     ...recentVideos,
+//     ...recentUsers,
+//     ...recentProjects,
+//   ]
+//     .sort(
+//       (a, b) =>
+//         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+//     )
+//     .slice(0, limit);
+
+//   return allActivities;
+// }
 
 export async function getResearchAreas(limit = Infinity, offset = 0) {
   return await db.query.researchAreas.findMany({

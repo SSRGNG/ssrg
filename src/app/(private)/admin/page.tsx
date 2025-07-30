@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { StatsSkeleton } from "@/components/shared/loading-skeleton";
 import { Shell } from "@/components/shell";
-import { Charts, Stats } from "@/components/views/admin";
+import { Activities, Charts, Stats } from "@/components/views/admin";
 
 export const metadata: Metadata = {
   title: `Admin`,
@@ -17,6 +17,9 @@ export default function Admin() {
       </React.Suspense>
       <React.Suspense fallback={<p>Loading...</p>}>
         <Charts />
+      </React.Suspense>
+      <React.Suspense fallback={<p>Loading...</p>}>
+        <Activities />
       </React.Suspense>
     </Shell>
   );

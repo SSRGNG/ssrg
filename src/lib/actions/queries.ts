@@ -2,8 +2,10 @@
 
 import { searchAuthors, searchPublications } from "@/lib/actions/search";
 import {
+  getMonthlyActivity,
   getProjects,
   getPublicationTypeDistribution,
+  getRecentActivity,
   getResearchAreas,
   getResearchers,
   getResearchFrameworks,
@@ -40,6 +42,8 @@ export type AdminPubTypes = Awaited<
 export type AdminVideosTypes = Awaited<
   ReturnType<typeof getVideoCategoryDistribution>
 >;
+export type AdminRecent = Awaited<ReturnType<typeof getRecentActivity>>;
+export type AdminMonthlies = Awaited<ReturnType<typeof getMonthlyActivity>>;
 
 export type AdminProjectsData = Awaited<ReturnType<typeof getProjects>>;
 export type PortalPublications = Awaited<ReturnType<typeof getPublications>>;

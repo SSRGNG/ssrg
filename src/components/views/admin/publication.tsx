@@ -60,7 +60,7 @@ function Publication({ pubs, className, ...props }: Props) {
 
   const totalCount = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.count, 0);
-  }, []);
+  }, [chartData]);
 
   return (
     <Card className={cn("gap-0", className)} {...props}>

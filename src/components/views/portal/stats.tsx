@@ -112,14 +112,14 @@ function StatCard({
   const Icon = Icons[icon];
   return (
     <Link href={href}>
-      <Card className="gap-2.5 flex-row justify-between items-center">
-        <CardHeader className="gap-0 flex-1">
+      <Card className="gap-1 flex-row justify-between items-center">
+        <CardHeader className="gap-0 pr-0 sm:pr-0 flex-1">
           <CardTitle className="text-sm sm:text-base">{title}</CardTitle>
           <CardDescription className={cn(textColor, "font-semibold text-2xl")}>
             {count}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pl-0 sm:pl-0">
           <span className={cn(bgColor, "flex rounded-full p-3")}>
             <Icon className={cn("size-4", textColor)} strokeWidth={1.5} />
           </span>
