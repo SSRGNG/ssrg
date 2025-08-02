@@ -2,6 +2,16 @@ import type { ColumnDef, Row, Table } from "@tanstack/react-table";
 
 import { ActionKey, BarAction } from "@/types";
 
+// Enhanced icon props to support common Lucide icon properties
+export type IconProps = {
+  className?: string;
+  size?: number | string;
+  strokeWidth?: number;
+  color?: string;
+  fill?: string;
+  "aria-hidden"?: boolean;
+};
+
 // Base column meta that can be extended
 export type ColumnMeta = {
   displayName?: string;
@@ -22,7 +32,7 @@ export type ExtendedColumnDef<TData, TValue = unknown> = ColumnDef<
 export type DataTableOption = {
   label: string;
   value: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<IconProps>;
   withCount?: boolean;
 };
 
@@ -34,10 +44,20 @@ export type DataTableFilterField<TData> = {
   options?: DataTableOption[];
 };
 
+// Date column configuration
+export type DateColumn<TData> = {
+  value: keyof TData;
+  label?: string;
+  placeholder?: string;
+  showMonthSelect?: boolean;
+  maxMonthsInSelect?: number;
+};
+
 // Base table meta
 export type TableMeta<TData, TContext = unknown> = {
   searchableColumns?: DataTableFilterField<TData>[];
   filterableColumns?: DataTableFilterField<TData>[];
+  dateFields?: DateColumn<TData>[];
   filterFields?: DataTableFilterField<TData>[];
   actionKey?: ActionKey;
   barAction?: BarAction;
@@ -94,4 +114,18 @@ export function getTypedValue<TData, TValue>(
   columnId: keyof TData
 ): TValue {
   return row.getValue(columnId as string) as TValue;
+}
+
+// Helper function to create consistent icon props
+export function createIconProps(
+  className?: string,
+  strokeWidth?: number,
+  additionalProps?: Partial<IconProps>
+): IconProps {
+  return {
+    className: className || "size-4",
+    strokeWidth: strokeWidth || 1.5,
+    "aria-hidden": true,
+    ...additionalProps,
+  };
 }

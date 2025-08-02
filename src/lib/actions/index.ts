@@ -1,9 +1,10 @@
 "use server";
 
+import { eq, sql } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { signIn, signOut } from "@/auth";
+import { auth, signIn, signOut } from "@/auth";
 import { db } from "@/db";
 import {
   partners,
@@ -13,7 +14,7 @@ import {
   users,
 } from "@/db/schema";
 import { getUserByEmail } from "@/lib/queries/user";
-import { hashPassword, verifyPassword } from "@/lib/utils";
+import { hashPassword, isRoleAllowed, verifyPassword } from "@/lib/utils";
 import {
   type CredentialsPayload,
   credentialsSchema,
@@ -23,7 +24,6 @@ import {
   updateUserSchema,
 } from "@/lib/validations/auth";
 import { Role } from "@/types";
-import { eq, sql } from "drizzle-orm";
 
 export const signinCredential = async (input: CredentialsPayload) => {
   const parsedCredentials = credentialsSchema.safeParse(input);
@@ -221,19 +221,151 @@ export async function updateUser(userId: string, updates: UpdateUserPayload) {
 
 // Delete user
 export async function deleteUser(userId: string) {
-  await db.delete(users).where(eq(users.id, userId));
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false,
+        error: "Unauthorized",
+        details: "User does not have permission to delete a registered account",
+      };
+    }
+
+    if (!userId || typeof userId !== "string") {
+      return {
+        success: false,
+        error: "Invalid user ID",
+        details: "User ID is required and must be a valid string",
+      };
+    }
+
+    // const [deletedUser] = await db.delete(users).where(eq(users.id, userId)).returning({id: users.id, name: users.name});
+
+    // if (!deleteUser) throw new Error('Failed to delete user')
+
+    const deletedUser = await db
+      .delete(users)
+      .where(eq(users.id, userId))
+      .returning({ id: users.id, name: users.name });
+
+    if (deleteUser.length === 0) throw new Error("Failed to delete user");
+
+    const [result] = deletedUser;
+
+    // Revalidate relevant paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/users");
+
+    return {
+      success: true,
+      message: `User "${result.name}" deleted successfully`,
+      deletedUser: {
+        id: result.id,
+        name: result.name,
+      },
+    };
+  } catch (error) {
+    console.error("User deletion error:", error);
+
+    return {
+      success: false,
+      error: "Failed to delete user",
+      details: "An unexpected error occurred while deleting the user",
+    };
+  }
 }
 
 // Bulk operations
 export async function bulkUpdateUserRole(userIds: string[], newRole: Role) {
-  await db
-    .update(users)
-    .set({ role: newRole })
-    .where(sql`${users.id} = ANY(${userIds})`);
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User does not have permission to delete a registered account",
+      };
+    }
+
+    await db
+      .update(users)
+      .set({ role: newRole })
+      .where(sql`${users.id} = ANY(${userIds})`);
+
+    // Revalidate relevant paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/users");
+
+    return {
+      success: true as const,
+      updatedCount: userIds.length,
+    };
+  } catch (error) {
+    console.error("User role update error:", error);
+
+    return {
+      success: false as const,
+      error: "Failed to update user roles",
+    };
+  }
 }
 
 export async function bulkDeleteUsers(userIds: string[]) {
-  await db.delete(users).where(sql`${users.id} = ANY(${userIds})`);
+  try {
+    const user = (await auth())?.user;
+    if (!user) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User not authenticated",
+      };
+    }
+
+    const allowedRole = isRoleAllowed(["admin"], user.role);
+    if (!allowedRole) {
+      return {
+        success: false as const,
+        error: "Unauthorized",
+        details: "User does not have permission to delete a registered account",
+      };
+    }
+
+    await db.delete(users).where(sql`${users.id} = ANY(${userIds})`);
+
+    // Revalidate relevant paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/users");
+
+    return {
+      success: true as const,
+      deletedCount: userIds.length,
+    };
+  } catch (error) {
+    console.error("User deletion error:", error);
+
+    return {
+      success: false as const,
+      error: "Failed to delete users",
+    };
+  }
 }
 
 export async function getNonResearchers() {

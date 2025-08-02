@@ -6,7 +6,6 @@ import { Icons } from "@/components/shared/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRecent } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
-// import { publications, videoCats } from "@/config/enums";
 
 type Props = React.ComponentPropsWithoutRef<typeof Card> & {
   recent: AdminRecent;
@@ -51,7 +50,7 @@ function Recent({ recent, className, ...props }: Props) {
   });
 
   return (
-    <Card className={cn(className)} {...props}>
+    <Card className={cn("gap-2.5", className)} {...props}>
       <CardHeader className="grid-rows-[auto]">
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
@@ -102,32 +101,6 @@ function Recent({ recent, className, ...props }: Props) {
             );
           })
         )}
-        {/* {data.map((d) => {
-          const Icon = Icons[(d.type as Icons) ?? "alert"];
-          return (
-            <div
-              key={d.type}
-              className="flex items-start gap-3 p-3 hover:bg-muted rounded-lg transition-colors"
-            >
-              <span className="flex-shrink-0">
-                <Icon className={cn("size-4", d.textColor)} />
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm">
-                  <span className="font-medium">
-                    {d.userName || "Anonymous"}
-                  </span>{" "}
-                  {d.action}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatDistanceToNowStrict(new Date(d.createdAt), {
-                    addSuffix: true,
-                  })}
-                </p>
-              </div>
-            </div>
-          );
-        })} */}
       </CardContent>
     </Card>
   );

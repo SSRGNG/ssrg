@@ -1,6 +1,6 @@
 import { createEnum, defineEnum } from "@/lib/utils";
 
-export const roles = createEnum(
+export const roles = defineEnum(
   "admin",
   "researcher",
   "affiliate",

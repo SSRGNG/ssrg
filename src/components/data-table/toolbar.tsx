@@ -4,8 +4,8 @@ import { type Table } from "@tanstack/react-table";
 import { X } from "lucide-react";
 import * as React from "react";
 
-// import { DataTableDateFilter } from "@/components/data-table/date-filter";
 import { DataTableCreateOptions } from "@/components/data-table/create-options";
+import { DataTableDateFilter } from "@/components/data-table/date-filter";
 import { DataTableFacetedFilter } from "@/components/data-table/faceted-filter";
 import { ToolbarActions } from "@/components/data-table/toolbar-actions";
 import { DataTableViewOptions } from "@/components/data-table/view-options";
@@ -30,6 +30,7 @@ function DataTableToolbar<TData>({
   // Safe access to meta properties with fallbacks
   const searchableColumns = meta?.searchableColumns || [];
   const filterableColumns = meta?.filterableColumns || [];
+  const dateColumns = meta?.dateFields || [];
 
   return (
     <div
@@ -89,6 +90,23 @@ function DataTableToolbar<TData>({
       </div>
       <div className="flex items-center gap-2">
         {children}
+        {/* {table.getColumn("createdAt") && (
+          <DataTableDateFilter column={table.getColumn("createdAt")} />
+        )} */}
+        {dateColumns.length > 0 &&
+          dateColumns.map(
+            (dateColumn) =>
+              table.getColumn(
+                dateColumn.value ? String(dateColumn.value) : ""
+              ) && (
+                <DataTableDateFilter
+                  key={String(dateColumn.value)}
+                  column={table.getColumn(
+                    dateColumn.value ? String(dateColumn.value) : ""
+                  )}
+                />
+              )
+          )}
         <DataTableViewOptions table={table} />
         <DataTableCreateOptions table={table} />
         {hasTableMeta(table) && <ToolbarActions table={table} />}

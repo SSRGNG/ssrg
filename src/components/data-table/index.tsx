@@ -13,6 +13,7 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type SortingState,
+  type Table as TableType,
   type VisibilityState,
 } from "@tanstack/react-table";
 import * as React from "react";
@@ -29,7 +30,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { ActionKey, BarAction } from "@/types";
-import { DataTableFilterField } from "@/types/table";
+import { DataTableFilterField, DateColumn } from "@/types/table";
 
 type DataTableProps<TData, TValue, TContext> =
   React.ComponentPropsWithoutRef<"div"> & {
@@ -85,14 +86,15 @@ type DataTableProps<TData, TValue, TContext> =
      * ```
      */
     filterFields?: DataTableFilterField<TData>[];
+    dateFields?: DateColumn<TData>[];
 
     /**
      * The floating bar to render at the bottom of the table on row selection.
      * @default null
-     * @type React.ReactNode | null
+     * @type ((table: Table<TData>) => React.ReactNode) | null
      * @example floatingBar={<TasksTableFloatingBar table={table} />}
      */
-    floatingBar?: React.ReactNode | null;
+    floatingBar?: ((table: TableType<TData>) => React.ReactNode) | null;
     actionKey?: ActionKey;
     barAction?: BarAction;
     context?: TContext;
@@ -103,6 +105,7 @@ function DataTable<TData, TValue, TContext>({
   columns,
   data,
   filterFields = [],
+  dateFields = [],
   floatingBar = null,
   actionKey,
   barAction,
@@ -166,6 +169,7 @@ function DataTable<TData, TValue, TContext>({
       searchableColumns,
       filterableColumns,
       filterFields,
+      dateFields,
       actionKey,
       barAction,
       context,
@@ -182,6 +186,19 @@ function DataTable<TData, TValue, TContext>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  // Render floating bar - handle both function and React node formats
+  const renderFloatingBar = () => {
+    if (!floatingBar || table.getFilteredSelectedRowModel().rows.length === 0) {
+      return null;
+    }
+
+    if (typeof floatingBar === "function") {
+      return floatingBar(table);
+    }
+
+    return floatingBar;
+  };
 
   return (
     <div
@@ -241,7 +258,7 @@ function DataTable<TData, TValue, TContext>({
       </div>
       <div className="flex flex-col gap-2.5">
         <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
-        {table.getFilteredSelectedRowModel().rows.length > 0 && floatingBar}
+        {renderFloatingBar()}
       </div>
     </div>
   );

@@ -1,19 +1,32 @@
+import { UsersDataTable } from "@/components/views/admin/ui-tables";
+import { getAllUsersWithStats } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<"div">;
 
 async function Users({ className, ...props }: Props) {
-  return <div className={cn(className)} {...props}></div>;
+  const users = await getAllUsersWithStats();
+  console.log({ users });
+  return <UsersDataTable users={users} className={cn(className)} {...props} />;
 }
 
 export { Users };
 
-// import React, { useState } from 'react';
-// import { Search, Filter, Plus, Edit, Trash2, Mail, Shield, User, Calendar, MoreVertical, Eye, UserCheck, UserX } from 'lucide-react';
+// import {
+//   Edit,
+//   Eye,
+//   Filter,
+//   MoreVertical,
+//   Plus,
+//   Search,
+//   Trash2,
+//   User,
+// } from "lucide-react";
+// import { useState } from "react";
 
 // const AdminUsersPage = () => {
-//   const [activeTab, setActiveTab] = useState('all');
-//   const [searchTerm, setSearchTerm] = useState('');
+//   const [activeTab, setActiveTab] = useState("all");
+//   const [searchTerm, setSearchTerm] = useState("");
 //   const [selectedUsers, setSelectedUsers] = useState([]);
 //   const [showCreateModal, setShowCreateModal] = useState(false);
 //   const [showEditModal, setShowEditModal] = useState(false);
@@ -22,113 +35,114 @@ export { Users };
 //   // Mock users data - replace with actual API calls
 //   const [users, setUsers] = useState([
 //     {
-//       id: '1',
-//       name: 'Dr. Sarah Johnson',
-//       email: 'sarah.johnson@university.edu',
-//       role: 'researcher',
-//       affiliation: 'Harvard University',
-//       createdAt: '2024-01-15',
-//       lastActive: '2024-07-25',
-//       status: 'active',
+//       id: "1",
+//       name: "Dr. Sarah Johnson",
+//       email: "sarah.johnson@university.edu",
+//       role: "researcher",
+//       affiliation: "Harvard University",
+//       createdAt: "2024-01-15",
+//       lastActive: "2024-07-25",
+//       status: "active",
 //       publicationsCount: 12,
-//       projectsCount: 3
+//       projectsCount: 3,
 //     },
 //     {
-//       id: '2',
-//       name: 'Prof. Michael Chen',
-//       email: 'michael.chen@institute.org',
-//       role: 'admin',
-//       affiliation: 'MIT Research Institute',
-//       createdAt: '2023-11-20',
-//       lastActive: '2024-07-28',
-//       status: 'active',
+//       id: "2",
+//       name: "Prof. Michael Chen",
+//       email: "michael.chen@institute.org",
+//       role: "admin",
+//       affiliation: "MIT Research Institute",
+//       createdAt: "2023-11-20",
+//       lastActive: "2024-07-28",
+//       status: "active",
 //       publicationsCount: 25,
-//       projectsCount: 7
+//       projectsCount: 7,
 //     },
 //     {
-//       id: '3',
-//       name: 'Dr. Emily Rodriguez',
-//       email: 'emily.rodriguez@college.edu',
-//       role: 'researcher',
-//       affiliation: 'Stanford University',
-//       createdAt: '2024-03-10',
-//       lastActive: '2024-07-20',
-//       status: 'active',
+//       id: "3",
+//       name: "Dr. Emily Rodriguez",
+//       email: "emily.rodriguez@college.edu",
+//       role: "researcher",
+//       affiliation: "Stanford University",
+//       createdAt: "2024-03-10",
+//       lastActive: "2024-07-20",
+//       status: "active",
 //       publicationsCount: 8,
-//       projectsCount: 2
+//       projectsCount: 2,
 //     },
 //     {
-//       id: '4',
-//       name: 'James Wilson',
-//       email: 'james.wilson@external.com',
-//       role: 'member',
-//       affiliation: 'Independent Researcher',
-//       createdAt: '2024-06-05',
-//       lastActive: '2024-07-15',
-//       status: 'pending',
+//       id: "4",
+//       name: "James Wilson",
+//       email: "james.wilson@external.com",
+//       role: "member",
+//       affiliation: "Independent Researcher",
+//       createdAt: "2024-06-05",
+//       lastActive: "2024-07-15",
+//       status: "pending",
 //       publicationsCount: 0,
-//       projectsCount: 0
+//       projectsCount: 0,
 //     },
 //     {
-//       id: '5',
-//       name: 'Dr. Lisa Thompson',
-//       email: 'lisa.thompson@university.ac.uk',
-//       role: 'researcher',
-//       affiliation: 'Oxford University',
-//       createdAt: '2024-02-28',
-//       lastActive: '2024-06-30',
-//       status: 'inactive',
+//       id: "5",
+//       name: "Dr. Lisa Thompson",
+//       email: "lisa.thompson@university.ac.uk",
+//       role: "researcher",
+//       affiliation: "Oxford University",
+//       createdAt: "2024-02-28",
+//       lastActive: "2024-06-30",
+//       status: "inactive",
 //       publicationsCount: 15,
-//       projectsCount: 4
-//     }
+//       projectsCount: 4,
+//     },
 //   ]);
 
-//   const roles = ['admin', 'researcher', 'affiliate', 'partner', 'member'];
-//   const statuses = ['active', 'inactive', 'pending', 'suspended'];
+//   const roles = ["admin", "researcher", "affiliate", "partner", "member"];
+//   const statuses = ["active", "inactive", "pending", "suspended"];
 
 //   const getRoleColor = (role) => {
 //     const colors = {
-//       admin: 'bg-red-100 text-red-800',
-//       researcher: 'bg-blue-100 text-blue-800',
-//       affiliate: 'bg-green-100 text-green-800',
-//       partner: 'bg-purple-100 text-purple-800',
-//       member: 'bg-gray-100 text-gray-800'
+//       admin: "bg-red-100 text-red-800",
+//       researcher: "bg-blue-100 text-blue-800",
+//       affiliate: "bg-green-100 text-green-800",
+//       partner: "bg-purple-100 text-purple-800",
+//       member: "bg-gray-100 text-gray-800",
 //     };
 //     return colors[role] || colors.member;
 //   };
 
 //   const getStatusColor = (status) => {
 //     const colors = {
-//       active: 'bg-green-100 text-green-800',
-//       inactive: 'bg-gray-100 text-gray-800',
-//       pending: 'bg-yellow-100 text-yellow-800',
-//       suspended: 'bg-red-100 text-red-800'
+//       active: "bg-green-100 text-green-800",
+//       inactive: "bg-gray-100 text-gray-800",
+//       pending: "bg-yellow-100 text-yellow-800",
+//       suspended: "bg-red-100 text-red-800",
 //     };
 //     return colors[status] || colors.pending;
 //   };
 
-//   const filteredUsers = users.filter(user => {
-//     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//                          user.affiliation?.toLowerCase().includes(searchTerm.toLowerCase());
+//   const filteredUsers = users.filter((user) => {
+//     const matchesSearch =
+//       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//       user.affiliation?.toLowerCase().includes(searchTerm.toLowerCase());
 
-//     if (activeTab === 'all') return matchesSearch;
+//     if (activeTab === "all") return matchesSearch;
 //     return matchesSearch && user.role === activeTab;
 //   });
 
 //   const tabCounts = {
 //     all: users.length,
-//     admin: users.filter(u => u.role === 'admin').length,
-//     researcher: users.filter(u => u.role === 'researcher').length,
-//     member: users.filter(u => u.role === 'member').length,
-//     affiliate: users.filter(u => u.role === 'affiliate').length,
-//     partner: users.filter(u => u.role === 'partner').length
+//     admin: users.filter((u) => u.role === "admin").length,
+//     researcher: users.filter((u) => u.role === "researcher").length,
+//     member: users.filter((u) => u.role === "member").length,
+//     affiliate: users.filter((u) => u.role === "affiliate").length,
+//     partner: users.filter((u) => u.role === "partner").length,
 //   };
 
 //   const handleSelectUser = (userId) => {
-//     setSelectedUsers(prev =>
+//     setSelectedUsers((prev) =>
 //       prev.includes(userId)
-//         ? prev.filter(id => id !== userId)
+//         ? prev.filter((id) => id !== userId)
 //         : [...prev, userId]
 //     );
 //   };
@@ -137,17 +151,17 @@ export { Users };
 //     if (selectedUsers.length === filteredUsers.length) {
 //       setSelectedUsers([]);
 //     } else {
-//       setSelectedUsers(filteredUsers.map(user => user.id));
+//       setSelectedUsers(filteredUsers.map((user) => user.id));
 //     }
 //   };
 
 //   const CreateUserModal = () => {
 //     const [formData, setFormData] = useState({
-//       name: '',
-//       email: '',
-//       role: 'member',
-//       affiliation: '',
-//       password: ''
+//       name: "",
+//       email: "",
+//       role: "member",
+//       affiliation: "",
+//       password: "",
 //     });
 
 //     const handleSubmit = (e) => {
@@ -156,15 +170,21 @@ export { Users };
 //       const newUser = {
 //         id: Date.now().toString(),
 //         ...formData,
-//         createdAt: new Date().toISOString().split('T')[0],
-//         lastActive: new Date().toISOString().split('T')[0],
-//         status: 'pending',
+//         createdAt: new Date().toISOString().split("T")[0],
+//         lastActive: new Date().toISOString().split("T")[0],
+//         status: "pending",
 //         publicationsCount: 0,
-//         projectsCount: 0
+//         projectsCount: 0,
 //       };
-//       setUsers(prev => [...prev, newUser]);
+//       setUsers((prev) => [...prev, newUser]);
 //       setShowCreateModal(false);
-//       setFormData({ name: '', email: '', role: 'member', affiliation: '', password: '' });
+//       setFormData({
+//         name: "",
+//         email: "",
+//         role: "member",
+//         affiliation: "",
+//         password: "",
+//       });
 //     };
 
 //     if (!showCreateModal) return null;
@@ -175,52 +195,77 @@ export { Users };
 //           <h3 className="text-lg font-semibold mb-4">Create New User</h3>
 //           <form onSubmit={handleSubmit} className="space-y-4">
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Name
+//               </label>
 //               <input
 //                 type="text"
 //                 value={formData.name}
-//                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+//                 onChange={(e) =>
+//                   setFormData((prev) => ({ ...prev, name: e.target.value }))
+//                 }
 //                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 //                 required
 //               />
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Email
+//               </label>
 //               <input
 //                 type="email"
 //                 value={formData.email}
-//                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+//                 onChange={(e) =>
+//                   setFormData((prev) => ({ ...prev, email: e.target.value }))
+//                 }
 //                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 //                 required
 //               />
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Role
+//               </label>
 //               <select
 //                 value={formData.role}
-//                 onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+//                 onChange={(e) =>
+//                   setFormData((prev) => ({ ...prev, role: e.target.value }))
+//                 }
 //                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 //               >
-//                 {roles.map(role => (
-//                   <option key={role} value={role}>{role}</option>
+//                 {roles.map((role) => (
+//                   <option key={role} value={role}>
+//                     {role}
+//                   </option>
 //                 ))}
 //               </select>
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Affiliation</label>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Affiliation
+//               </label>
 //               <input
 //                 type="text"
 //                 value={formData.affiliation}
-//                 onChange={(e) => setFormData(prev => ({ ...prev, affiliation: e.target.value }))}
+//                 onChange={(e) =>
+//                   setFormData((prev) => ({
+//                     ...prev,
+//                     affiliation: e.target.value,
+//                   }))
+//                 }
 //                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 //               />
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">
+//                 Password
+//               </label>
 //               <input
 //                 type="password"
 //                 value={formData.password}
-//                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+//                 onChange={(e) =>
+//                   setFormData((prev) => ({ ...prev, password: e.target.value }))
+//                 }
 //                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 //                 required
 //               />
@@ -253,8 +298,12 @@ export { Users };
 //         <div className="mb-8">
 //           <div className="flex justify-between items-center">
 //             <div>
-//               <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-//               <p className="text-gray-600 mt-2">Manage users, researchers, and their permissions</p>
+//               <h1 className="text-3xl font-bold text-gray-900">
+//                 User Management
+//               </h1>
+//               <p className="text-gray-600 mt-2">
+//                 Manage users, researchers, and their permissions
+//               </p>
 //             </div>
 //             <button
 //               onClick={() => setShowCreateModal(true)}
@@ -271,20 +320,20 @@ export { Users };
 //           <div className="border-b border-gray-200">
 //             <nav className="flex space-x-8 px-6">
 //               {[
-//                 { key: 'all', label: 'All Users' },
-//                 { key: 'admin', label: 'Admins' },
-//                 { key: 'researcher', label: 'Researchers' },
-//                 { key: 'member', label: 'Members' },
-//                 { key: 'affiliate', label: 'Affiliates' },
-//                 { key: 'partner', label: 'Partners' }
-//               ].map(tab => (
+//                 { key: "all", label: "All Users" },
+//                 { key: "admin", label: "Admins" },
+//                 { key: "researcher", label: "Researchers" },
+//                 { key: "member", label: "Members" },
+//                 { key: "affiliate", label: "Affiliates" },
+//                 { key: "partner", label: "Partners" },
+//               ].map((tab) => (
 //                 <button
 //                   key={tab.key}
 //                   onClick={() => setActiveTab(tab.key)}
 //                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
 //                     activeTab === tab.key
-//                       ? 'border-blue-500 text-blue-600'
-//                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+//                       ? "border-blue-500 text-blue-600"
+//                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
 //                   }`}
 //                 >
 //                   {tab.label} ({tabCounts[tab.key]})
@@ -321,18 +370,27 @@ export { Users };
 //               <div className="flex items-center space-x-4">
 //                 <input
 //                   type="checkbox"
-//                   checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+//                   checked={
+//                     selectedUsers.length === filteredUsers.length &&
+//                     filteredUsers.length > 0
+//                   }
 //                   onChange={handleSelectAll}
 //                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 //                 />
 //                 <span className="text-sm text-gray-700">
-//                   {selectedUsers.length > 0 ? `${selectedUsers.length} selected` : `${filteredUsers.length} users`}
+//                   {selectedUsers.length > 0
+//                     ? `${selectedUsers.length} selected`
+//                     : `${filteredUsers.length} users`}
 //                 </span>
 //               </div>
 //               {selectedUsers.length > 0 && (
 //                 <div className="flex items-center space-x-2">
-//                   <button className="text-sm text-blue-600 hover:text-blue-800">Bulk Edit</button>
-//                   <button className="text-sm text-red-600 hover:text-red-800">Delete Selected</button>
+//                   <button className="text-sm text-blue-600 hover:text-blue-800">
+//                     Bulk Edit
+//                   </button>
+//                   <button className="text-sm text-red-600 hover:text-red-800">
+//                     Delete Selected
+//                   </button>
 //                 </div>
 //               )}
 //             </div>
@@ -343,14 +401,29 @@ export { Users };
 //               <thead className="bg-gray-50">
 //                 <tr>
 //                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                     <input type="checkbox" className="rounded border-gray-300" />
+//                     <input
+//                       type="checkbox"
+//                       className="rounded border-gray-300"
+//                     />
 //                   </th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stats</th>
-//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     User
+//                   </th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Role
+//                   </th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Status
+//                   </th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Activity
+//                   </th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Stats
+//                   </th>
+//                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Actions
+//                   </th>
 //                 </tr>
 //               </thead>
 //               <tbody className="bg-white divide-y divide-gray-200">
@@ -372,29 +445,83 @@ export { Users };
 //                           </div>
 //                         </div>
 //                         <div className="ml-4">
-//                           <div className="text-sm font-medium text-gray-900">{user.name}</div>
-//                           <div className="text-sm text-gray-500">{user.email}</div>
-//                           <div className="text-xs text-gray-400">{user.affiliation}</div>
+//                           <div className="text-sm font-medium text-gray-900">
+//                             {user.name}
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             {user.email}
+//                           </div>
+//                           <div className="text-xs text-gray-400">
+//                             {user.affiliation}
+//                           </div>
 //                         </div>
 //                       </div>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+//                       <span
+//                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
+//                           user.role
+//                         )}`}
+//                       >
 //                         {user.role}
 //                       </span>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+//                       <span
+//                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+//                           user.status
+//                         )}`}
+//                       >
 //                         {user.status}
 //                       </span>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap">
-//                       <div className="text-sm text-gray-900">Joined {user.createdAt}</div>
-//                       <div className="text-sm text-gray-500">Last active {user.lastActive}</div>
+//                       <div className="text-sm text-gray-900">
+//                         Joined {user.createdAt}
+//                       </div>
+//                       <div className="text-sm text-gray-500">
+//                         Last active {user.lastActive}
+//                       </div>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 //                       <div>{user.publicationsCount} publications</div>
-//                       <div className="text-gray-500">{user.projectsCount} projects</div>
+//                       <div className="text-gray-500">
+//                         {user.projectsCount} projects
+//                       </div>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                       <div className="flex items-center space-x
+//                       <div className="flex items-center space-x-2">
+//                         <button
+//                           onClick={() => {
+//                             setEditingUser(user);
+//                             setShowEditModal(true);
+//                           }}
+//                           className="text-blue-600 hover:text-blue-900"
+//                         >
+//                           <Edit className="w-4 h-4" />
+//                         </button>
+//                         <button className="text-gray-600 hover:text-gray-900">
+//                           <Eye className="w-4 h-4" />
+//                         </button>
+//                         <button className="text-red-600 hover:text-red-900">
+//                           <Trash2 className="w-4 h-4" />
+//                         </button>
+//                         <button className="text-gray-600 hover:text-gray-900">
+//                           <MoreVertical className="w-4 h-4" />
+//                         </button>
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+
+//         <CreateUserModal />
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default AdminUsersPage;
