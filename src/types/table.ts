@@ -2,15 +2,8 @@ import type { ColumnDef, Row, Table } from "@tanstack/react-table";
 
 import { ActionKey, BarAction } from "@/types";
 
-// Enhanced icon props to support common Lucide icon properties
-export type IconProps = {
-  className?: string;
-  size?: number | string;
-  strokeWidth?: number;
-  color?: string;
-  fill?: string;
-  "aria-hidden"?: boolean;
-};
+// Enhanced icon props that extend standard SVG properties
+export type IconProps = React.SVGProps<SVGSVGElement>;
 
 // Base column meta that can be extended
 export type ColumnMeta = {
@@ -118,13 +111,13 @@ export function getTypedValue<TData, TValue>(
 
 // Helper function to create consistent icon props
 export function createIconProps(
-  className?: string,
-  strokeWidth?: number,
+  className = "size-4",
+  strokeWidth = 1.5,
   additionalProps?: Partial<IconProps>
 ): IconProps {
   return {
-    className: className || "size-4",
-    strokeWidth: strokeWidth || 1.5,
+    className,
+    strokeWidth,
     "aria-hidden": true,
     ...additionalProps,
   };
