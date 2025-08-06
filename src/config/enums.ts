@@ -94,3 +94,13 @@ export const videoResearcherRoles = defineEnum(
 );
 
 export const barActions = defineEnum("publication", "project", "video");
+
+export const projectStatus = defineEnum(
+  "planning",
+  "active",
+  "on_hold",
+  "completed",
+  "cancelled"
+);
+
+export const projectPriority = defineEnum("low", "medium", "high", "critical");

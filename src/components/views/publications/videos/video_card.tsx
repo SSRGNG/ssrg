@@ -16,6 +16,11 @@ import {
   Card as LinkCard,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { videoCats } from "@/config/enums";
 import { formatInText } from "@/db/utils";
 import { Videos } from "@/lib/actions/queries";
@@ -180,13 +185,17 @@ const VideoThumbnail = React.memo(
           </>
         ) : (
           <div className="relative w-full aspect-[24/9]">
-            <iframe
-              src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
-              title={video.title}
-              className="w-full h-full rounded-md"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <iframe
+                  src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
+                  className="w-full h-full rounded-md"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </TooltipTrigger>
+              <TooltipContent>{video.title}</TooltipContent>
+            </Tooltip>
             <Button
               size="sm"
               variant="secondary"

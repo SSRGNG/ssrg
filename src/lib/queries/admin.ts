@@ -340,8 +340,8 @@ export async function getUserWithDetails(userId: string) {
                 id: projects.id,
                 title: projects.title,
                 description: projects.description,
-                period: projects.period,
-                location: projects.location,
+                priority: projects.priority,
+                status: projects.status,
               })
               .from(projects)
               .where(eq(projects.leadResearcherId, user.researcherId))
@@ -631,7 +631,7 @@ export async function getProjects(limit = Infinity, offset = 0) {
     offset,
   });
 }
-// 1. Get a researcher with the provided researcherId
+// Get a researcher with the provided researcherId
 export async function getResearcher(researcherId: string) {
   try {
     const researcher = await db.query.researchers.findFirst({
@@ -750,7 +750,7 @@ export async function getFeaturedResearchers() {
   return featuredResearchers;
 }
 
-// 7. Add expertise to a researcher
+// Add expertise to a researcher
 export async function addResearcherExpertise(
   researcherId: string,
   expertiseList: string[]
@@ -770,7 +770,7 @@ export async function addResearcherExpertise(
   return db.insert(researcherExpertise).values(expertiseToInsert).returning();
 }
 
-// 8. Add education to a researcher
+// Add education to a researcher
 export async function addResearcherEducation(
   researcherId: string,
   educationList: string[]
@@ -790,7 +790,7 @@ export async function addResearcherEducation(
   return db.insert(researcherEducation).values(educationToInsert).returning();
 }
 
-// 9. Associate researcher with research areas
+// Associate researcher with research areas
 export async function setResearcherAreas(
   researcherId: string,
   areaIds: string[]
@@ -809,7 +809,7 @@ export async function setResearcherAreas(
   return db.insert(researcherAreas).values(areasToInsert).returning();
 }
 
-// 10. Search researchers by name or expertise
+// Search researchers by name or expertise
 export async function searchResearchers(searchTerm: string) {
   const userResults = await db.query.users.findMany({
     where: (users, { ilike }) => ilike(users.name, `%${searchTerm}%`),

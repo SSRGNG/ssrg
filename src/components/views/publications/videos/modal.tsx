@@ -8,6 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { updateVideoViewCount } from "@/lib/actions/videos";
 import { X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -64,14 +69,17 @@ function Modal({ videos, ...props }: Props) {
         </DialogHeader>
 
         <div className="relative w-full aspect-video">
-          <iframe
-            src={`https://www.youtube.com/embed/${currentVideo.youtubeId}?autoplay=1&rel=0`}
-            title={currentVideo.title}
-            className="w-full h-full rounded-lg"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <iframe
+                src={`https://www.youtube.com/embed/${currentVideo.youtubeId}?autoplay=1&rel=0`}
+                className="w-full h-full rounded-lg"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </TooltipTrigger>
+            <TooltipContent>{currentVideo.title}</TooltipContent>
+          </Tooltip>
           <Button
             size="sm"
             variant="secondary"

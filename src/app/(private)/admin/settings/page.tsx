@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import * as React from "react";
 
 import { Icons } from "@/components/shared/icons";
 import { Shell } from "@/components/shell";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResearchAreas } from "@/components/views/admin/core";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
-  title: `Core Features`,
+  title: `Admin Settings`,
 };
 
 const core_features = [
@@ -16,9 +14,10 @@ const core_features = [
   { title: "Methodologies", icon: "methods" as Icons },
   // { title: "Projects", icon: "projects" as Icons },
 ];
-export default function CoreFeatures() {
+
+export default function Settings() {
   return (
-    <Shell variant={"portal"}>
+    <Shell variant={"portal"} className="space-y-4">
       <Tabs defaultValue={core_features[0].title}>
         <TabsList className="flex flex-wrap justify-start gap-1.5 w-full">
           {core_features.map((framework) => {
@@ -37,19 +36,9 @@ export default function CoreFeatures() {
             );
           })}
         </TabsList>
-        <React.Suspense fallback={<p>Loading research areas</p>}>
-          <ResearchAreas value={core_features[0].title} />
-        </React.Suspense>
-        {/* <React.Suspense fallback={<p>Loading research frameworks</p>}>
-          <ResearchFrameworks value={core_features[1].title} />
-        </React.Suspense>
-        <React.Suspense fallback={<p>Loading research methodologies</p>}>
-          <ResearchMethodologies value={core_features[2].title} />
-        </React.Suspense> */}
-
-        {/* <React.Suspense fallback={<p>Loading projects</p>}>
-          <Projects value={core_features[3].title} />
-        </React.Suspense> */}
+        <TabsContent value={core_features[0].title}>
+          Research Framework
+        </TabsContent>
       </Tabs>
     </Shell>
   );

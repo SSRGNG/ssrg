@@ -1,5 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { RFrameworksDataTable } from "@/components/views/admin/core/ui-tables";
+import { RFrameworksDataTable } from "@/components/views/admin/ui-tables";
 import { getCachedResearchFrameworks } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 

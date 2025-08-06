@@ -46,7 +46,9 @@ export default async function Videos({
       <Page
         variant={"publications"}
         className={cn(
-          viewMode === "detailed" ? "grid-cols-1" : "md:grid-cols-2"
+          viewMode === "detailed" ? "grid-cols-1" : "md:grid-cols-2",
+          videos.length === 0 &&
+            "md:col-span-full content-center justify-center text-center"
         )}
       >
         {videos.map((video, idx) => (

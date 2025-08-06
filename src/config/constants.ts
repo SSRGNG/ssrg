@@ -149,7 +149,7 @@ export const appNav: AppNavItem[] = [
   {
     title: "Videos",
     href: "/portal/videos",
-    description: "Research ",
+    description: "YouTube videos",
     roles: ["admin", "researcher"],
     icon: "video",
     items: [],
@@ -157,11 +157,31 @@ export const appNav: AppNavItem[] = [
   {
     title: "Research Projects",
     href: "/portal/projects",
-    description: "Current and past research initiatives",
+    description: "Create, manage, and track research projects",
     roles: ["admin", "researcher"],
     icon: "research",
     disabled: true,
     items: [],
+    // This page would have researcher-facing actions like:
+    // - Create New Project
+    // - Add Team Members
+    // - Set Milestones
+    // - Track Progress
+    // - Manage Budgets (if researcher is project lead)
+  },
+  {
+    title: "My Teams",
+    href: "/portal/teams",
+    description: "Projects you're leading or participating in",
+    roles: ["admin", "researcher"],
+    icon: "people",
+    disabled: true, // New addition
+    items: [],
+    // This page would show:
+    // - Projects I'm leading
+    // - Projects I'm a member of
+    // - Team collaboration tools
+    // - Communication features
   },
   {
     title: "Data Repository",
@@ -544,7 +564,7 @@ export const actions = {
         area: "Create Research Area",
         framework: "Create Research Framework",
         methodology: "Create Research Methodology",
-        project: "Create Project",
+        // project: "Create Project",
       },
     },
     {
@@ -558,12 +578,15 @@ export const actions = {
       },
     },
     {
-      title: "Research Team",
+      title: "Project Teams",
       href: "/admin/teams",
       roles: ["admin"] as Role[],
       icon: "people" as Icons,
       options: {
-        partner: "Manage Partners & Collaborators",
+        audit: "Audit Team Activities",
+        policy: "Set Team Policies",
+        archive: "Archive Completed Projects",
+        export: "Export Team Data",
       },
     },
     {

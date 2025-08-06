@@ -155,6 +155,20 @@
       "when": 1753010161641,
       "tag": "0021_milky_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1754377538582,
+      "tag": "0022_slim_thunderball",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1754469340613,
+      "tag": "0023_hard_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

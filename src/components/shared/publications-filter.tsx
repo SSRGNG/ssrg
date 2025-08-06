@@ -9,6 +9,11 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentProps<typeof SelectTrigger>;
@@ -46,14 +51,18 @@ function PublicationsFilter({ className, ...props }: Props) {
 
   return (
     <Select value={currentSort} onValueChange={handleSortChange}>
-      <SelectTrigger
-        size="sm"
-        className={cn("p-1 gap-0.5", className)}
-        title="Sort publications"
-        {...props}
-      >
-        {getSortIcon()}
-      </SelectTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SelectTrigger
+            size="sm"
+            className={cn("p-1 gap-0.5", className)}
+            {...props}
+          >
+            {getSortIcon()}
+          </SelectTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Sort publications</TooltipContent>
+      </Tooltip>
       <SelectContent>
         <SelectItem value="recent">
           <Calendar className="size-4" strokeWidth={1.5} /> Most Recent

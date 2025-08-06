@@ -1,0 +1,1 @@
+CREATE INDEX "project_members_unique_active" ON "project_members" USING btree ("project_id","researcher_id") WHERE "project_members"."is_active" = true;

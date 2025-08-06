@@ -4,6 +4,11 @@ import { LayoutGrid, List } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentProps<"div">;
@@ -31,30 +36,39 @@ function ViewMode({ className, ...props }: Props) {
       className={cn("flex items-center border rounded-md", className)}
       {...props}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleViewChange("detailed")}
-        className={cn(
-          "rounded-[5.3px] rounded-r-none border-r size-8",
-          currentView === "detailed" && "bg-accent"
-        )}
-        title="Detailed view"
-      >
-        <List className="size-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleViewChange("compact")}
-        className={cn(
-          "rounded-[5.3px] rounded-l-none size-8",
-          currentView === "compact" && "bg-accent"
-        )}
-        title="Compact view"
-      >
-        <LayoutGrid className="size-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleViewChange("detailed")}
+            className={cn(
+              "rounded-[5.3px] rounded-r-none border-r size-8",
+              currentView === "detailed" && "bg-accent"
+            )}
+          >
+            <List className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Detailed view</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleViewChange("compact")}
+            className={cn(
+              "rounded-[5.3px] rounded-l-none size-8",
+              currentView === "compact" && "bg-accent"
+            )}
+          >
+            <LayoutGrid className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Compact view</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

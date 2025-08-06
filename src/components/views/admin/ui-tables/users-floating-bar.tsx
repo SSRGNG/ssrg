@@ -29,6 +29,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { roles } from "@/config/enums";
 import { bulkDeleteUsers, bulkUpdateUserRole } from "@/lib/actions";
 import type { AdminUsers } from "@/lib/actions/queries";
@@ -165,29 +170,36 @@ function UsersTableFloatingBar<TData extends UserData>({
         />
 
         <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setRoleUpdateDialogOpen(true)}
-            disabled={isPending}
-            className="px-2.5 has-[>svg]:px-2.5"
-            title="Assign Role"
-          >
-            <UserCog className="size-3" />
-            <span className="hidden xs:inline">Assign Role</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={isPending}
-            className=" text-rose-600 hover:text-rose-700 px-2.5 has-[>svg]:px-2.5"
-            title="Delete"
-          >
-            <Trash2 className="size-3" />
-            <span className="hidden xs:inline">Delete</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRoleUpdateDialogOpen(true)}
+                disabled={isPending}
+                className="px-2.5 has-[>svg]:px-2.5"
+              >
+                <UserCog className="size-3" />
+                <span className="hidden xs:inline">Assign Role</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="xs:hidden">Assign Role</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={isPending}
+                className=" text-rose-600 hover:text-rose-700 px-2.5 has-[>svg]:px-2.5"
+              >
+                <Trash2 className="size-3" />
+                <span className="hidden xs:inline">Delete</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="xs:hidden">Delete</TooltipContent>
+          </Tooltip>
         </div>
 
         <Separator

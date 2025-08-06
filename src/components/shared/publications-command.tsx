@@ -16,6 +16,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { formatInTextCitation } from "@/db/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { PublicationSearchResults } from "@/lib/actions/queries";
@@ -248,18 +253,22 @@ function PublicationsCommand({ className, ...props }: Props) {
 
                     {/* External link button */}
                     {publication.link && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 shrink-0 opacity-60 hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(publication.link!, "_blank");
-                        }}
-                        title="Open publication"
-                      >
-                        <ExternalLink className="size-3" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 shrink-0 opacity-60 hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(publication.link!, "_blank");
+                            }}
+                          >
+                            <ExternalLink className="size-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Open publication</TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </CommandItem>

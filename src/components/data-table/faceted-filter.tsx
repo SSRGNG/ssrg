@@ -19,6 +19,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { DataTableOption } from "@/types/table";
 
@@ -41,46 +46,51 @@ function DataTableFacetedFilter<TData, TValue>({
   return (
     <Popover>
       <PopoverTrigger asChild {...props}>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <Crosshair className="size-4" />
-          <span className="hidden sm:inline-flex">{title}</span>
-          {selectedValues?.size > 0 && (
-            <React.Fragment>
-              <Separator
-                orientation="vertical"
-                className="data-[orientation=vertical]:h-4"
-              />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
-                {selectedValues.size}
-              </Badge>
-              <div className="hidden gap-1 lg:flex">
-                {selectedValues.size > 2 ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 border-dashed">
+              <Crosshair className="size-4" />
+              <span className="hidden sm:inline-flex">{title}</span>
+              {selectedValues?.size > 0 && (
+                <React.Fragment>
+                  <Separator
+                    orientation="vertical"
+                    className="data-[orientation=vertical]:h-4"
+                  />
                   <Badge
                     variant="secondary"
-                    className="rounded-sm px-1 font-normal"
+                    className="rounded-sm px-1 font-normal lg:hidden"
                   >
                     {selectedValues.size}
                   </Badge>
-                ) : (
-                  options
-                    .filter((option) => selectedValues.has(option.value))
-                    .map((option) => (
+                  <div className="hidden gap-1 lg:flex">
+                    {selectedValues.size > 2 ? (
                       <Badge
                         variant="secondary"
-                        key={option.value}
                         className="rounded-sm px-1 font-normal"
                       >
-                        {option.label}
+                        {selectedValues.size}
                       </Badge>
-                    ))
-                )}
-              </div>
-            </React.Fragment>
-          )}
-        </Button>
+                    ) : (
+                      options
+                        .filter((option) => selectedValues.has(option.value))
+                        .map((option) => (
+                          <Badge
+                            variant="secondary"
+                            key={option.value}
+                            className="rounded-sm px-1 font-normal"
+                          >
+                            {option.label}
+                          </Badge>
+                        ))
+                    )}
+                  </div>
+                </React.Fragment>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">{title}</TooltipContent>
+        </Tooltip>
       </PopoverTrigger>
       <PopoverContent className="w-[12.5rem] p-0" align="start">
         <Command>

@@ -1,5 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { ProjectsDataTable } from "@/components/views/admin/core/ui-tables";
+import { ProjectsDataTable } from "@/components/views/admin/ui-tables";
 import { getCachedProjects } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 

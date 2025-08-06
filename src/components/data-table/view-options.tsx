@@ -12,6 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getColumnDisplayName } from "@/types/table";
 
 type DataTableViewOptionsProps<TData> = React.ComponentPropsWithoutRef<
@@ -27,15 +32,20 @@ function DataTableViewOptions<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild {...props}>
-        <Button
-          aria-label="Toggle columns"
-          variant="outline"
-          size="sm"
-          className="ml-auto h-8"
-        >
-          <Settings2 className="size-4" />
-          <span className="hidden sm:inline-flex">View</span>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label="Toggle columns"
+              variant="outline"
+              size="sm"
+              className="ml-auto h-8"
+            >
+              <Settings2 className="size-4" />
+              <span className="hidden sm:inline-flex">View</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">Toggle Views</TooltipContent>
+        </Tooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>

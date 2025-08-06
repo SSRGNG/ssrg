@@ -9,6 +9,8 @@ import {
   partnerProjects,
   partners,
   projectCategories,
+  projectMembers,
+  projectMilestones,
   projects,
   publicationAuthors,
   publications,
@@ -100,14 +102,47 @@ export const partnersRelations = relations(partners, ({ many }) => ({
 
 // projects
 export const projectsRelations = relations(projects, ({ many, one }) => ({
+  // Lead researcher relation
   leadResearcher: one(researchers, {
     fields: [projects.leadResearcherId],
     references: [researchers.id],
     relationName: "lead",
   }),
+  // Creator relation
+  creator: one(users, {
+    fields: [projects.creatorId],
+    references: [users.id],
+  }),
+  // Research area categories (from junction table)
   categories: many(projectCategories),
+  // Partner projects (from junction table)
   partners: many(partnerProjects),
+  // Team members
+  members: many(projectMembers),
+  // Milestones
+  milestones: many(projectMilestones),
 }));
+
+export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectMembers.projectId],
+    references: [projects.id],
+  }),
+  researcher: one(researchers, {
+    fields: [projectMembers.researcherId],
+    references: [researchers.id],
+  }),
+}));
+
+export const projectMilestonesRelations = relations(
+  projectMilestones,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectMilestones.projectId],
+      references: [projects.id],
+    }),
+  })
+);
 
 export const projectCategoriesRelations = relations(
   projectCategories,
@@ -231,9 +266,6 @@ export const researchersRelations = relations(researchers, ({ one, many }) => ({
   expertise: many(researcherExpertise),
   education: many(researcherEducation),
   areas: many(researcherAreas),
-  // publications: many(publicationAuthors),
-  // Publications where this researcher is an author (through authors table)
-  // authorProfile: many(authors), // One researcher can have multiple author records
   author: one(authors, {
     fields: [researchers.id],
     references: [authors.researcherId],
@@ -297,7 +329,6 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
 }));
 
 // Video authors junction table relations
-
 export const videoAuthorsRelations = relations(videoAuthors, ({ one }) => ({
   video: one(videos, {
     fields: [videoAuthors.videoId],

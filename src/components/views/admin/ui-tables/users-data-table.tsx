@@ -2,7 +2,16 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { format, isWithinInterval } from "date-fns";
-import { Edit, Ellipsis, Eye, Trash2, User } from "lucide-react";
+import {
+  Edit,
+  Ellipsis,
+  ExternalLink,
+  Eye,
+  GitBranchPlus,
+  GraduationCap,
+  Trash2,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { toast } from "sonner";
@@ -30,7 +39,13 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { UsersTableFloatingBar } from "@/components/views/admin/ui-tables/users-floating-bar";
+import { MakeAdminResearcher } from "@/components/views/admin/users";
 import { roles } from "@/config/enums";
 import { deleteUser } from "@/lib/actions";
 import type { AdminUsers, AuthResearcher } from "@/lib/actions/queries";
@@ -120,6 +135,7 @@ function UsersDataTable({
         ),
         cell: ({ row }) => {
           const user = row.original;
+          const isResearcher = !!user.researcherId;
 
           return (
             <div className="flex items-center gap-1.5">
@@ -137,20 +153,31 @@ function UsersDataTable({
                 />
               ) : (
                 <span className="flex-shrink-0 inline-flex items-center justify-center size-10 rounded-full bg-muted">
-                  <User className="size-5" strokeWidth={1.0} />
+                  {isResearcher ? (
+                    <GraduationCap className="size-5" strokeWidth={1.5} />
+                  ) : (
+                    <User className="size-5" strokeWidth={1.5} />
+                  )}
                 </span>
               )}
-              <p className="text-sm">
-                <span className="font-medium">{user.name}</span>{" "}
-                {user.affiliation ? (
-                  <span className="text-xs text-muted-foreground/70">
-                    ({user.affiliation})
+              <div className="text-sm min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium truncate">{user.name}</span>
+                  {isResearcher && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <GraduationCap className="size-3 text-brand flex-shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>Active Researcher</TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+                {user.affiliation && (
+                  <span className="text-xs text-muted-foreground/70 block truncate">
+                    {user.affiliation}
                   </span>
-                ) : null}
-                <span className="text-muted-foreground block">
-                  {user.email}
-                </span>
-              </p>
+                )}
+              </div>
             </div>
           );
         },
@@ -163,23 +190,32 @@ function UsersDataTable({
         ),
         cell: ({ row }) => {
           const role = row.original.role;
-          // return roles.getLabel(role);
+          const isResearcher = !!row.original.researcherId;
+
           return (
-            <Badge
-              variant={
-                role === "admin"
-                  ? "brand"
-                  : role === "researcher"
-                  ? "default"
-                  : role === "affiliate"
-                  ? "secondary"
-                  : role === "partner"
-                  ? "outline"
-                  : "destructive"
-              }
-            >
-              {roles.getLabel(role)}
-            </Badge>
+            <div className="flex flex-wrap gap-1">
+              <Badge
+                variant={
+                  role === "admin"
+                    ? "default"
+                    : role === "researcher"
+                    ? "brand"
+                    : role === "affiliate"
+                    ? "secondary"
+                    : role === "partner"
+                    ? "outline"
+                    : "destructive"
+                }
+              >
+                {roles.getLabel(role)}
+              </Badge>
+              {isResearcher && role !== "researcher" && (
+                <Badge variant="brand" className="text-xs">
+                  <GraduationCap className="size-2" />
+                  Researcher
+                </Badge>
+              )}
+            </div>
           );
         },
         filterFn: "includesString",
@@ -189,14 +225,6 @@ function UsersDataTable({
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Date" />
         ),
-        // cell: ({ row }) => {
-        //   const venue = row.original.createdAt;
-        //   return (
-        //     <span className="whitespace-normal line-clamp-2">
-        //       {venue || "N/A"}
-        //     </span>
-        //   );
-        // },
         cell: ({ cell }) =>
           formatDate(cell.getValue() as Date, {
             month: "short", //"Jan-Dec" instead of "January-December"
@@ -218,37 +246,58 @@ function UsersDataTable({
             );
           }
         },
-        // filterFn: "includesString",
         meta: { displayName: "Date Joined" },
       },
       {
         accessorKey: "projectCount",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Stat" />
+          <DataTableColumnHeader column={column} title="Research Output" />
         ),
         cell: ({ row }) => {
-          const { projectCount, publicationCount, videoCount } = row.original;
+          const { projectCount, publicationCount, videoCount, researcherId } =
+            row.original;
+          const hasResearchOutput =
+            publicationCount > 0 || videoCount > 0 || projectCount > 0;
+
+          if (!researcherId && !hasResearchOutput) {
+            return (
+              <span className="text-xs text-muted-foreground">
+                No research activity
+              </span>
+            );
+          }
+
           return (
-            <p className="text-sm">
-              <span className="font-medium block">
-                {publicationCount}{" "}
-                {publicationCount === 1 ? "publication" : "publications"}
-              </span>
-              <span className="text-muted-foreground">
-                {videoCount} {videoCount === 1 ? "video" : "videos"}
-              </span>{" "}
-              <span className="text-xs text-muted-foreground/70">
-                & {projectCount} {projectCount === 1 ? "project" : "projects"}
-              </span>
-            </p>
+            <div className="text-sm space-y-0.5">
+              {publicationCount > 0 && (
+                <div className="font-medium">
+                  {publicationCount}{" "}
+                  {publicationCount === 1 ? "publication" : "publications"}
+                </div>
+              )}
+              <div className="text-muted-foreground text-xs space-x-1.5">
+                {videoCount > 0 && (
+                  <span>
+                    {videoCount} {videoCount === 1 ? "video" : "videos"}
+                  </span>
+                )}
+                {projectCount > 0 && (
+                  <span>
+                    {projectCount} {projectCount === 1 ? "project" : "projects"}
+                  </span>
+                )}
+              </div>
+            </div>
           );
         },
-        meta: { displayName: "Stat" },
+        enableSorting: false,
+        meta: { displayName: "Research Output" },
       },
       {
         id: "actions",
         cell: ({ row }) => {
           const user = row.original;
+          const isResearcher = !!user.researcherId;
 
           return (
             <DropdownMenu modal={false}>
@@ -264,9 +313,33 @@ function UsersDataTable({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>
                   <Eye />
-                  View Details
+                  View Profile
                 </DropdownMenuItem>
+                {isResearcher && (
+                  <DropdownMenuItem>
+                    <GraduationCap />
+                    Research Profile
+                    <DropdownMenuShortcut>
+                      <ExternalLink className="size-3" />
+                    </DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
+                {user.role === "admin" && !isResearcher && (
+                  <DropdownMenuItem>
+                    <MakeAdminResearcher name={user.name}>
+                      <Button
+                        aria-label="Toggle creation"
+                        size="sm"
+                        variant="ghost"
+                        className={cn("w-full justify-start text-xs px-2")}
+                      >
+                        <GitBranchPlus />
+                        Make a Researcher
+                      </Button>
+                    </MakeAdminResearcher>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem>
                   <Edit />
                   Edit User
@@ -327,6 +400,11 @@ function UsersDataTable({
               Are you sure you want to delete &quot;{userToDelete?.name}
               &quot;? This action cannot be undone and will remove the user and
               all associated relationships.
+              {userToDelete?.researcherId && (
+                <span className="block mt-2 text-orange-600 font-medium">
+                  ⚠️ This user has research data that will also be affected.
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

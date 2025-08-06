@@ -10,6 +10,8 @@ import {
   fileCats,
   partners,
   presenterRoles,
+  projectPriority,
+  projectStatus,
   publications as publicationsEnum,
   roles,
   videoCats,
@@ -44,6 +46,8 @@ export type DatasetStatus = typeof datasetStatus.type;
 export type BarAction = typeof barActions.type;
 export type VideoCategory = typeof videoCats.type;
 export type VideoResearcherRole = typeof videoResearcherRoles.type;
+export type ProjectStatus = typeof projectStatus.type;
+export type ProjectPriority = typeof projectPriority.type;
 
 export type Researcher = (typeof researchers)[number];
 

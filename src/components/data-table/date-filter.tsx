@@ -26,6 +26,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { DateColumn } from "@/types/table";
 
@@ -184,84 +189,42 @@ function DataTableDateFilter<TData, TValue>({
     },
   };
 
-  // return (
-  //   <Popover>
-  //     <PopoverTrigger asChild {...props}>
-  //       <Button
-  //         variant="outline"
-  //         size="sm"
-  //         className={cn(
-  //           "h-8 border-dashed",
-  //           (date || selectedRange) && "bg-muted"
-  //         )}
-  //       >
-  //         <CalendarDaysIcon className="size-4" />
-  //         <span className="hidden sm:inline-flex">
-  //           {date
-  //             ? format(date, "LLL dd, y")
-  //             : selectedRange
-  //             ? `${format(selectedRange.start, "MMM yyyy")}`
-  //             : "Pick a date"}
-  //         </span>
-  //       </Button>
-  //     </PopoverTrigger>
-  //     <PopoverContent className="w-auto flex flex-col gap-2 p-2">
-  //       <Select onValueChange={handleMonthSelect}>
-  //         <SelectTrigger>
-  //           <SelectValue placeholder="Select month" />
-  //         </SelectTrigger>
-  //         <SelectContent position="popper">
-  //           {uniqueMonths.map((month) => (
-  //             <SelectItem key={month} value={month}>
-  //               {month}
-  //             </SelectItem>
-  //           ))}
-  //         </SelectContent>
-  //       </Select>
-  //       <Calendar
-  //         mode="single"
-  //         selected={date}
-  //         onSelect={handleDateSelect}
-  //         month={calendarMonth}
-  //         onMonthChange={setCalendarMonth}
-  //         modifiers={modifiers}
-  //         modifiersStyles={modifiersStyles}
-  //         className="rounded-md border"
-  //         autoFocus
-  //       />
-  //     </PopoverContent>
-  //   </Popover>
-  // );
-
   return (
     <Popover>
       <PopoverTrigger asChild {...props}>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-8 border-dashed justify-start text-left font-normal",
-            isFiltered && "bg-muted",
-            !isFiltered && "text-muted-foreground"
-          )}
-        >
-          <CalendarDaysIcon
-            className="size-4"
-            strokeWidth={1.5}
-            aria-hidden="true"
-          />
-          <span className="hidden sm:inline-flex truncate">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 border-dashed justify-start text-left font-normal",
+                isFiltered && "bg-muted",
+                !isFiltered && "text-muted-foreground"
+              )}
+            >
+              <CalendarDaysIcon
+                className="size-4"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <span className="hidden sm:inline-flex truncate">
+                {getDisplayText()}
+              </span>
+              {isFiltered && (
+                <X
+                  className="ml-2 size-3.5 hover:bg-muted-foreground/20 rounded-sm p-0.5"
+                  strokeWidth={1.5}
+                  onClick={handleClearFilter}
+                  aria-label="Clear filter"
+                />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="sm:hidden">
             {getDisplayText()}
-          </span>
-          {isFiltered && (
-            <X
-              className="ml-2 size-3.5 hover:bg-muted-foreground/20 rounded-sm p-0.5"
-              strokeWidth={1.5}
-              onClick={handleClearFilter}
-              aria-label="Clear filter"
-            />
-          )}
-        </Button>
+          </TooltipContent>
+        </Tooltip>
       </PopoverTrigger>
       <PopoverContent className="w-auto flex flex-col gap-2 p-2" align="start">
         {showMonthSelect && uniqueMonths.length > 0 && (

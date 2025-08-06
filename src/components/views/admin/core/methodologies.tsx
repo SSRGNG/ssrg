@@ -1,5 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { RMethodologiesDataTable } from "@/components/views/admin/core/ui-tables";
+import { RMethodologiesDataTable } from "@/components/views/admin/ui-tables";
 import { getCachedResearchMethodologies } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 

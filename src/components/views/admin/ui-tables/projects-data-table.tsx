@@ -134,7 +134,6 @@ function ProjectsDataTable({ projects, className, ...props }: Props) {
           placeholder: "Filter by description...",
         },
       ]}
-      actionKey="project"
       {...props}
     />
   );
