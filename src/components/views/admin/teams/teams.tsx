@@ -1,6 +1,3 @@
-import { Plus } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alerts } from "@/components/views/admin/teams/alerts";
 import { Collaborators } from "@/components/views/admin/teams/collaborators";
@@ -23,26 +20,12 @@ async function Teams({ className, ...props }: Props) {
 
   return (
     <div className={cn("space-y-4", className)} {...props}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Project Teams</h1>
-          <p className="text-muted-foreground">
-            Manage research project teams and collaboration
-          </p>
-        </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          New Project
-        </Button>
-      </div>
-
       <Stats teams={teams} />
       <Alerts teams={teams} />
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="teams" className="space-y-4">
-        <TabsList>
+      <Tabs defaultValue="teams">
+        <TabsList className="flex flex-wrap justify-start gap-1.5 w-full">
           <TabsTrigger value="teams">Project Teams</TabsTrigger>
           <TabsTrigger value="collaborators">Top Collaborators</TabsTrigger>
           <TabsTrigger value="network">Collaboration Network</TabsTrigger>

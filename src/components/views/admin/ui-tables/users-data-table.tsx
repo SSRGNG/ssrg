@@ -45,7 +45,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UsersTableFloatingBar } from "@/components/views/admin/ui-tables/users-floating-bar";
-import { MakeAdminResearcher } from "@/components/views/admin/users";
+import { MakeAdminResearcher } from "@/components/views/admin/users/make-admin-researcher";
 import { roles } from "@/config/enums";
 import { deleteUser } from "@/lib/actions";
 import type { AdminUsers, AuthResearcher } from "@/lib/actions/queries";
@@ -298,6 +298,7 @@ function UsersDataTable({
         cell: ({ row }) => {
           const user = row.original;
           const isResearcher = !!user.researcherId;
+          const hasORCID = !!user.orcid;
 
           return (
             <DropdownMenu modal={false}>
@@ -311,12 +312,16 @@ function UsersDataTable({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem disabled>
                   <Eye />
                   View Profile
                 </DropdownMenuItem>
-                {isResearcher && (
-                  <DropdownMenuItem>
+                {isResearcher && hasORCID && (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      window.open(`https://orcid.org/${user.orcid}`, "_blank")
+                    }
+                  >
                     <GraduationCap />
                     Research Profile
                     <DropdownMenuShortcut>
@@ -340,7 +345,7 @@ function UsersDataTable({
                     </MakeAdminResearcher>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem>
+                <DropdownMenuItem disabled>
                   <Edit />
                   Edit User
                 </DropdownMenuItem>

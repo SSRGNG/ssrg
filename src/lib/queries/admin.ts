@@ -203,12 +203,13 @@ export async function getAllUsersWithStats() {
       // Researcher info if exists
       researcherId: researchers.id,
       bio: researchers.bio,
-      // Publication count
-      publicationCount: sql<number>`COALESCE(pub_counts.count, 0)`,
-      // Video count
-      videoCount: sql<number>`COALESCE(video_counts.count, 0)`,
-      // Project count (as lead researcher)
-      projectCount: sql<number>`COALESCE(project_counts.count, 0)`,
+      orcid: researchers.orcid,
+      // Publication count - cast to integer
+      publicationCount: sql<number>`CAST(COALESCE(pub_counts.count, 0) AS INTEGER)`,
+      // Video count - cast to integer
+      videoCount: sql<number>`CAST(COALESCE(video_counts.count, 0) AS INTEGER)`,
+      // Project count - cast to integer
+      projectCount: sql<number>`CAST(COALESCE(project_counts.count, 0) AS INTEGER)`,
     })
     .from(users)
     .leftJoin(researchers, eq(users.id, researchers.userId))

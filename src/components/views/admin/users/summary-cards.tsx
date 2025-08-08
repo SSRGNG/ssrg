@@ -2,31 +2,36 @@
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
+  ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { AdminUsers } from "@/lib/actions/queries";
+import { createChartConfig, createChartData } from "@/lib/chart-utils";
 import { cn } from "@/lib/utils";
 import { Building, Crown, GraduationCap, Users } from "lucide-react";
 import React from "react";
 import {
   Bar,
   BarChart,
-  Cell,
+  Label,
   Pie,
   PieChart,
+  PolarGrid,
+  PolarRadiusAxis,
   RadialBar,
   RadialBarChart,
-  ResponsiveContainer,
   XAxis,
-  YAxis,
 } from "recharts";
 
 const COLORS = {
@@ -40,22 +45,43 @@ type CTs = keyof typeof COLORS;
 type Props = React.ComponentPropsWithoutRef<"div"> & { users: AdminUsers };
 
 function SummaryCards({ users, className, ...props }: Props) {
+  // console.log({ users });
+
   const stats = React.useMemo(() => {
     const roleStats = users.reduce((acc, user) => {
       acc[user.role] = (acc[user.role] || 0) + 1;
       return acc;
     }, {} as Record<CTs, number>);
 
-    const researchersCount = users.filter((u) => u.researcherId).length;
-    const totalPublications = users.reduce(
-      (sum, u) => sum + (u.publicationCount || 0),
+    // Only count users who have researcher records (actual researchers)
+    const activeResearchers = users.filter((u) => u.researcherId);
+    const researchersCount = activeResearchers.length;
+
+    // Calculate research metrics only for active researchers
+    const totalPublications = activeResearchers.reduce(
+      (sum, u) => sum + Number(u.publicationCount || 0),
       0
     );
-    const totalVideos = users.reduce((sum, u) => sum + (u.videoCount || 0), 0);
-    const totalProjects = users.reduce(
-      (sum, u) => sum + (u.projectCount || 0),
+    const totalVideos = activeResearchers.reduce(
+      (sum, u) => sum + Number(u.videoCount || 0),
       0
     );
+    const totalProjects = activeResearchers.reduce(
+      (sum, u) => sum + Number(u.projectCount || 0),
+      0
+    );
+
+    // Calculate research productivity metrics
+    const avgPublicationsPerResearcher =
+      researchersCount > 0 ? totalPublications / researchersCount : 0;
+
+    const productiveResearchers = activeResearchers.filter(
+      (u) =>
+        Number(u.publicationCount || 0) +
+          Number(u.videoCount || 0) +
+          Number(u.projectCount || 0) >
+        0
+    ).length;
 
     return {
       total: users.length,
@@ -67,212 +93,414 @@ function SummaryCards({ users, className, ...props }: Props) {
       totalPublications,
       totalVideos,
       totalProjects,
+      avgPublicationsPerResearcher,
+      productiveResearchers,
       roleStats,
     };
   }, [users]);
 
-  const roleChartData = Object.entries(stats.roleStats).map(
-    ([role, count]) => ({
-      role: role.charAt(0).toUpperCase() + role.slice(1),
-      count,
-      fill: COLORS[role as CTs],
-    })
+  const roleData = Object.entries(stats.roleStats).map(([role, count]) => ({
+    role,
+    count,
+  }));
+  const roleChartData = createChartData(
+    roleData,
+    (role) => role.role,
+    (role) => role.count,
+    { dataKey: "count", nameKey: "role" }
   );
 
-  const contentChartData = [
-    { name: "Publications", value: stats.totalPublications, fill: "#8b5cf6" },
-    { name: "Videos", value: stats.totalVideos, fill: "#06b6d4" },
-    { name: "Projects", value: stats.totalProjects, fill: "#10b981" },
+  const roleChartConfig = createChartConfig(roleData, (role) => role.role, {
+    includeDataKeyConfig: true,
+    dataKey: "count",
+    dataKeyLabel: "Count",
+    colorMode: "direct",
+    palette: "vibrant",
+  });
+  // const roleChartData = Object.entries(stats.roleStats).map(
+  //   ([role, count]) => ({
+  //     role: role.charAt(0).toUpperCase() + role.slice(1),
+  //     count,
+  //     fill: COLORS[role as CTs],
+  //   })
+  // );
+
+  // Research productivity breakdown (only for researchers)
+  const researchData = [
+    { name: "Publications", value: stats.totalPublications },
+    { name: "Videos", value: stats.totalVideos },
+    { name: "Projects", value: stats.totalProjects },
   ];
 
-  const researcherProgressData = [
+  const researchChartData = createChartData(
+    researchData,
+    (research) => research.name,
+    (research) => research.value,
+    { dataKey: "value", nameKey: "name" }
+  );
+  const researchChartConfig = createChartConfig(
+    researchData,
+    (research) => research.name,
     {
-      name: "Active Researchers",
-      value: (stats.researchers / stats.total) * 100,
-      fill: "#06b6d4",
+      includeDataKeyConfig: true,
+      dataKey: "value",
+      dataKeyLabel: "Value",
+    }
+  );
+
+  const activityChartData = [
+    {
+      name: "active-researchers",
+      value:
+        stats.researchers > 0
+          ? (stats.productiveResearchers / stats.researchers) * 100
+          : 0,
+      total: 100,
+      fill: "var(--color-active-researchers)",
+    },
+    {
+      name: "research-coverage",
+      value: stats.total > 0 ? (stats.researchers / stats.total) * 100 : 0,
+      total: 100,
+      fill: "var(--color-research-coverage)",
     },
   ];
+  const activityChartConfig = {
+    value: {
+      label: "Percentage",
+    },
+    "active-researchers": {
+      label: "Active Researchers",
+      color: "var(--chart-1)",
+    },
+    "research-coverage": {
+      label: "Research Coverage",
+      color: "var(--chart-2)",
+    },
+  } satisfies ChartConfig;
 
-  const chartConfig = {
-    count: {
-      label: "Count",
-    },
-    admin: {
-      label: "Admin",
-      color: "#8b5cf6",
-    },
-    researcher: {
-      label: "Researcher",
-      color: "#06b6d4",
-    },
-    affiliate: {
-      label: "Affiliate",
-      color: "#10b981",
-    },
-    partner: {
-      label: "Partner",
-      color: "#f59e0b",
-    },
-    member: {
-      label: "Member",
-      color: "#ef4444",
-    },
-  };
+  const communityData = [
+    { name: "Partners", value: stats.partners },
+    { name: "Affiliates", value: stats.affiliates },
+    { name: "Members", value: stats.members },
+  ].filter((item) => item.value > 0); // Only show categories with data
+
+  const communityChartData = createChartData(
+    communityData,
+    (community) => community.name,
+    (community) => community.value,
+    { dataKey: "value", nameKey: "name" }
+  );
+  const communityChartConfig = createChartConfig(
+    communityData,
+    (community) => community.name,
+    {
+      includeDataKeyConfig: true,
+      dataKey: "value",
+      dataKeyLabel: "Count",
+    }
+  );
+
+  // console.log({ communityChartData });
+  // console.log({ communityChartConfig });
 
   return (
     <div
-      className={cn("grid gap-4 sm:grid-cols-2 md:grid-cols-4", className)}
+      className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-4", className)}
       {...props}
     >
-      <Card className="col-span-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <CardDescription>
-              {stats.researchers} active researchers
-            </CardDescription>
-          </div>
-          <Users className="h-4 w-4 text-muted-foreground" />
+      {/* Total Users Overview */}
+      <Card className="gap-2.5">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">User Activity</CardTitle>
+          <CardDescription>
+            {stats.productiveResearchers}/{stats.researchers} researchers active
+          </CardDescription>
+          <CardAction>
+            <Users className="size-4 text-muted-foreground" />
+          </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold mb-4">{stats.total}</div>
-          <ChartContainer config={chartConfig} className="h-[100px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                cx="50%"
-                cy="50%"
-                innerRadius="60%"
-                outerRadius="90%"
-                data={researcherProgressData}
-                startAngle={90}
-                endAngle={-270}
+          <ChartContainer
+            config={activityChartConfig}
+            className="mx-auto aspect-square w-full max-h-[250px]"
+          >
+            <RadialBarChart
+              data={activityChartData}
+              innerRadius={30}
+              outerRadius={70}
+              barSize={15}
+            >
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel nameKey="name" />}
+              />
+              <PolarGrid
+                gridType="circle"
+                radialLines={false}
+                stroke="none"
+                className="first:fill-muted last:fill-background"
+                polarRadius={[62, 50]}
+              />
+              <RadialBar dataKey="value" background cornerRadius={5} />
+              <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className={cn("fill-primary text-lg font-bold")}
+                          >
+                            {stats.total}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 16}
+                            className="fill-muted-foreground font-bold"
+                          >
+                            Total Users
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </PolarRadiusAxis>
+              <ChartLegend
+                content={<ChartLegendContent nameKey="name" />}
+                className="flex-wrap gap-2.5 gap-y-0.5 [&>*]:justify-center"
+              />
+            </RadialBarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="gap-2.5">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">
+            Role Distribution
+          </CardTitle>
+          <CardDescription>User roles breakdown</CardDescription>
+          <CardAction>
+            <Crown className="size-4 text-muted-foreground" />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={roleChartConfig}
+            className="mx-auto aspect-square w-full max-h-[250px]"
+          >
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" hideLabel />}
+              />
+              <Pie
+                data={roleChartData}
+                dataKey="count"
+                nameKey="role"
+                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                innerRadius={40}
+                outerRadius={70}
+                strokeWidth={2}
               >
-                <RadialBar dataKey="value" cornerRadius={10} fill="#06b6d4" />
-                <text
-                  x="50%"
-                  y="50%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="fill-foreground text-xs font-medium"
-                >
-                  {Math.round((stats.researchers / stats.total) * 100)}%
-                </text>
-              </RadialBarChart>
-            </ResponsiveContainer>
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      const roles = Object.keys(stats.roleStats).length;
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className={cn("fill-primary text-base font-bold")}
+                          >
+                            {roles}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 16}
+                            className="fill-muted-foreground font-bold"
+                          >
+                            {roles === 1 ? "Role" : "Roles"}
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+              <ChartLegend
+                content={<ChartLegendContent nameKey="role" />}
+                className="flex-wrap gap-2.5 gap-y-0.5 [&>*]:justify-center"
+              />
+            </PieChart>
           </ChartContainer>
         </CardContent>
       </Card>
 
-      <Card className="col-span-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-sm font-medium">
-              Role Distribution
-            </CardTitle>
-            <CardDescription>User roles breakdown</CardDescription>
-          </div>
-          <Crown className="h-4 w-4 text-muted-foreground" />
+      {/* Research Output (Only for Active Researchers) */}
+      <Card className="gap-2.5">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Research Output</CardTitle>
+          <CardDescription>
+            {stats.researchers > 0
+              ? `Avg ${stats.avgPublicationsPerResearcher.toFixed(
+                  1
+                )} pubs/researcher`
+              : "No active researchers"}
+          </CardDescription>
+          <CardAction>
+            <GraduationCap className="size-4 text-muted-foreground" />
+          </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold mb-4">
-            {Object.keys(stats.roleStats).length} Roles
-          </div>
-          <ChartContainer config={chartConfig} className="h-[120px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={roleChartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={25}
-                  outerRadius={50}
-                  paddingAngle={2}
-                  dataKey="count"
-                >
-                  {roleChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="col-span-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-sm font-medium">
-              Content Analytics
-            </CardTitle>
-            <CardDescription>Publications, videos & projects</CardDescription>
-          </div>
-          <GraduationCap className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold mb-4">
-            {stats.totalPublications + stats.totalVideos + stats.totalProjects}
-          </div>
-          <ChartContainer config={chartConfig} className="h-[120px]">
-            <ResponsiveContainer width="100%" height="100%">
+          {researchChartData.length > 0 ? (
+            <ChartContainer
+              config={researchChartConfig}
+              className="mx-auto aspect-square w-full max-h-[250px]"
+            >
               <BarChart
-                data={contentChartData}
-                margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                accessibilityLayer
+                data={researchChartData}
+                margin={{ right: -5, left: -5, top: 30 }}
               >
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 10 }}
+                  tickMargin={10}
+                  fontSize={12}
+                  fontWeight={600}
                 />
-                <YAxis hide />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="value" radius={[2, 2, 0, 0]} />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="line" />}
+                />
+                <Bar dataKey="value" radius={[8, 8, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+            </ChartContainer>
+          ) : (
+            <div className="h-[120px] flex items-center justify-center text-sm text-muted-foreground">
+              No research output yet
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Card className="col-span-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle className="text-sm font-medium">
-              Partnership Overview
-            </CardTitle>
-            <CardDescription>Partners and general members</CardDescription>
-          </div>
-          <Building className="h-4 w-4 text-muted-foreground" />
+      {/* Community & Partnerships */}
+      <Card className="gap-2.5">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">Community</CardTitle>
+          <CardDescription>Partners, affiliates & members</CardDescription>
+          <CardAction>
+            <Building className="size-4 text-muted-foreground" />
+          </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold mb-4">{stats.partners}</div>
+          {communityData.length > 0 ? (
+            <ChartContainer
+              config={communityChartConfig}
+              className="mx-auto aspect-square w-full max-h-[250px]"
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="line" hideLabel />}
+                />
+                <Pie
+                  data={communityChartData}
+                  dataKey="value"
+                  nameKey="name"
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  innerRadius={40}
+                  outerRadius={70}
+                  strokeWidth={2}
+                >
+                  <Label
+                    content={({ viewBox }) => {
+                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                        const total =
+                          stats.partners + stats.affiliates + stats.members;
+                        return (
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            <tspan
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              className={cn("fill-primary text-base font-bold")}
+                            >
+                              {total}
+                            </tspan>
+                            <tspan
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) + 16}
+                              className="fill-muted-foreground font-bold"
+                            >
+                              {total === 1 ? "User" : "Users"}
+                            </tspan>
+                          </text>
+                        );
+                      }
+                    }}
+                  />
+                </Pie>
+                <ChartLegend
+                  content={<ChartLegendContent nameKey="name" />}
+                  className="flex-wrap gap-2.5 gap-y-0.5 [&>*]:justify-center"
+                />
+              </PieChart>
+            </ChartContainer>
+          ) : (
+            <div className="h-[250px] flex flex-col items-center justify-center text-center">
+              <div className="text-2xl font-bold mb-2">0</div>
+              <div className="text-sm text-muted-foreground">
+                No community members yet
+              </div>
+            </div>
+          )}
+          {/* <div className="text-2xl font-bold mb-4">
+            {stats.partners + stats.affiliates + stats.members}
+          </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Partners</span>
               <span className="font-medium">{stats.partners}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Members</span>
-              <span className="font-medium">{stats.members}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Affiliates</span>
               <span className="font-medium">{stats.affiliates}</span>
             </div>
-            <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{
-                  width: `${
-                    (stats.partners /
-                      (stats.partners + stats.members + stats.affiliates)) *
-                    100
-                  }%`,
-                }}
-              />
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Members</span>
+              <span className="font-medium">{stats.members}</span>
             </div>
-          </div>
+            {stats.partners + stats.affiliates + stats.members > 0 && (
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden mt-3">
+                <div
+                  className="h-full bg-gradient-to-r from-yellow-400 via-green-400 to-red-400 rounded-full transition-all duration-300"
+                  style={{ width: "100%" }}
+                />
+              </div>
+            )}
+          </div> */}
         </CardContent>
       </Card>
     </div>

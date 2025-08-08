@@ -90,13 +90,13 @@ export async function getAllProjectTeams() {
     .leftJoin(researchers, eq(projects.leadResearcherId, researchers.id))
     .leftJoin(users, eq(researchers.userId, users.id))
     .leftJoin(projectMembers, eq(projects.id, projectMembers.projectId))
-    .groupBy(
-      ...Object.values(getTableColumns(projects)),
-      users.name,
-      researchers.title,
-      users.image,
-      users.id
-    )
+    // .groupBy(
+    //   ...Object.values(getTableColumns(projects)),
+    //   users.name,
+    //   researchers.title,
+    //   users.image,
+    //   users.id
+    // )
     .orderBy(desc(projects.created_at));
 
   return result;

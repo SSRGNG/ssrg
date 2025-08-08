@@ -1,4 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
+import { RAreasDataTable } from "@/components/views/admin/ui-tables";
 import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 
@@ -9,8 +10,7 @@ async function ResearchAreas({ className, ...props }: Props) {
   console.log({ areas });
   return (
     <TabsContent className={cn(className)} {...props}>
-      Research areas table
-      {/* <RAreasDataTable areas={areas} /> */}
+      <RAreasDataTable areas={areas} />
     </TabsContent>
   );
 }
