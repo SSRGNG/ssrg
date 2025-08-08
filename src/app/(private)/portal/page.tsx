@@ -1,27 +1,31 @@
 import type { Metadata } from "next";
-import * as React from "react";
 
-import { StatsSkeleton } from "@/components/shared/loading-skeleton";
 import { Page } from "@/components/shell";
 import { Publications, Stats, Videos } from "@/components/views/portal";
+import {
+  getCurrentUserResearcher,
+  getResearcherPublications,
+  getUserStats,
+} from "@/lib/queries/portal";
+import { getUserVideos } from "@/lib/queries/videos";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: `Portal`,
 };
 
-export default function Portal() {
+export default async function Portal() {
+  const userStatsResult = await getUserStats();
+  const [userResult, pubs, vids] = await Promise.all([
+    getCurrentUserResearcher(),
+    getResearcherPublications({ limit: 5 }),
+    getUserVideos({ limit: 5 }),
+  ]);
   return (
     <Page variant={"portal"} className={cn("space-y-4")}>
-      <React.Suspense fallback={<StatsSkeleton />}>
-        <Stats />
-      </React.Suspense>
-      <React.Suspense fallback={<div>Loading...</div>}>
-        <Publications />
-      </React.Suspense>
-      <React.Suspense fallback={<div>Loading...</div>}>
-        <Videos />
-      </React.Suspense>
+      <Stats userStatsResult={userStatsResult} />
+      <Publications userResult={userResult} pubs={pubs} />
+      <Videos userResult={userResult} vids={vids} />
     </Page>
   );
 }

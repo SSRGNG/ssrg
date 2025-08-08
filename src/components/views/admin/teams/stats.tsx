@@ -5,6 +5,7 @@ import * as React from "react";
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -123,13 +124,15 @@ function StatCard({
   description: string;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <Card className="gap-2.5">
+      <CardHeader>
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <CardAction>
+          <Icon className="size-4 text-muted-foreground" />
+        </CardAction>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{count}</div>
+        <p className="text-2xl font-bold">{count}</p>
         <CardDescription className="text-xs text-muted-foreground">
           {description}
         </CardDescription>

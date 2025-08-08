@@ -1,12 +1,13 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { RMethodologiesDataTable } from "@/components/views/admin/ui-tables";
-import { getCachedResearchMethodologies } from "@/lib/queries/admin";
+import { AdminMethodologiesData } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<typeof TabsContent>;
+type Props = React.ComponentPropsWithoutRef<typeof TabsContent> & {
+  methodologies: AdminMethodologiesData;
+};
 
-async function ResearchMethodologies({ className, ...props }: Props) {
-  const methodologies = await getCachedResearchMethodologies();
+function ResearchMethodologies({ methodologies, className, ...props }: Props) {
   return (
     <TabsContent className={cn(className)} {...props}>
       <RMethodologiesDataTable methodologies={methodologies} />

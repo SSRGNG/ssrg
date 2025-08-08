@@ -1,18 +1,16 @@
 import { PublicationsDataTable } from "@/components/views/portal/ui-tables";
 import {
-  getCurrentUserResearcher,
-  getResearcherPublications,
-} from "@/lib/queries/portal";
+  CurrentResearcherRes,
+  PortalResearcherPubs,
+} from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<"div">;
+type Props = React.ComponentPropsWithoutRef<"div"> & {
+  userResult: CurrentResearcherRes;
+  pubs: PortalResearcherPubs;
+};
 
-async function Publications({ className, ...props }: Props) {
-  const [userResult, pubs] = await Promise.all([
-    getCurrentUserResearcher(),
-    getResearcherPublications({ limit: 5 }),
-  ]);
-
+function Publications({ userResult, pubs, className, ...props }: Props) {
   return (
     <PublicationsDataTable
       pubs={pubs}

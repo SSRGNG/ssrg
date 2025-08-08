@@ -404,15 +404,15 @@ function TeamsDataTable({
             withCount: true,
           })),
         },
-        {
-          label: "Priority",
-          value: "priority",
-          options: Object.entries(priorityConfig).map(([value, config]) => ({
-            label: config.label,
-            value,
-            withCount: true,
-          })),
-        },
+        // {
+        //   label: "Priority",
+        //   value: "priority",
+        //   options: Object.entries(priorityConfig).map(([value, config]) => ({
+        //     label: config.label,
+        //     value,
+        //     withCount: true,
+        //   })),
+        // },
       ]}
       dateFields={[{ value: "created_at", label: "Created Date" }]}
       {...props}

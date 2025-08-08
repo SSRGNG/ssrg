@@ -1,16 +1,16 @@
 import { VideosDataTable } from "@/components/views/portal/ui-tables";
-import { getCurrentUserResearcher } from "@/lib/queries/portal";
-import { getUserVideos } from "@/lib/queries/videos";
+import {
+  CurrentResearcherRes,
+  PortalVideosWithPagination,
+} from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<"div">;
+type Props = React.ComponentPropsWithoutRef<"div"> & {
+  userResult: CurrentResearcherRes;
+  vids: PortalVideosWithPagination;
+};
 
-async function Videos({ className, ...props }: Props) {
-  const [userResult, vids] = await Promise.all([
-    getCurrentUserResearcher(),
-    getUserVideos({ limit: 5 }),
-  ]);
-
+function Videos({ userResult, vids, className, ...props }: Props) {
   return (
     <VideosDataTable
       vids={vids["videos"]}

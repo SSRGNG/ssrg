@@ -20,6 +20,7 @@ import {
   getNonResearchers,
   getPublications,
   getResearcherPublications,
+  getUserStats,
   researcherPublications,
 } from "@/lib/queries/portal";
 import {
@@ -61,6 +62,8 @@ export type Publications = Awaited<ReturnType<typeof getAllPublications>>;
 export type LatestPublications = Awaited<
   ReturnType<typeof getLatestPublications>
 >;
+
+export type PortalUsersStatsResult = Awaited<ReturnType<typeof getUserStats>>;
 
 export type PortalVideosWithPagination = Awaited<
   ReturnType<typeof getUserVideos>

@@ -8,14 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getUserStats } from "@/lib/queries/portal";
+import { PortalUsersStatsResult } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentPropsWithoutRef<"section">;
+type Props = React.ComponentPropsWithoutRef<"section"> & {
+  userStatsResult: PortalUsersStatsResult;
+};
 
-async function Stats({ className, ...props }: Props) {
-  const userStatsResult = await getUserStats();
-
+function Stats({ userStatsResult, className, ...props }: Props) {
   const {
     publicationCount = 0,
     totalCitations = 0,
