@@ -4,4 +4,4 @@ export { Collaborators } from "@/components/views/admin/teams/collaborators";
 export { TeamDetailsModal } from "@/components/views/admin/teams/details-modal";
 export { Network } from "@/components/views/admin/teams/network";
 export { SummaryCards } from "@/components/views/admin/teams/summary-cards";
-export { Teams } from "@/components/views/admin/teams/teams";
+// export { Teams } from "@/components/views/admin/teams/teams";
