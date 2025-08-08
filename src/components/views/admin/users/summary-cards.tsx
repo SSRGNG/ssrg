@@ -19,6 +19,7 @@ import {
 import { AdminUsers } from "@/lib/actions/queries";
 import { createChartConfig, createChartData } from "@/lib/chart-utils";
 import { cn } from "@/lib/utils";
+import { Role } from "@/types";
 import { Building, Crown, GraduationCap, Users } from "lucide-react";
 import React from "react";
 import {
@@ -34,14 +35,6 @@ import {
   XAxis,
 } from "recharts";
 
-const COLORS = {
-  admin: "#8b5cf6",
-  researcher: "#06b6d4",
-  affiliate: "#10b981",
-  partner: "#f59e0b",
-  member: "#ef4444",
-};
-type CTs = keyof typeof COLORS;
 type Props = React.ComponentPropsWithoutRef<"div"> & { users: AdminUsers };
 
 function SummaryCards({ users, className, ...props }: Props) {
@@ -51,7 +44,7 @@ function SummaryCards({ users, className, ...props }: Props) {
     const roleStats = users.reduce((acc, user) => {
       acc[user.role] = (acc[user.role] || 0) + 1;
       return acc;
-    }, {} as Record<CTs, number>);
+    }, {} as Record<Role, number>);
 
     // Only count users who have researcher records (actual researchers)
     const activeResearchers = users.filter((u) => u.researcherId);

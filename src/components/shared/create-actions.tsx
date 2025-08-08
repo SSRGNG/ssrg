@@ -74,10 +74,12 @@ function CreateActions({
     area: CreateResearchArea,
     framework: CreateResearchFrameworks,
     methodology: CreateResearchMethodologies,
-    project: () => null,
-    partner: () => null,
+    policy: () => null,
+    audit: () => null,
     event: () => null,
     newsletter: () => null,
+    archive: () => null,
+    export: () => null,
   };
 
   const description = `You are creating a new ${actionKey}`;
