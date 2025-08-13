@@ -5,11 +5,17 @@ import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { files } from "@/db/schema";
-import { getResearchImages as queryGetResearchImages } from "@/lib/queries/files";
-import { FileCategory } from "@/types";
+import {
+  getImages as queryGetImages,
+  getResearchImages as queryGetResearchImages,
+} from "@/lib/queries/files";
+import { FileCategory, ImageFilters } from "@/types";
 
 export async function getResearchImages() {
   return queryGetResearchImages();
+}
+export async function getImages(filters: ImageFilters = {}) {
+  return queryGetImages(filters);
 }
 const utapi = new UTApi({});
 

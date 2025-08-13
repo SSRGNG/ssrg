@@ -43,13 +43,7 @@ export const createUserSchema = userSchema
   });
 export const updateUserSchema = userSchema
   .partial()
-  .omit({ password: true })
-  .extend({
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .optional(),
-  });
+  .omit({ password: true, email: true, role: true });
 
 export const credentialsSchema = z.object({
   email: emailSchema.shape.email,

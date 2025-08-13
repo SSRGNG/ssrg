@@ -31,9 +31,12 @@ import {
   getAllProjectTeams,
   getTeamCollaborationInsights,
 } from "@/lib/queries/teams";
+import { getUserProfiles } from "@/lib/queries/user";
 import { getUserVideos, getVideos } from "@/lib/queries/videos";
 
 export type ResearchImages = Awaited<ReturnType<typeof getResearchImages>>;
+
+export type UserProfiles = Awaited<ReturnType<typeof getUserProfiles>>;
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<

@@ -1,5 +1,8 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
 import { auth } from "@/auth";
 import { db } from "@/db";
 import {
@@ -10,7 +13,9 @@ import {
 } from "@/db/schema";
 import {
   createResearcherSchema,
+  updateResearcherSchema,
   type CreateResearcherPayload,
+  type UpdateResearcherPayload,
 } from "@/lib/validations/researcher";
 
 export async function createResearcher(formData: CreateResearcherPayload) {
@@ -80,6 +85,91 @@ export async function createResearcher(formData: CreateResearcherPayload) {
     console.error("Error creating researcher:", error);
     return {
       error: "Failed to create researcher. Please try again.",
+    };
+  }
+}
+
+export async function updateResearcher(
+  researcherId: string,
+  formData: UpdateResearcherPayload
+) {
+  try {
+    const authUser = (await auth())?.user;
+
+    const parsedResult = updateResearcherSchema.safeParse(formData);
+
+    if (!parsedResult.success) {
+      return {
+        error: "Invalid input",
+        details: parsedResult.error.format(),
+      };
+    }
+    const { education, expertise, areas, orcid, x, ...researcherData } =
+      parsedResult.data;
+
+    if (authUser?.role !== "admin" || authUser?.id !== researcherData.userId) {
+      return {
+        error: "Unauthorized. You cannot update this user account.",
+      };
+    }
+    const result = await db.transaction(async (tx) => {
+      await tx
+        .update(researchers)
+        .set({
+          ...researcherData,
+          x: x || null,
+          orcid: orcid || null,
+          updated_at: new Date(),
+        })
+        .where(eq(researchers.id, researcherId));
+
+      if (expertise && expertise?.length > 0) {
+        await tx
+          .delete(researcherExpertise)
+          .where(eq(researcherExpertise.researcherId, researcherId));
+        await tx.insert(researcherExpertise).values(
+          expertise.map(({ expertise, order }) => ({
+            researcherId,
+            expertise,
+            order,
+          }))
+        );
+      }
+
+      if (education && education?.length > 0) {
+        await tx
+          .delete(researcherEducation)
+          .where(eq(researcherEducation.researcherId, researcherId));
+        await tx.insert(researcherEducation).values(
+          education.map(({ education, order }) => ({
+            researcherId,
+            education,
+            order,
+          }))
+        );
+      }
+
+      if (areas && areas?.length > 0) {
+        await tx
+          .delete(researcherAreas)
+          .where(eq(researcherAreas.researcherId, researcherId));
+        await tx.insert(researcherAreas).values(
+          areas?.map(({ areaId }) => ({
+            areaId,
+            researcherId,
+          }))
+        );
+      }
+
+      return { success: true };
+    });
+
+    revalidatePath("/portal/profile");
+    return { success: result.success };
+  } catch (error) {
+    console.error("Error updating researcher profile:", error);
+    return {
+      error: "Failed to update researcher profile. Please try again.",
     };
   }
 }

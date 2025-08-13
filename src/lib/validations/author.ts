@@ -43,9 +43,13 @@ export const publicationAuthorSchema = z.object({
 export const pubAuthorSchema = authorSchema.merge(publicationAuthorSchema);
 
 export const createAuthorSchema = authorSchema;
+export const updateAuthorSchema = authorSchema.partial().extend({
+  id: z.string().uuid(),
+});
 
 export type PublicationAuthor = z.infer<typeof publicationAuthorSchema>;
 export type PubAuthor = z.infer<typeof pubAuthorSchema>;
 
 export type CreateAuthorPayload = z.infer<typeof createAuthorSchema>;
+export type UpdateAuthorPayload = z.infer<typeof updateAuthorSchema>;
 export type SearchAuthorPayload = z.infer<typeof searchAuthorSchema>;

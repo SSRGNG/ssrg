@@ -257,6 +257,12 @@ export const userNav: Record<string, Omit<UserNavItem, "cmd">> = {
     icon: "dashboard",
     roles: ["researcher", "admin", "affiliate"],
   },
+  p: {
+    title: "Profile & Settings",
+    href: "/portal/profile",
+    icon: "user",
+    roles: ["researcher", "admin", "member", "affiliate", "partner"],
+  },
   q: {
     title: auth.signout.title,
     href: auth.signout.href,

@@ -28,11 +28,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getResearchImages } from "@/lib/actions/files";
+import { getImages } from "@/lib/actions/files";
 import type { ResearchImages } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
+import { ImageFilters } from "@/types";
 
 type GalleryImage = ResearchImages[number];
+type ImageFetchStrategy =
+  | { type: "filters"; filters: ImageFilters }
+  | { type: "custom"; fetchFn: () => Promise<GalleryImage[]> };
+
 type Props = React.ComponentPropsWithoutRef<"div"> & {
   value?: string;
   onValueChange: (url: string) => void;
@@ -40,6 +45,7 @@ type Props = React.ComponentPropsWithoutRef<"div"> & {
   placeholder?: string;
   endpoint?: Endpoint;
   variant?: "default" | "outline" | "ghost" | "minimal";
+  imageStrategy?: ImageFetchStrategy;
 };
 
 function ImageSelector({
@@ -49,6 +55,7 @@ function ImageSelector({
   placeholder = "Upload or Select Image",
   endpoint = "researchImageUploader",
   variant = "default",
+  imageStrategy = { type: "filters", filters: { includeResearch: true } },
   className,
   ...props
 }: Props) {
@@ -68,8 +75,18 @@ function ImageSelector({
   async function loadImages() {
     setLoadingImages(true);
     try {
-      const images = await getResearchImages();
-      // console.log({ images });
+      let images: GalleryImage[];
+
+      switch (imageStrategy.type) {
+        case "filters":
+          images = await getImages(imageStrategy.filters);
+          break;
+        case "custom":
+          images = await imageStrategy.fetchFn();
+          break;
+        default:
+          throw new Error("Invalid image strategy");
+      }
       setUploadedImages(images);
     } catch (error) {
       console.error("Failed to load images:", error);
@@ -252,14 +269,6 @@ function ImageSelector({
                         onClick={() => handleImageSelect(image.url)}
                       >
                         <div className="aspect-video relative">
-                          {/* <img
-                            src={image.url}
-                            alt={image.altText || image.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          /> */}
                           <Image
                             src={image.url}
                             alt={image.altText || image.name}

@@ -1,3 +1,4 @@
+import { SQL } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Icons } from "@/components/shared/icons";
@@ -129,27 +130,6 @@ type ExtractOptionKeys<T> = T extends { items: Array<{ options: infer O }> }
 export type ActionItem = typeof actions;
 export type ActionKey = ExtractOptionKeys<ActionItem>;
 
-// export type DataTableOption = {
-//   label: string;
-//   value: string;
-//   icon?: React.ComponentType<{ className?: string }>;
-//   withCount?: boolean;
-// };
-
-// export type DataTableFilterField<TData> = {
-//   label: string;
-//   value: keyof TData;
-//   placeholder?: string;
-//   options?: DataTableOption[];
-// };
-
-// export type TableMeta<TData, TContext> = {
-//   searchableColumns: DataTableFilterField<TData>[];
-//   filterableColumns: DataTableFilterField<TData>[];
-//   filterFields?: DataTableFilterField<TData>[];
-//   barAction?: BarAction;
-//   context?: TContext;
-// };
 export type StoredFile = {
   id: string;
   name: string;
@@ -176,3 +156,18 @@ export type PortalResearcherPubs = ReturnType<typeof mapResearcherPublications>;
 
 export type SortOption = "recent" | "alphabetical" | "citations";
 export type ViewMode = "compact" | "detailed";
+
+export type ImageFilters = {
+  /** Filter by specific categories */
+  categories?: FileCategory[];
+  /** Filter by user ID */
+  userId?: string;
+  /** Only include public images */
+  publicOnly?: boolean;
+  /** Include research images (research_image category + public general images) */
+  includeResearch?: boolean;
+  /** Custom where conditions */
+  customWhere?: SQL<unknown>;
+  /** Limit number of results */
+  // limit?: number;
+};

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, eq, ilike, isNull, ne, or, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { auth } from "@/auth";
@@ -19,6 +19,8 @@ import { isRoleAllowed } from "@/lib/utils";
 import {
   type CreateAuthorPayload,
   createAuthorSchema,
+  type UpdateAuthorPayload,
+  updateAuthorSchema,
 } from "@/lib/validations/author";
 import {
   CreatePublicationPayload,
@@ -1112,6 +1114,119 @@ export async function deleteMultiplePublications(publicationIds: string[]) {
       success: false,
       error: "Failed to delete publications",
       details: "An unexpected error occurred during bulk deletion",
+    };
+  }
+}
+
+export async function updateAuthor(formData: UpdateAuthorPayload) {
+  try {
+    const authUser = (await auth())?.user;
+
+    const parsedResult = updateAuthorSchema.safeParse(formData);
+
+    if (!parsedResult.success) {
+      return {
+        error: "Invalid input",
+        details: parsedResult.error.format(),
+      };
+    }
+
+    if (!authUser) {
+      return {
+        error: "Unauthorized. You cannot update this author account.",
+      };
+    }
+
+    const { id, affiliation, orcid, email, name, researcherId } =
+      parsedResult.data;
+
+    // Email uniqueness (if email is editable)
+    if (email) {
+      const existingEmail = await db
+        .select({ id: authors.id })
+        .from(authors)
+        .where(and(eq(authors.email, email), ne(authors.id, id)))
+        .limit(1);
+      if (existingEmail.length > 0) {
+        return { error: "Another author with this email already exists" };
+      }
+    }
+
+    // ORCID uniqueness across authors
+    if (orcid) {
+      // Check ORCID against other authors
+      const existingOrcid = await db
+        .select({ id: authors.id })
+        .from(authors)
+        .where(and(eq(authors.orcid, orcid), ne(authors.id, id)))
+        .limit(1);
+
+      if (existingOrcid.length > 0) {
+        return { error: "Another author with this ORCID already exists" };
+      }
+
+      // Only check researchers table if this author isn't linked to one,
+      // or to make sure we don't collide with *other* researchers
+      if (!researcherId) {
+        const existingResearcherOrcid = await db
+          .select({ id: researchers.id })
+          .from(researchers)
+          .where(eq(researchers.orcid, orcid))
+          .limit(1);
+
+        if (existingResearcherOrcid.length > 0) {
+          return { error: "A researcher with this ORCID already exists" };
+        }
+      } else {
+        const existingResearcherOrcid = await db
+          .select({ id: researchers.id })
+          .from(researchers)
+          .where(
+            and(eq(researchers.orcid, orcid), ne(researchers.id, researcherId))
+          )
+          .limit(1);
+
+        if (existingResearcherOrcid.length > 0) {
+          return { error: "Another researcher with this ORCID already exists" };
+        }
+      }
+    }
+
+    // Optional: name + affiliation duplicate check
+    if (name && affiliation) {
+      const potentialDuplicate = await db
+        .select({ id: authors.id })
+        .from(authors)
+        .where(
+          and(
+            ilike(authors.name, name),
+            ilike(authors.affiliation, affiliation),
+            ne(authors.id, id)
+          )
+        )
+        .limit(1);
+      if (potentialDuplicate.length > 0) {
+        return { error: "A similar author already exists" };
+      }
+    }
+    await db
+      .update(authors)
+      .set({
+        name: name,
+        email: email,
+        affiliation: affiliation || null,
+        orcid: orcid || null,
+        researcherId: researcherId || null,
+        updated_at: new Date(),
+      })
+      .where(eq(authors.id, id));
+
+    revalidatePath("/portal/profile");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating author profile:", error);
+    return {
+      error: "Failed to update author profile. Please try again.",
     };
   }
 }

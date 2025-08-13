@@ -17,6 +17,7 @@ const PAGE_TYPES = [
   "users",
   "teams",
   "core",
+  "profile",
 ] as const;
 
 // Create a union type from the page types
@@ -70,6 +71,14 @@ const ERROR_CONFIGS: Record<string, ErrorPageConfig> = {
       "An unexpected error occurred while loading the teams data.",
     homeUrl: "/admin",
     homeLabel: "Go to Admin Dashboard",
+  },
+  profile: {
+    pageType: "profile",
+    consoleMessage: "Profile page error",
+    fallbackDescription:
+      "An unexpected error occurred while loading the profile data.",
+    homeUrl: "/portal",
+    homeLabel: "Go to Portal",
   },
 };
 
@@ -221,7 +230,7 @@ function ReusableError({ error, reset, pageType }: ReusableErrorProps) {
                         Stack Trace:
                       </strong>
                       <div className="mt-1 p-3 bg-muted/50 rounded-md border overflow-hidden">
-                        <pre className="text-xs overflow-x-auto whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
+                        <pre className="text-xs overflow-auto whitespace-pre-wrap break-words break-all max-h-40">
                           {error.stack}
                         </pre>
                       </div>
@@ -242,16 +251,18 @@ function ReusableError({ error, reset, pageType }: ReusableErrorProps) {
                   )}
 
                   {/* Additional debugging info */}
-                  <div className="pt-2 border-t">
+                  <div>
                     <strong className="text-xs uppercase tracking-wide">
                       Environment:
                     </strong>
                     <div className="mt-1 p-2 bg-muted/50 rounded border">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="grid sm:grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="font-medium">Page Type:</span>
-                          <div className="text-muted-foreground">
-                            {config.pageType}
+                          <span className="font-medium">
+                            Page | Error Type:
+                          </span>
+                          <div className="text-muted-foreground capitalize">
+                            {config.pageType} {error.constructor.name}
                           </div>
                         </div>
                         <div>
@@ -276,12 +287,12 @@ function ReusableError({ error, reset, pageType }: ReusableErrorProps) {
                               : "N/A"}
                           </div>
                         </div>
-                        <div>
+                        {/* <div>
                           <span className="font-medium">Error Type:</span>
                           <div className="text-muted-foreground">
                             {error.constructor.name}
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>

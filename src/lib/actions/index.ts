@@ -206,13 +206,16 @@ export async function updateUser(userId: string, updates: UpdateUserPayload) {
       };
     }
     const validatedData = parsedResult.data;
-    const result = await db
+    await db
       .update(users)
       .set(validatedData)
       .where(eq(users.id, userId))
       .returning();
 
-    return result[0];
+    revalidatePath("/admin");
+    revalidatePath("/portal");
+    revalidatePath("/portal/profile");
+    return { success: true };
   } catch (error) {
     console.error("Error updating user details:", error);
     throw new Error("Failed to update user details");
