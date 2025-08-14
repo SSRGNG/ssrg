@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
@@ -90,7 +90,7 @@ export async function createResearcher(formData: CreateResearcherPayload) {
 }
 
 export async function updateResearcher(
-  researcherId: string,
+  // researcherId: string,
   formData: UpdateResearcherPayload
 ) {
   try {
@@ -104,14 +104,36 @@ export async function updateResearcher(
         details: parsedResult.error.format(),
       };
     }
-    const { education, expertise, areas, orcid, x, ...researcherData } =
-      parsedResult.data;
+    const {
+      id: researcherId,
+      education,
+      expertise,
+      areas,
+      orcid,
+      x,
+      ...researcherData
+    } = parsedResult.data;
 
     if (authUser?.role !== "admin" || authUser?.id !== researcherData.userId) {
       return {
         error: "Unauthorized. You cannot update this user account.",
       };
     }
+
+    if (orcid) {
+      const existingResearcherOrcid = await db
+        .select({ id: researchers.id })
+        .from(researchers)
+        .where(
+          and(eq(researchers.orcid, orcid), ne(researchers.id, researcherId))
+        )
+        .limit(1);
+
+      if (existingResearcherOrcid.length > 0) {
+        return { error: "Another researcher with this ORCID already exists" };
+      }
+    }
+
     const result = await db.transaction(async (tx) => {
       await tx
         .update(researchers)

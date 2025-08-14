@@ -30,6 +30,7 @@ export const createResearcherSchema = researcherSchema.extend({
 });
 
 export const updateResearcherSchema = researcherSchema.partial().extend({
+  id: z.string().uuid(),
   expertise: z.array(researcherExpertiseSchema).optional(),
   education: z.array(researcherEducationSchema).optional(),
   areas: z.array(researcherAreaSchema).optional(),

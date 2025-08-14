@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { UpdateAuthorProfile } from "@/components/forms/update-author-profile";
+import { UpdateResearcherProfile } from "@/components/forms/update-researcher-profile";
 import { UpdateUser } from "@/components/forms/update-user";
 import { Icons } from "@/components/shared/icons";
 import { Page } from "@/components/shell";
@@ -25,6 +26,9 @@ export default async function ProfilePage() {
     affiliation: userProfiles.user.affiliation,
   };
   const author = userProfiles.author;
+  const researcher = userProfiles.researcher;
+
+  console.log({ researcher });
 
   const availableTabs = [
     {
@@ -73,11 +77,8 @@ export default async function ProfilePage() {
           <UpdateUser user={user} />
         </TabsContent>
         {availableTabs.some((tab) => tab.id === "Researcher") && (
-          <TabsContent value="researcher" className="space-y-4">
-            {/* <ResearcherProfileForm 
-            researcher={profiles.researcher}
-            userId={userId}
-          /> */}
+          <TabsContent value="Researcher" className="space-y-4">
+            <UpdateResearcherProfile researcher={researcher} />
           </TabsContent>
         )}
 

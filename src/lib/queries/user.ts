@@ -49,7 +49,8 @@ export async function getUserProfiles() {
         with: {
           author: true,
           education: true,
-          expertise: true,
+          // expertise: true,
+          expertise: { columns: { expertise: true, order: true } },
           areas: { with: { area: true } },
         },
       },

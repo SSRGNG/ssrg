@@ -10,23 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { updateAuthor } from "@/lib/actions/publications";
+import { ProfileAuthor } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 import {
-  UpdateAuthorPayload,
+  type UpdateAuthorPayload,
   updateAuthorSchema,
 } from "@/lib/validations/author";
 
 type Props = React.ComponentPropsWithoutRef<"form"> & {
-  author: {
-    id: string;
-    name: string;
-    email: string | null;
-    affiliation: string | null;
-    created_at: Date;
-    orcid: string | null;
-    updated_at: Date;
-    researcherId: string | null;
-  };
+  author: ProfileAuthor;
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -164,7 +156,7 @@ function UpdateAuthorProfile({
           variant="brand"
           isPending={isPending}
         >
-          Update Author Profile
+          {isPending ? "Updating..." : "Update Author Profile"}
         </Button>
       </form>
     </Form>

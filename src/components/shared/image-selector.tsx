@@ -65,14 +65,7 @@ function ImageSelector({
   );
   const [loadingImages, setLoadingImages] = React.useState(false);
 
-  // Load images when dialog opens
-  React.useEffect(() => {
-    if (imageDialogOpen && uploadedImages.length === 0) {
-      loadImages();
-    }
-  }, [imageDialogOpen, uploadedImages.length]);
-
-  async function loadImages() {
+  const loadImages = React.useCallback(async () => {
     setLoadingImages(true);
     try {
       let images: GalleryImage[];
@@ -94,7 +87,38 @@ function ImageSelector({
     } finally {
       setLoadingImages(false);
     }
-  }
+  }, [imageStrategy]);
+
+  // Load images when dialog opens
+  React.useEffect(() => {
+    if (imageDialogOpen && uploadedImages.length === 0) {
+      loadImages();
+    }
+  }, [imageDialogOpen, uploadedImages.length, loadImages]);
+
+  // async function loadImages() {
+  //   setLoadingImages(true);
+  //   try {
+  //     let images: GalleryImage[];
+
+  //     switch (imageStrategy.type) {
+  //       case "filters":
+  //         images = await getImages(imageStrategy.filters);
+  //         break;
+  //       case "custom":
+  //         images = await imageStrategy.fetchFn();
+  //         break;
+  //       default:
+  //         throw new Error("Invalid image strategy");
+  //     }
+  //     setUploadedImages(images);
+  //   } catch (error) {
+  //     console.error("Failed to load images:", error);
+  //     toast.error("Failed to load images");
+  //   } finally {
+  //     setLoadingImages(false);
+  //   }
+  // }
 
   const handleImageSelect = (imageUrl: string) => {
     onValueChange(imageUrl);

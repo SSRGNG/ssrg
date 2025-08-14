@@ -37,6 +37,8 @@ import { getUserVideos, getVideos } from "@/lib/queries/videos";
 export type ResearchImages = Awaited<ReturnType<typeof getResearchImages>>;
 
 export type UserProfiles = Awaited<ReturnType<typeof getUserProfiles>>;
+export type ProfileAuthor = UserProfiles["author"];
+export type ProfileResearcher = UserProfiles["researcher"];
 
 export type AdminAreasData = Awaited<ReturnType<typeof getResearchAreas>>;
 export type AdminFrameworksData = Awaited<
