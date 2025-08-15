@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import * as React from "react";
 
-import { PublicationsSkeleton } from "@/components/shared/loading-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Page } from "@/components/shell";
 import { Card } from "@/components/views/publications/card";
@@ -47,28 +46,28 @@ export default async function Publications({
       variant={"publications"}
       className={cn(viewMode === "detailed" ? "grid-cols-1" : "md:grid-cols-2")}
     >
-      <React.Suspense fallback={<PublicationsSkeleton />}>
-        {filteredPublications.map((publication) => (
-          <Card
-            key={publication.id}
-            publication={publication}
-            viewMode={viewMode}
-          />
-        ))}
-        <Pagination
-          className={cn(viewMode === "compact" && "md:col-span-2")}
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          baseUrl="/publications"
-          searchParams={{ sort: sortBy, view: viewMode }}
+      {/* <React.Suspense fallback={<PublicationsSkeleton />}> */}
+      {filteredPublications.map((publication) => (
+        <Card
+          key={publication.id}
+          publication={publication}
+          viewMode={viewMode}
         />
-        {filteredPublications.length === 0 && (
-          <React.Fragment>
-            <h1 className="text-lg">Publications</h1>
-            <small>There are no publications yet</small>
-          </React.Fragment>
-        )}
-      </React.Suspense>
+      ))}
+      <Pagination
+        className={cn(viewMode === "compact" && "md:col-span-2")}
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        baseUrl="/publications"
+        searchParams={{ sort: sortBy, view: viewMode }}
+      />
+      {filteredPublications.length === 0 && (
+        <React.Fragment>
+          <h1 className="text-lg">Publications</h1>
+          <small>There are no publications yet</small>
+        </React.Fragment>
+      )}
+      {/* </React.Suspense> */}
     </Page>
   );
 }

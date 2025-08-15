@@ -3,12 +3,14 @@ import Link from "next/link";
 
 import { Section } from "@/components/shell/section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { research_areas } from "@/config/constants";
-import { cn } from "@/lib/utils";
+import { getCachedAdminResearchAreas } from "@/lib/queries/admin";
+import { cn, mapResearchAreas } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<typeof Section>;
 
-function FocusAreas({ className, ...props }: Props) {
+async function FocusAreas({ className, ...props }: Props) {
+  const rawAreas = await getCachedAdminResearchAreas();
+  const areas = mapResearchAreas(rawAreas);
   return (
     <Section
       spacing={"snug"}
@@ -21,7 +23,7 @@ function FocusAreas({ className, ...props }: Props) {
       {...props}
     >
       <div className="grid gap-4 xs:grid-cols-2 md:grid-cols-3">
-        {research_areas.map((area, i) => (
+        {areas.map((area, i) => (
           <Link
             href={area.href}
             key={area.title}

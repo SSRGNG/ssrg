@@ -18,6 +18,10 @@ const PAGE_TYPES = [
   "teams",
   "core",
   "profile",
+  "publication",
+  "publications",
+  "video",
+  "videos",
 ] as const;
 
 // Create a union type from the page types
@@ -79,6 +83,38 @@ const ERROR_CONFIGS: Record<string, ErrorPageConfig> = {
       "An unexpected error occurred while loading the profile data.",
     homeUrl: "/portal",
     homeLabel: "Go to Portal",
+  },
+  video: {
+    pageType: "video",
+    consoleMessage: "Video page error",
+    fallbackDescription:
+      "An unexpected error occurred while loading the video data.",
+    homeUrl: "/publications/videos",
+    homeLabel: "Go to Videos",
+  },
+  videos: {
+    pageType: "videos",
+    consoleMessage: "Videos page error",
+    fallbackDescription:
+      "An unexpected error occurred while loading the videos data.",
+    homeUrl: "/publications",
+    homeLabel: "Go to Publications",
+  },
+  publication: {
+    pageType: "publication",
+    consoleMessage: "Publication page error",
+    fallbackDescription:
+      "An unexpected error occurred while loading the publication data.",
+    homeUrl: "/publications",
+    homeLabel: "Go to Publications",
+  },
+  publications: {
+    pageType: "publications",
+    consoleMessage: "Publications page error",
+    fallbackDescription:
+      "An unexpected error occurred while loading the publications data.",
+    homeUrl: "/",
+    homeLabel: "Go to HomePage",
   },
 };
 
