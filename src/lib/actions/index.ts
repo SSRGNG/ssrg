@@ -14,7 +14,12 @@ import {
   users,
 } from "@/db/schema";
 import { getUserByEmail } from "@/lib/queries/user";
-import { hashPassword, isRoleAllowed, verifyPassword } from "@/lib/utils";
+import {
+  hashPassword,
+  isRoleAllowed,
+  slugifyName,
+  verifyPassword,
+} from "@/lib/utils";
 import {
   type CredentialsPayload,
   credentialsSchema,
@@ -81,11 +86,32 @@ export async function createUser(formData: SignupPayload) {
 
     // Start a transaction
     const result = await db.transaction(async (tx) => {
+      // Generate a unique slug within the transaction
+      const baseSlug = slugifyName(userData.name);
+      let uniqueSlug = baseSlug;
+      let counter = 1;
+
+      // Find a unique slug
+      while (true) {
+        const existingUser = await tx.query.users.findFirst({
+          where: (model, { eq }) => eq(model.slug, uniqueSlug),
+        });
+
+        if (!existingUser) {
+          break; // Slug is available
+        }
+
+        // Slug exists, try with a number suffix
+        uniqueSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
       const [user] = await tx
         .insert(users)
         .values({
           email: userData.email,
           name: userData.name,
+          slug: uniqueSlug,
           image: userData.image || null,
           password: hashedPassword,
           affiliation: userData.affiliation || null,
@@ -140,7 +166,7 @@ export async function createUser(formData: SignupPayload) {
         });
       }
 
-      return { userId };
+      return { userId, slug: uniqueSlug };
     });
 
     // Revalidate any pages that might need to reflect this change
@@ -149,6 +175,7 @@ export async function createUser(formData: SignupPayload) {
     return {
       success: true,
       userId: result.userId,
+      slug: result.slug,
     };
   } catch (error) {
     console.error("Signup error:", error);

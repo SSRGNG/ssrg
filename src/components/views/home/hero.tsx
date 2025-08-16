@@ -9,15 +9,17 @@ type Props = React.ComponentPropsWithoutRef<typeof HeroSection>;
 
 function Hero({ className, ...props }: Props) {
   return (
-    <HeroSection className={cn(className)} {...props}>
-      <h1 className="text-balance">
-        Bridging research and practice to create meaningful social impact
-      </h1>
-      <p className="text-balance text-base leading-normal text-muted-foreground">
-        {appFullName} conducts rigorous research to develop evidence-based
-        approaches for today&apos;s most pressing social challenges.
-      </p>
-      {/* <div className="flex flex-col sm:flex-row justify-center gap-4"> */}
+    <HeroSection
+      className={cn(className)}
+      header={{
+        titleElement: "h1",
+        hero: true,
+        title:
+          "Bridging research and practice to create meaningful social impact",
+        description: `${appFullName} conducts rigorous research to develop evidence-based approaches for today's most pressing social challenges.`,
+      }}
+      {...props}
+    >
       <div className="max-w-md mx-auto grid xs:grid-cols-2 gap-4">
         <Link
           href="/research"

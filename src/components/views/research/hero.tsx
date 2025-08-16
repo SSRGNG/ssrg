@@ -1,6 +1,6 @@
 import { HeroSection } from "@/components/shell/section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { research_methodologies } from "@/config/constants";
+import { appName, research_methodologies } from "@/config/constants";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<typeof HeroSection>;
@@ -12,9 +12,9 @@ function Hero({ className, ...props }: Props) {
         Transforming Society Through Rigorous Evidence-Based Research
       </h1>
       <p className="text-balance text-base leading-normal text-muted-foreground">
-        At SSRG, we believe in methodologically rigorous research that centers
-        community voices and drives meaningful social change. Our approach
-        combines:
+        At {appName}, we believe in methodologically rigorous research that
+        centers community voices and drives meaningful social change. Our
+        approach combines:
       </p>
       <div className="grid gap-4 xs:grid-cols-2 md:grid-cols-3">
         {research_methodologies.map((methodology, i) => (

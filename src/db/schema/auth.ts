@@ -21,6 +21,7 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
+    slug: text("slug").notNull().unique(),
     affiliation: text("affiliation"),
     emailVerified: timestamp("emailVerified", { mode: "date" }),
     image: text("image"),
@@ -33,6 +34,7 @@ export const users = pgTable(
   },
   (t) => [
     index("users_role_idx").on(t.role),
+    index("users_slug_idx").on(t.slug),
     check(
       "valid_email",
       sql`${t.email} ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`

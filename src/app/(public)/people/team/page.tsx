@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { Page } from "@/components/shell";
-import { Featured } from "@/components/views/people/team/featured";
+import { Hero, Researchers } from "@/components/views/people/team";
 
 export const metadata: Metadata = {
   title: "Research Team",
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 export default function Team() {
   return (
     <Page>
-      <Featured />
+      <Hero />
+      <Researchers />
     </Page>
   );
 }

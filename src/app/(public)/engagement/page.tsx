@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
 import { Page } from "@/components/shell";
-import { Hero } from "@/components/views/people/partners";
+import { Hero } from "@/components/views/engagement";
 
 export const metadata: Metadata = {
-  title: "Partners",
+  title: "Engagement",
 };
 
-export default function Partners() {
+export default function Engagement() {
   return (
     <Page>
       <Hero />

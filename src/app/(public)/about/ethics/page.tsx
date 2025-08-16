@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
 import { Page } from "@/components/shell";
-import { Hero } from "@/components/views/people/partners";
+import { Ethics as Comp, Hero } from "@/components/views/about/ethics";
 
 export const metadata: Metadata = {
-  title: "Partners",
+  title: "Ethics",
 };
 
-export default function Partners() {
+export default function Ethics() {
   return (
     <Page>
       <Hero />
+      <Comp />
     </Page>
   );
 }

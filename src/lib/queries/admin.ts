@@ -675,6 +675,7 @@ export async function getResearchers() {
             name: true,
             email: true,
             image: true,
+            slug: true,
           },
         },
         expertise: {

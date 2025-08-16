@@ -13,10 +13,10 @@ const nextConfig: NextConfig = {
         hostname: "u0hw2s7onu.ufs.sh",
         pathname: "/f/*",
       },
-      // {
-      //   protocol: "https",
-      //   hostname: "utfs.io",
-      // },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+      },
     ],
   },
 };

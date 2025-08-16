@@ -461,3 +461,26 @@ export const generateOKLCHColor = (index: number, total: number): string => {
   const chroma = 0.15 + (index % 2) * 0.05; // Vary chroma slightly
   return `oklch(${lightness.toFixed(3)} ${chroma.toFixed(3)} ${hue})`;
 };
+
+/**
+ * Converts a name to a URL-friendly slug
+ * Handles various name formats like "Richmond Davis", "Richmond", "Richmond D.", etc.
+ */
+export function slugifyName(name: string): string {
+  if (!name) return "";
+
+  return (
+    name
+      .toLowerCase()
+      // Remove periods (for initials like "D.")
+      .replace(/\./g, "")
+      // Replace spaces and other non-alphanumeric characters with hyphens
+      .replace(/[^\w\s-]/g, "")
+      // Replace multiple spaces or hyphens with single hyphen
+      .replace(/[\s_-]+/g, "-")
+      // Remove leading/trailing hyphens
+      .replace(/^-+|-+$/g, "")
+      // Remove any remaining special characters
+      .replace(/[^a-z0-9-]/g, "")
+  );
+}

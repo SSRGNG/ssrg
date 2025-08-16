@@ -78,7 +78,9 @@ export type SectionHeaderProps = {
   title: string;
   description?: string;
   titleElement?: "h1" | "h2" | "h3" | "h4";
+  hero?: boolean;
   className?: string;
+  descriptionClassName?: string;
 } & VariantProps<typeof sectionHeaderVariants>;
 
 export type SectionProps = React.ComponentPropsWithoutRef<"section"> &
@@ -90,10 +92,12 @@ export type SectionProps = React.ComponentPropsWithoutRef<"section"> &
 function SectionHeader({
   title,
   description,
+  hero = false,
   alignment,
   size,
   titleElement: TitleElement = "h2",
   className,
+  descriptionClassName,
 }: SectionHeaderProps) {
   // If there's no description, just render the title element directly with alignment classes
   if (!description) {
@@ -110,11 +114,43 @@ function SectionHeader({
     );
   }
 
+  // When used for hero section - render without wrapper div
+  if (hero) {
+    return (
+      <React.Fragment>
+        <TitleElement
+          className={cn(
+            "text-balance",
+            titleClassVariants({ alignment }),
+            className
+          )}
+        >
+          {title}
+        </TitleElement>
+        <p
+          className={cn(
+            "text-balance text-base leading-normal text-muted-foreground",
+            titleClassVariants({ alignment }),
+            descriptionClassName
+          )}
+        >
+          {description}
+        </p>
+      </React.Fragment>
+    );
+  }
   // Otherwise, render the container with title and description
   return (
     <div className={cn(sectionHeaderVariants({ alignment, size }), className)}>
       <TitleElement>{title}</TitleElement>
-      <p className="text-balance text-muted-foreground">{description}</p>
+      <p
+        className={cn(
+          "text-balance text-muted-foreground",
+          descriptionClassName
+        )}
+      >
+        {description}
+      </p>
     </div>
   );
 }
