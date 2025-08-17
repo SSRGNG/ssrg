@@ -9,12 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { research_framework } from "@/config/constants";
+import { getCachedResearchFrameworks } from "@/lib/queries/admin";
 import { cn } from "@/lib/utils";
 
 type Props = React.ComponentPropsWithoutRef<typeof Section>;
 
-function Framework({ className, ...props }: Props) {
+async function Framework({ className, ...props }: Props) {
+  const frameworks = await getCachedResearchFrameworks();
   return (
     <Section
       spacing={"snug"}
@@ -23,7 +24,7 @@ function Framework({ className, ...props }: Props) {
       {...props}
     >
       <div className="grid gap-4 xs:grid-cols-2">
-        {research_framework.map((framework) => (
+        {frameworks.map((framework) => (
           <Card key={framework.title} className="gap-2.5">
             <CardHeader className="gap-0">
               <CardTitle>{framework.title}</CardTitle>
@@ -33,8 +34,8 @@ function Framework({ className, ...props }: Props) {
             </CardContent>
             <CardFooter className="grid">
               <Link
-                aria-label={framework.link.text}
-                href={framework.link.href}
+                aria-label={framework.linkText}
+                href={framework.href}
                 className={cn(
                   buttonVariants({
                     variant: "link",
@@ -43,7 +44,7 @@ function Framework({ className, ...props }: Props) {
                   })
                 )}
               >
-                {framework.link.text}
+                Learn more
               </Link>
             </CardFooter>
           </Card>

@@ -33,15 +33,15 @@ function GetInvolved({ className, ...props }: Props) {
           Collaborate with us →
         </Link>
         <Link
-          arial-label="Participate in research"
-          href={"/engagement/participate"}
+          arial-label="Support independent research"
+          href={"/engagement/funding"}
           className={cn(
             buttonVariants({
               size: "xl",
             })
           )}
         >
-          Participate in research →
+          Support independent research →
         </Link>
       </div>
     </Section>
