@@ -5,6 +5,18 @@ import { AuthError } from "next-auth";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { auth, signIn, signOut } from "@/auth";
+import {
+  CACHED_FORMATTED_RESEARCHER,
+  CACHED_FORMATTED_RESEARCHERS,
+  CACHED_PROJECTS,
+  CACHED_PUBLICATIONS,
+  CACHED_RESEARCH_AREAS,
+  CACHED_RESEARCH_FRAMEWORKS,
+  CACHED_RESEARCH_METHODOLOGIES,
+  CACHED_RESEARCHER,
+  CACHED_RESEARCHERS,
+  CACHED_VIDEOS,
+} from "@/config/constants";
 import { db } from "@/db";
 import {
   partners,
@@ -184,6 +196,22 @@ export async function createUser(formData: SignupPayload) {
     };
   }
 }
+export const invalidateAllTags = async () => {
+  try {
+    revalidateTag(CACHED_FORMATTED_RESEARCHERS);
+    revalidateTag(CACHED_RESEARCHERS);
+    revalidateTag(CACHED_RESEARCH_AREAS);
+    revalidateTag(CACHED_RESEARCHER);
+    revalidateTag(CACHED_FORMATTED_RESEARCHER);
+    revalidateTag(CACHED_RESEARCH_FRAMEWORKS);
+    revalidateTag(CACHED_RESEARCH_METHODOLOGIES);
+    revalidateTag(CACHED_PROJECTS);
+    revalidateTag(CACHED_PUBLICATIONS);
+    revalidateTag(CACHED_VIDEOS);
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const unAuthenticate = async () => {
   try {

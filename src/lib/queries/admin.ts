@@ -664,6 +664,69 @@ export async function getResearcher(researcherId: string) {
     throw error; // Re-throw to allow caller to handle
   }
 }
+// Get a researcher with the provided slug
+export async function getResearcherWithSlug(slug: string) {
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.slug, slug),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        slug: true,
+      },
+      with: {
+        researcher: {
+          with: {
+            expertise: {
+              orderBy: (expertise, { asc }) => [asc(expertise.order)],
+            },
+            education: {
+              orderBy: (education, { asc }) => [asc(education.order)],
+            },
+            areas: {
+              with: {
+                area: true,
+              },
+            },
+            author: {
+              with: {
+                publications: {
+                  with: {
+                    publication: {
+                      columns: {
+                        title: true,
+                        publicationDate: true,
+                      },
+                    },
+                  },
+                  orderBy: (pa, { desc }) => [desc(pa.order)],
+                },
+              },
+            },
+            leadProjects: {
+              columns: {
+                title: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Handle not found case
+    if (!user) {
+      throw new Error(`User with slug ${slug} not found`);
+    }
+
+    return user;
+  } catch (error) {
+    console.error(`Failed to fetch user ${slug}:`, error);
+    throw error; // Re-throw to allow caller to handle
+  }
+}
 
 export async function getResearchers() {
   try {

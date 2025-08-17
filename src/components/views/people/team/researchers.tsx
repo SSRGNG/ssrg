@@ -91,14 +91,14 @@ function ResearcherCard({
               href={`mailto:${researcher.user.email}`}
               className={cn(
                 buttonVariants({
-                  size: "sm",
-                  variant: "secondary",
-                  className: "rounded-sm",
+                  size: "icon",
+                  variant: "outline",
+                  className: "rounded-sm size-8",
                 })
               )}
               aria-label={`Email ${researcher.user.name}`}
             >
-              <Icons.connect className="size-3" strokeWidth={1.5} /> Contact
+              <Icons.connect className="size-3" strokeWidth={1.5} />
             </a>
             <a
               href={`/publications?researcher=${researcher.user.slug}`}
