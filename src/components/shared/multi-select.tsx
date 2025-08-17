@@ -139,8 +139,9 @@ const MultiSelect = React.forwardRef<
                 {option.label}
                 <Button
                   aria-label={`Remove ${option.label}`}
-                  size="sm"
-                  className="ml-2 h-auto bg-transparent p-0 text-primary hover:bg-transparent hover:text-destructive"
+                  size="icon"
+                  variant={"brand"}
+                  className="size-4 rounded-sm hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -155,7 +156,7 @@ const MultiSelect = React.forwardRef<
                   onClick={() => handleRemove(option)}
                   data-slot="multi-select-remove"
                 >
-                  <XIcon className="size-3" aria-hidden="true" />
+                  <XIcon className="size-2" aria-hidden="true" />
                 </Button>
               </Badge>
             ))}

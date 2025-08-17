@@ -9,6 +9,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+import { users } from "@/db/schema";
 import { Partner } from "@/types";
 
 export const partners = pgTable(
@@ -70,3 +71,29 @@ export const scholarships = pgTable(
     // ),
   ]
 );
+
+export const members = pgTable("members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  // link to users (all members must have a user record)
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+
+  // membership metadata
+  type: text("type")
+    .$type<"individual" | "organization">()
+    .default("individual"),
+  status: text("status")
+    .$type<"pending" | "approved" | "rejected">()
+    .default("pending"),
+
+  // optional profile extras
+  interests: text("interests").array(),
+
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});

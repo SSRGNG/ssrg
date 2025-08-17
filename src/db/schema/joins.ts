@@ -161,3 +161,17 @@ export const videoAuthors = pgTable(
     index("video_authors_author_idx").on(t.authorId),
   ]
 );
+
+// export const researcherMembers = pgTable("researcher_members", {
+//   researcherId: uuid("researcher_id")
+//     .references(() => researchers.id, { onDelete: "cascade" }),
+//   memberId: uuid("member_id")
+//     .references(() => members.id, { onDelete: "cascade" }),
+// });
+
+// export const partnerMembers = pgTable("partner_members", {
+//   partnerId: uuid("partner_id")
+//     .references(() => partners.id, { onDelete: "cascade" }),
+//   memberId: uuid("member_id")
+//     .references(() => members.id, { onDelete: "cascade" }),
+// });

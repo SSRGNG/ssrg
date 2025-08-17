@@ -14,22 +14,12 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { createMember } from "@/lib/actions/members";
 import { catchError, cn } from "@/lib/utils";
-import { z } from "zod";
+import { type JoinPayload, joinSchema } from "@/lib/validations/partner";
+import { toast } from "sonner";
 
 type Props = React.ComponentProps<"form">;
-
-const joinSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address",
-  }),
-  interests: z.array(z.string()).min(1, "At least one interest is required"),
-});
-
-type JoinPayload = z.infer<typeof joinSchema>;
 
 const interestOptions: Option[] = [
   { label: "Community Development", value: "community-development" },
@@ -40,6 +30,7 @@ const defaultValues: JoinPayload = {
   name: "",
   email: "",
   interests: [],
+  type: "individual",
 };
 
 function Join({ className, ...props }: Props) {
@@ -54,7 +45,16 @@ function Join({ className, ...props }: Props) {
   function onSubmit(data: JoinPayload) {
     startTransition(async () => {
       try {
-        console.log(data);
+        const result = await createMember(data);
+
+        if (result.error) {
+          toast.error("Error", { description: result.error });
+          return;
+        }
+
+        toast.success("Success", {
+          description: "You have been subscribed successfully!",
+        });
       } catch (err) {
         catchError(err);
       }
@@ -130,3 +130,13 @@ function Join({ className, ...props }: Props) {
 }
 
 export { Join };
+
+// {
+//     "name": "Richard Dallington",
+//     "email": "emrrich@gmail.com",
+//     "interests": [
+//         "community-development",
+//         "equity-inclusion",
+//         "social-policy"
+//     ]
+// }

@@ -28,7 +28,7 @@ function Hero({ className, ...props }: Props) {
           Explore Our Research
         </Link>
         <Link
-          href="/engagement/participate"
+          href="/engagement/collaborate"
           className={cn(buttonVariants({ size: "xl" }))}
         >
           Get Involved
