@@ -28,7 +28,14 @@ export const videoCats = defineEnum(
   "other"
 );
 
-export const partners = createEnum("academic", "nonprofit", "government");
+export const partners = createEnum(
+  "academic",
+  "nonprofit",
+  "government",
+  "ngo",
+  "corporate",
+  "international"
+);
 
 export const events = createEnum(
   "workshop",

@@ -6,6 +6,7 @@ import {
   authors,
   eventPresenters,
   events,
+  members,
   partnerProjects,
   partners,
   projectCategories,
@@ -34,6 +35,10 @@ export const authRelations = relations(users, ({ one, many }) => ({
   researcher: one(researchers, {
     fields: [users.id],
     references: [researchers.userId],
+  }),
+  member: one(members, {
+    fields: [users.id],
+    references: [members.userId],
   }),
   createdVideos: many(videos, {
     relationName: "videoCreator",
@@ -98,6 +103,13 @@ export const eventPresentersRelations = relations(
 // partners
 export const partnersRelations = relations(partners, ({ many }) => ({
   projects: many(partnerProjects),
+}));
+
+export const membersRelations = relations(members, ({ one }) => ({
+  user: one(users, {
+    fields: [members.userId],
+    references: [users.id],
+  }),
 }));
 
 // projects

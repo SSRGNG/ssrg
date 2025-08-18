@@ -14,6 +14,7 @@ import {
   getVideoCategoryDistribution,
 } from "@/lib/queries/admin";
 import { getResearchImages } from "@/lib/queries/files";
+import { getAllMembers } from "@/lib/queries/members";
 import {
   authResearcher,
   getCurrentUserResearcher,
@@ -118,3 +119,5 @@ export type AuthorData = AuthorResult["data"];
 
 export type VideosWithPagination = Awaited<ReturnType<typeof getVideos>>;
 export type Videos = VideosWithPagination["videos"];
+
+export type AllMembers = Awaited<ReturnType<typeof getAllMembers>>;

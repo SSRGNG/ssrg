@@ -43,7 +43,7 @@ function ResearcherCard({
   return (
     <Card
       className={cn(
-        "gap-0 py-0 sm:py-0 overflow-hidden",
+        "gap-0 py-0 sm:py-0 overflow-hidden shadow-none h-full",
         idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
@@ -67,7 +67,7 @@ function ResearcherCard({
         )}
       </CardHeader>
 
-      <CardContent className="space-y-2.5 py-4 sm:py-6 md:w-2/3 leading-none">
+      <CardContent className="flex flex-col gap-3.5 py-4 sm:py-6 md:w-2/3 leading-none">
         <div className="space-y-0.5">
           <CardTitle>{researcher.user.name}</CardTitle>
           <CardDescription>{researcher.title}</CardDescription>
@@ -85,7 +85,7 @@ function ResearcherCard({
           ))}
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex mt-auto justify-between items-center gap-2">
           <div className="flex gap-2">
             <a
               href={`mailto:${researcher.user.email}`}
@@ -106,10 +106,10 @@ function ResearcherCard({
                 buttonVariants({
                   size: "sm",
                   variant: "secondary",
-                  className: "rounded-sm",
+                  className: "rounded-sm text-xs",
                 })
               )}
-              aria-label={`${researcher.user.name}'s Twitter`}
+              aria-label="Researcher's publications"
             >
               <Icons.caseStudy className="size-3" strokeWidth={1.5} />{" "}
               Publications
@@ -120,11 +120,11 @@ function ResearcherCard({
             className={cn(
               buttonVariants({
                 variant: "link",
-                className: "flex w-fit h-fit text-brand p-0",
+                className: "flex w-fit h-fit text-brand p-0 text-xs",
               })
             )}
           >
-            Full Profile →
+            Profile →
           </Link>
         </div>
       </CardContent>

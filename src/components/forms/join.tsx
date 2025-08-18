@@ -55,6 +55,8 @@ function Join({ className, ...props }: Props) {
         toast.success("Success", {
           description: "You have been subscribed successfully!",
         });
+
+        form.reset();
       } catch (err) {
         catchError(err);
       }
