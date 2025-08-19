@@ -79,8 +79,8 @@ export type SectionHeaderProps = {
   description?: string;
   titleElement?: "h1" | "h2" | "h3" | "h4";
   hero?: boolean;
-  className?: string;
-  descriptionClassName?: string;
+  className?: React.HTMLAttributes<HTMLElement>["className"];
+  descriptionClassName?: React.HTMLAttributes<HTMLElement>["className"];
 } & VariantProps<typeof sectionHeaderVariants>;
 
 export type SectionProps = React.ComponentPropsWithoutRef<"section"> &

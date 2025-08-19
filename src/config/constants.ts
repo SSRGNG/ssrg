@@ -1612,3 +1612,697 @@ export const exampleMembers = [
     joinedAt: new Date("2024-01-05"),
   },
 ];
+
+export const termsOfUse = [
+  {
+    title: "1. Acceptance of Terms",
+    content: [
+      "By accessing or using the Social Solutions Research Group (SSRG) website, research portal, resources, or services, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use our services.",
+    ],
+  },
+  {
+    title: "2. Description of Services",
+    content: [
+      "Public access to research findings, publications, and educational resources",
+      "Secure researcher portal for authorized users",
+      "Collaborative tools for research partners and community organizations",
+      "Training materials and methodological resources",
+      "Policy briefings and advocacy materials",
+    ],
+  },
+  {
+    title: "3. User Accounts and Access",
+    subsections: [
+      {
+        subtitle: "3.1 Account Registration",
+        content: [
+          "Researcher portal access requires account registration and verification",
+          "Users must provide accurate, current, and complete information",
+          "Account holders are responsible for maintaining the confidentiality of login credentials",
+          "Users must notify SSRG immediately of any unauthorized account access",
+        ],
+      },
+      {
+        subtitle: "3.2 User Categories and Access Levels",
+        content: [
+          "Public Users: Access to published research, resources, and general information",
+          "Community Partners: Enhanced access to collaboration tools and unpublished findings",
+          "Researchers: Full portal access including data repositories, analysis tools, and project management",
+          "Administrators: Complete system access and user management capabilities",
+        ],
+      },
+      {
+        subtitle: "3.3 Account Termination",
+        content: [
+          "SSRG reserves the right to suspend or terminate accounts for terms violations",
+          "Users may request account deletion at any time",
+          "Data associated with terminated accounts will be handled according to our data retention policies",
+        ],
+      },
+    ],
+  },
+  {
+    title: "4. Intellectual Property Rights",
+    subsections: [
+      {
+        subtitle: "4.1 SSRG Content",
+        content: [
+          "All original content, research methodologies, and educational materials are owned by SSRG",
+          "Published research findings are made available under Creative Commons licenses where applicable",
+          "Users may cite and reference SSRG materials with proper attribution",
+          "Commercial use of SSRG materials requires explicit written permission",
+        ],
+      },
+      {
+        subtitle: "4.2 User-Generated Content",
+        content: [
+          "Users retain ownership of original content they contribute",
+          "By submitting content, users grant SSRG a non-exclusive license to use, modify, and distribute the content for research and educational purposes",
+          "Users warrant they have the right to submit all contributed content",
+          "SSRG reserves the right to remove user content that violates these terms",
+        ],
+      },
+      {
+        subtitle: "4.3 Third-Party Content",
+        content: [
+          "Some resources may include third-party materials used under fair use or with permission",
+          "Users are responsible for obtaining necessary permissions for any third-party content they use",
+          "SSRG does not guarantee the accuracy or reliability of third-party content",
+        ],
+      },
+    ],
+  },
+  {
+    title: "5. Research Data and Publications",
+    subsections: [
+      {
+        subtitle: "5.1 Data Sharing",
+        content: [
+          "Research data is shared in accordance with IRB approvals and participant consent",
+          "De-identified datasets may be made available for secondary analysis",
+          "Requests for sensitive or restricted data require additional approval processes",
+          "Data use agreements may be required for certain datasets",
+        ],
+      },
+      {
+        subtitle: "5.2 Publication Guidelines",
+        content: [
+          "Users may publish findings based on SSRG data with proper attribution",
+          "Co-authorship expectations are outlined in collaboration agreements",
+          "Community partners have the right to review findings before publication",
+          "SSRG reserves the right to publish corrections or clarifications to research findings",
+        ],
+      },
+    ],
+  },
+  {
+    title: "6. Prohibited Uses",
+    content: [
+      "Use SSRG services for illegal activities or to violate others' rights",
+      "Attempt to gain unauthorized access to restricted areas or data",
+      "Share login credentials or allow others to use their accounts",
+      "Upload malicious software or attempt to disrupt services",
+      "Use automated tools to scrape or download large amounts of content without permission",
+      "Misrepresent affiliation with SSRG or use our name without authorization",
+      "Violate research ethics or participant confidentiality agreements",
+    ],
+  },
+  {
+    title: "7. Privacy and Data Protection",
+    content: [
+      "Personal information is collected and used in accordance with our Privacy Policy",
+      "Research data is protected according to our Data Protection protocols",
+      "Users should review our privacy practices before using SSRG services",
+      "Questions about privacy practices can be directed to our privacy officer",
+    ],
+  },
+  {
+    title: "8. Disclaimer of Warranties",
+    content: [
+      "SSRG services are provided 'as is' without warranties of any kind. While we strive for accuracy and reliability:",
+      "We do not guarantee the accuracy, completeness, or timeliness of all information",
+      "Research findings are subject to peer review and may be updated based on new evidence",
+      "Technical services may experience interruptions or downtime",
+      "Users are responsible for evaluating the suitability of information for their purposes",
+    ],
+  },
+  {
+    title: "9. Limitation of Liability",
+    content: [
+      "To the fullest extent permitted by law, SSRG shall not be liable for:",
+      "Indirect, incidental, special, or consequential damages",
+      "Loss of data, profits, or business opportunities",
+      "Damages arising from user reliance on information provided",
+      "Technical failures or service interruptions",
+    ],
+  },
+  {
+    title: "10. Indemnification",
+    content: [
+      "Users agree to indemnify and hold SSRG harmless from claims arising from:",
+      "User violations of these terms",
+      "User-generated content or data",
+      "Unauthorized use of user accounts",
+      "Violation of third-party rights",
+    ],
+  },
+  {
+    title: "11. Governing Law and Dispute Resolution",
+    content: [
+      "These terms are governed by the laws of [State/Jurisdiction]",
+      "Disputes will be resolved through binding arbitration",
+      "Users consent to the jurisdiction of [Jurisdiction] courts for legal matters",
+      "Class action waivers apply where legally permissible",
+    ],
+  },
+  {
+    title: "12. Changes to Terms",
+    content: [
+      "SSRG reserves the right to modify these terms at any time",
+      "Users will be notified of significant changes via email or website notice",
+      "Continued use of services after changes constitutes acceptance of new terms",
+      "Users who disagree with changes may terminate their accounts",
+    ],
+  },
+  // {
+  //   title: "13. Contact Information",
+  //   content: [
+  //     "For questions about these Terms of Use:",
+  //     "Email: legal@ssrg.org",
+  //     "Phone: [Phone Number]",
+  //     "Address: [Physical Address]",
+  //   ],
+  // },
+];
+
+export const privacyPolicy = [
+  {
+    title: "1. Introduction and Scope",
+    content: [
+      "The Social Solutions Research Group (SSRG) is committed to protecting the privacy and confidentiality of all individuals who interact with our organization, participate in our research, or use our services.",
+      "This Privacy Policy explains how we collect, use, store, and protect personal information.",
+      "This policy applies to:",
+    ],
+    list: [
+      "Website visitors and users",
+      "Research participants",
+      "Community partners and collaborators",
+      "Employees and contractors",
+      "Newsletter subscribers and event attendees",
+    ],
+  },
+  {
+    title: "2. Information We Collect",
+    subsections: [
+      {
+        subtitle: "2.1 Personal Information",
+        subsubsections: [
+          {
+            subtitle: "Directly Provided Information",
+            content: [
+              "Name, email address, phone number, and mailing address",
+              "Professional affiliation and credentials",
+              "Demographic information (when voluntarily provided)",
+              "Research interests and expertise areas",
+              "Communication preferences",
+            ],
+          },
+          {
+            subtitle: "Account Information",
+            content: [
+              "Username and encrypted passwords",
+              "Profile information and preferences",
+              "Usage history and activity logs",
+              "File uploads and contributions",
+            ],
+          },
+        ],
+      },
+      {
+        subtitle: "2.2 Research Participation Data",
+        subsubsections: [
+          {
+            subtitle: "Participant Information",
+            content: [
+              "Contact information for recruitment and follow-up",
+              "Demographic and socioeconomic information",
+              "Survey responses and interview transcripts",
+              "Photos, videos, or audio recordings (with explicit consent)",
+              "Geographic location data (when relevant to research)",
+            ],
+          },
+          {
+            subtitle: "Sensitive Categories",
+            content: [
+              "Health information (collected only when necessary for research)",
+              "Information about vulnerable populations",
+              "Data about minors (with appropriate guardian consent)",
+              "Information about marginalized communities",
+            ],
+          },
+        ],
+      },
+      {
+        subtitle: "2.3 Technical Information",
+        subsubsections: [
+          {
+            subtitle: "Website Usage Data",
+            content: [
+              "IP addresses and browser information",
+              "Pages visited and time spent on site",
+              "Referral sources and search terms",
+              "Device information and screen resolution",
+              "Cookies and similar tracking technologies",
+            ],
+          },
+          {
+            subtitle: "Portal Usage Data",
+            content: [
+              "Login times and session duration",
+              "Features accessed and documents viewed",
+              "Download and upload activity",
+              "Collaboration and communication logs",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "3. How We Use Your Information",
+    subsections: [
+      {
+        subtitle: "3.1 Research Purposes",
+        content: [
+          "Conducting approved research studies and analyses",
+          "Recruiting participants for current and future studies",
+          "Following up with participants for longitudinal research",
+          "Creating de-identified datasets for secondary analysis",
+          "Evaluating and improving research methodologies",
+        ],
+      },
+      {
+        subtitle: "3.2 Service Provision",
+        content: [
+          "Providing access to research portal and resources",
+          "Facilitating collaboration between researchers and community partners",
+          "Delivering newsletters and updates about research findings",
+          "Responding to inquiries and providing technical support",
+          "Personalizing user experience and content recommendations",
+        ],
+      },
+      {
+        subtitle: "3.3 Legal and Compliance",
+        content: [
+          "Complying with Institutional Review Board (IRB) requirements",
+          "Meeting legal obligations and regulatory requirements",
+          "Protecting the rights and safety of research participants",
+          "Maintaining records for audit and oversight purposes",
+          "Responding to valid legal requests for information",
+        ],
+      },
+    ],
+  },
+  {
+    title: "4. Information Sharing and Disclosure",
+    subsections: [
+      {
+        subtitle: "4.1 Research Collaborators",
+        content: [
+          "Authorized team members working on specific research projects",
+          "Community partners involved in participatory research",
+          "Academic collaborators at partner institutions",
+          "External evaluators and auditors (with appropriate agreements)",
+        ],
+      },
+      {
+        subtitle: "4.2 Service Providers",
+        content: [
+          "Cloud storage and technical infrastructure providers",
+          "Survey and data collection platform vendors",
+          "Transcription and translation services",
+          "Legal and compliance consultants",
+        ],
+      },
+      {
+        subtitle: "4.3 Required Disclosures",
+        content: [
+          "Law enforcement agencies with valid legal requests",
+          "Regulatory bodies conducting oversight activities",
+          "IRB and ethics review committees",
+          "Legal proceedings where disclosure is required",
+        ],
+      },
+      {
+        subtitle: "4.4 Public Information",
+        content: [
+          "Published research findings with appropriate de-identification",
+          "Aggregate statistics and trends (without personal identifiers)",
+          "Case studies and examples (with explicit participant consent)",
+          "Educational materials and resources",
+        ],
+      },
+    ],
+  },
+  {
+    title: "5. Data Security and Protection",
+    subsections: [
+      {
+        subtitle: "5.1 Technical Safeguards",
+        content: [
+          "Encryption of data in transit and at rest",
+          "Multi-factor authentication for portal access",
+          "Regular security audits and vulnerability assessments",
+          "Secure backup and disaster recovery procedures",
+          "Access controls and user permission management",
+        ],
+      },
+      {
+        subtitle: "5.2 Physical Safeguards",
+        content: [
+          "Locked offices and secure storage facilities",
+          "Restricted access to research spaces",
+          "Secure disposal of physical documents",
+          "Controlled access to research equipment and devices",
+        ],
+      },
+      {
+        subtitle: "5.3 Administrative Safeguards",
+        content: [
+          "Regular privacy and security training for staff",
+          "Clear data handling procedures and protocols",
+          "Incident response and breach notification procedures",
+          "Regular review and update of security measures",
+          "Vendor management and due diligence processes",
+        ],
+      },
+    ],
+  },
+  {
+    title: "6. Data Retention and Deletion",
+    subsections: [
+      {
+        subtitle: "6.1 Retention Periods",
+        content: [
+          "Research Data: Retained according to IRB approvals and funder requirements (typically 3-7 years)",
+          "Account Information: Retained while accounts are active plus 2 years",
+          "Website Usage Data: Retained for 2 years unless longer retention is required",
+          "Communications: Retained for 3 years for business and legal purposes",
+        ],
+      },
+      {
+        subtitle: "6.2 Deletion Procedures",
+        content: [
+          "Secure deletion of electronic files using industry-standard methods",
+          "Physical destruction of paper documents and storage media",
+          "Verification of deletion completion and documentation",
+          "Notification to relevant parties when deletion is complete",
+        ],
+      },
+      {
+        subtitle: "6.3 Exceptions to Deletion",
+        content: [
+          "Information required for ongoing legal proceedings",
+          "Data needed for longitudinal research with participant consent",
+          "Information required by law or regulation to be retained",
+          "De-identified data used for secondary research purposes",
+        ],
+      },
+    ],
+  },
+  {
+    title: "7. Individual Rights and Choices",
+    subsections: [
+      {
+        subtitle: "7.1 Access and Correction",
+        content: [
+          "Right to access personal information we hold",
+          "Right to request correction of inaccurate information",
+          "Right to receive copies of data in portable formats",
+          "Assistance with understanding how data is used",
+        ],
+      },
+      {
+        subtitle: "7.2 Consent and Withdrawal",
+        content: [
+          "Right to withdraw consent for research participation",
+          "Right to opt out of non-essential communications",
+          "Right to request deletion of personal information (subject to research obligations)",
+          "Right to object to certain uses of personal information",
+        ],
+      },
+      {
+        subtitle: "7.3 Research Participant Rights",
+        content: [
+          "Right to review research findings before publication",
+          "Right to request removal from future research contact lists",
+          "Right to file complaints about research conduct",
+          "Right to receive updates about research progress and findings",
+        ],
+      },
+    ],
+  },
+  {
+    title: "8. International Data Transfers",
+    content: [
+      "When we transfer personal information internationally:",
+      "We ensure adequate protection through legal mechanisms",
+      "We use standard contractual clauses or other approved safeguards",
+      "We conduct due diligence on international partners and vendors",
+      "We comply with applicable cross-border data transfer regulations",
+    ],
+  },
+  {
+    title: "9. Children's Privacy",
+    subsubsections: [
+      {
+        subtitle: "Protection for Minors",
+        content: [
+          "We do not knowingly collect personal information from children under 13 without parental consent",
+          "Research involving minors requires special IRB approval and parental/guardian consent",
+          "We use age-appropriate methods for obtaining assent from minor participants",
+          "We provide enhanced protection for sensitive information about minors",
+        ],
+      },
+    ],
+  },
+  {
+    title: "10. Changes to This Privacy Policy",
+    content: [
+      "We review and update this policy regularly to reflect changes in our practices",
+      "We will notify users of significant changes via email or website notice",
+      "We will obtain additional consent for material changes that affect research participants",
+      "Previous versions of the policy are archived and available upon request",
+    ],
+  },
+  {
+    title: "11. Contact Information and Complaints",
+    subsections: [
+      {
+        subtitle: "Privacy Officer",
+        content: [
+          "Email: privacy@ssrg.org",
+          "Phone: [Phone Number]",
+          "Address: [Physical Address]",
+        ],
+      },
+      {
+        subtitle: "Data Protection Officer (for EU residents)",
+        content: ["Email: dpo@ssrg.org", "Phone: [Phone Number]"],
+      },
+      {
+        subtitle: "Complaint Procedures",
+        content: [
+          "Internal complaint process through privacy officer",
+          "External complaints to relevant regulatory authorities",
+          "IRB complaints for research-related privacy concerns",
+        ],
+      },
+    ],
+  },
+];
+
+export const dataProtectionPolicy = [
+  {
+    title: "Overview and Commitment",
+    content: [
+      "The Social Solutions Research Group (SSRG) upholds comprehensive data protection standards that exceed regulatory requirements and reflect our commitment to participant privacy, research integrity, and community trust.",
+      "Our framework integrates international security best practices with ethical research principles, ensuring respect for participant rights across jurisdictions.",
+    ],
+    list: [
+      "Protect the privacy and confidentiality of all research participants",
+      "Maintain the highest standards of data security and integrity",
+      "Ensure transparent and accountable data management practices",
+      "Comply with international and local privacy laws and regulations",
+      "Empower communities with meaningful control over their data",
+    ],
+  },
+  {
+    title: "Regulatory Compliance Framework",
+    subsections: [
+      {
+        subtitle: "U.S. Federal Regulations",
+        subsubsections: [
+          {
+            subtitle: "Common Rule (45 CFR 46)",
+            content: [
+              "IRB review and approval for all human subjects research",
+              "Informed consent procedures and documentation",
+              "Special protections for vulnerable populations",
+              "Ongoing monitoring and reporting requirements",
+            ],
+          },
+          {
+            subtitle:
+              "HIPAA (Health Insurance Portability and Accountability Act)",
+            content: [
+              "Protection of health information in health-related research",
+              "Business associate agreements with covered entities",
+              "Minimum necessary standards for data access",
+              "Breach notification and incident response procedures",
+            ],
+          },
+          {
+            subtitle: "FERPA (Family Educational Rights and Privacy Act)",
+            content: [
+              "Protection of educational records in education research",
+              "Consent requirements for disclosure of educational information",
+              "Directory information policies and procedures",
+              "Record retention and destruction requirements",
+            ],
+          },
+        ],
+      },
+      {
+        subtitle: "International Regulations",
+        subsubsections: [
+          {
+            subtitle: "General Data Protection Regulation (GDPR - EU/UK)",
+            content: [
+              "Lawful basis for processing personal data",
+              "Respect for data subject rights (access, erasure, portability, objection)",
+              "Data protection impact assessments (DPIAs)",
+              "Cross-border data transfer mechanisms",
+              "Data Protection Officer (DPO) appointment where required",
+            ],
+          },
+          {
+            subtitle: "UK Data Protection Act (2018)",
+            content: [
+              "UK-specific implementation of GDPR standards",
+              "Special category data handling for health, ethnicity, and research purposes",
+              "Safeguards for academic and research exemptions",
+            ],
+          },
+          {
+            subtitle:
+              "Canada: PIPEDA (Personal Information Protection and Electronic Documents Act)",
+            content: [
+              "Consent-based framework for collection, use, and disclosure",
+              "Requirements for transparency and accountability in research",
+              "Individual rights of access and correction",
+              "Safeguards appropriate to sensitivity of information",
+            ],
+          },
+          {
+            subtitle: "Nigeria: NDPR (Nigeria Data Protection Regulation)",
+            content: [
+              "Lawful processing principles (consent, contract, legal obligation, vital interest, public task)",
+              "Registration of Data Controllers/Processors with NITDA",
+              "Cross-border data transfer restrictions and safeguards",
+              "Rights to erasure, portability, and objection",
+            ],
+          },
+          {
+            subtitle: "California Consumer Privacy Act (CCPA - USA)",
+            content: [
+              "Consumer rights regarding personal information",
+              "Disclosure and deletion request procedures",
+              "Opt-out mechanisms for data sales",
+              "Non-discrimination policies for privacy rights exercise",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Data Classification and Handling",
+    subsections: [
+      {
+        subtitle: "Data Classification Levels",
+        subsubsections: [
+          {
+            subtitle: "Public Data",
+            content: [
+              "Published research findings and reports",
+              "Educational resources and outreach materials",
+              "Aggregate statistics without identifiers",
+            ],
+          },
+          {
+            subtitle: "Internal Data",
+            content: [
+              "Organizational documents and communications",
+              "Administrative and financial records",
+              "Non-sensitive staff and contractor information",
+            ],
+          },
+          {
+            subtitle: "Confidential Data",
+            content: [
+              "Research participant personal information",
+              "Unpublished analysis and proprietary methodologies",
+              "Legal and compliance documentation",
+            ],
+          },
+          {
+            subtitle: "Restricted Data",
+            content: [
+              "Sensitive health, demographic, or biometric information",
+              "Recordings or media involving participants",
+              "Data from vulnerable or high-risk populations",
+            ],
+          },
+        ],
+      },
+      {
+        subtitle: "Data Handling Procedures",
+        subsubsections: [
+          {
+            subtitle: "Collection",
+            content: [
+              "Minimize collection to necessary data only",
+              "Secure consent management with clear documentation",
+              "Use encrypted and certified collection platforms",
+            ],
+          },
+          {
+            subtitle: "Storage",
+            content: [
+              "Encrypted storage with geographically distributed backups",
+              "Strict access controls based on least privilege",
+              "Regular backup testing and system hardening",
+            ],
+          },
+          {
+            subtitle: "Processing",
+            content: [
+              "Data used only for approved research purposes",
+              "De-identification and anonymization where possible",
+              "Full audit trails and reproducibility documentation",
+            ],
+          },
+          {
+            subtitle: "Sharing",
+            content: [
+              "Authorized personnel only, under data use agreements",
+              "Secure transfer protocols for external collaboration",
+              "Monitoring and logging of all data access events",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
