@@ -93,7 +93,7 @@ function SummaryCards({ users, className, ...props }: Props) {
   }, [users]);
 
   const roleData = Object.entries(stats.roleStats).map(([role, count]) => ({
-    role,
+    role: role.charAt(0).toUpperCase() + role.slice(1),
     count,
   }));
   const roleChartData = createChartData(
@@ -378,6 +378,7 @@ function SummaryCards({ users, className, ...props }: Props) {
                   tickMargin={10}
                   fontSize={12}
                   fontWeight={600}
+                  style={{ textTransform: "capitalize" }}
                 />
                 <ChartTooltip
                   cursor={false}
