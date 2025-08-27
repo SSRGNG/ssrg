@@ -27,14 +27,16 @@ import { CreateResearchArea } from "@/components/forms/create-research-area";
 import { CreateResearchFrameworks } from "@/components/forms/create-research-frameworks";
 import { CreateResearchMethodologies } from "@/components/forms/create-research-methodologies";
 import { CreateResearcher } from "@/components/forms/create-researcher";
+import { CreateScholarship } from "@/components/forms/create-scholarship";
 import { UserSignup } from "@/components/forms/user-signup";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { appConfig } from "@/config";
 
-type CreateActionsProps = React.PropsWithChildren & {
+type CreateActionsProps = {
   actionKey: ActionKey;
   label?: string;
   isMobile: boolean;
+  children: React.ReactElement;
 };
 
 type FormComponentProps = React.ComponentPropsWithoutRef<"form"> & {
@@ -80,6 +82,7 @@ function CreateActions({
     newsletter: () => null,
     archive: () => null,
     export: () => null,
+    scholarship: CreateScholarship,
   };
 
   const description = `You are creating a new ${actionKey}`;

@@ -56,6 +56,7 @@ export default async function ProfilePage() {
       available: userRole === "partner",
     },
   ].filter((tab) => tab.available);
+
   return (
     <Page variant={"portal"} className={cn("space-y-4")}>
       <Profile profiles={userProfiles} />

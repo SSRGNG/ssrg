@@ -31,7 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getImages } from "@/lib/actions/files";
 import type { Images } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
-import { ImageFilters } from "@/types";
+import { FileSelectionData, ImageFilters } from "@/types";
 
 type GalleryImage = Images[number];
 type ImageFetchStrategy =
@@ -39,8 +39,9 @@ type ImageFetchStrategy =
   | { type: "custom"; fetchFn: () => Promise<GalleryImage[]> };
 
 type Props = React.ComponentPropsWithoutRef<"div"> & {
-  value?: string;
-  onValueChange: (url: string) => void;
+  value?: string | FileSelectionData;
+  onValueChange: (value: string | FileSelectionData) => void;
+  returnType?: "url" | "fileData";
   triggerClassName?: string;
   placeholder?: string;
   endpoint?: Endpoint;
@@ -51,6 +52,7 @@ type Props = React.ComponentPropsWithoutRef<"div"> & {
 function ImageSelector({
   value,
   onValueChange,
+  returnType = "url",
   triggerClassName,
   placeholder = "Upload or Select Image",
   endpoint = "researchImageUploader",
@@ -62,6 +64,10 @@ function ImageSelector({
   const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
   const [uploadedImages, setUploadedImages] = React.useState<Images>([]);
   const [loadingImages, setLoadingImages] = React.useState(false);
+
+  // Handle both URL string and FileSelectionData
+  const currentUrl = typeof value === "string" ? value : value?.url || "";
+  const currentFileId = typeof value === "object" ? value?.fileId : undefined;
 
   const loadImages = React.useCallback(async () => {
     setLoadingImages(true);
@@ -94,32 +100,21 @@ function ImageSelector({
     }
   }, [imageDialogOpen, uploadedImages.length, loadImages]);
 
-  // async function loadImages() {
-  //   setLoadingImages(true);
-  //   try {
-  //     let images: GalleryImage[];
+  const handleImageSelect = (image: GalleryImage) => {
+    const fileData: FileSelectionData = {
+      url: image.url,
+      fileId: image.id,
+      name: image.name,
+      mimeType: image.mimeType,
+    };
 
-  //     switch (imageStrategy.type) {
-  //       case "filters":
-  //         images = await getImages(imageStrategy.filters);
-  //         break;
-  //       case "custom":
-  //         images = await imageStrategy.fetchFn();
-  //         break;
-  //       default:
-  //         throw new Error("Invalid image strategy");
-  //     }
-  //     setUploadedImages(images);
-  //   } catch (error) {
-  //     console.error("Failed to load images:", error);
-  //     toast.error("Failed to load images");
-  //   } finally {
-  //     setLoadingImages(false);
-  //   }
-  // }
+    // Return based on returnType preference
+    if (returnType === "fileData") {
+      onValueChange(fileData);
+    } else {
+      onValueChange(image.url);
+    }
 
-  const handleImageSelect = (imageUrl: string) => {
-    onValueChange(imageUrl);
     setImageDialogOpen(false);
     toast.success("Image selected!", {
       description: "Your image has been selected successfully.",
@@ -127,7 +122,11 @@ function ImageSelector({
   };
 
   const clearSelectedImage = () => {
-    onValueChange("");
+    if (returnType === "fileData") {
+      onValueChange({ url: "", fileId: undefined });
+    } else {
+      onValueChange("");
+    }
     toast.info("Image cleared");
   };
 
@@ -142,7 +141,7 @@ function ImageSelector({
       ) {
         const newImage: GalleryImage = {
           id: uploadedFile.serverData.fileId,
-          url: uploadedFile.url || uploadedFile.ufsUrl,
+          url: uploadedFile.ufsUrl || uploadedFile.url,
           name: uploadedFile.name,
           uploadedAt: new Date(),
           category: uploadedFile.serverData.category,
@@ -153,7 +152,21 @@ function ImageSelector({
         };
 
         setUploadedImages((prev) => [newImage, ...prev]);
-        onValueChange(uploadedFile.url || uploadedFile.ufsUrl);
+
+        const fileData: FileSelectionData = {
+          url: uploadedFile.url || uploadedFile.ufsUrl,
+          fileId: uploadedFile.serverData.fileId,
+          name: uploadedFile.name,
+          mimeType: uploadedFile.type || "image/*",
+        };
+
+        // Return based on returnType preference
+        if (returnType === "fileData") {
+          onValueChange(fileData);
+        } else {
+          onValueChange(uploadedFile.url || uploadedFile.ufsUrl);
+        }
+
         setImageDialogOpen(false);
 
         toast.success("🎉 Image uploaded and selected!", {
@@ -178,12 +191,12 @@ function ImageSelector({
 
   return (
     <div className={cn(className)} {...props}>
-      {value ? (
+      {currentUrl ? (
         <div className="relative group">
           <div className="flex items-center gap-3 p-3 border rounded-lg bg-gradient-to-r from-background to-muted/30 transition-all duration-300 hover:shadow-md hover:border-primary/50">
             <div className="flex-shrink-0 relative">
               <Image
-                src={value}
+                src={currentUrl}
                 alt="Selected image"
                 width={48}
                 height={48}
@@ -201,9 +214,14 @@ function ImageSelector({
               <p className="text-sm font-medium truncate flex items-center gap-2">
                 <ImageIcon className="size-3 text-primary" />
                 Selected Image
+                {currentFileId && (
+                  <Badge variant="secondary" className="text-xs">
+                    ID: {currentFileId.slice(0, 8)}...
+                  </Badge>
+                )}
               </p>
               <p className="text-xs text-muted-foreground break-all overflow-hidden max-h-8 leading-tight">
-                {value}
+                {currentUrl}
               </p>
             </div>
             <Button
@@ -244,7 +262,8 @@ function ImageSelector({
               </DialogTitle>
               <DialogDescription>
                 Choose an existing image from your gallery or upload a new one.
-                Configuration is automatically loaded from your upload settings.
+                {returnType === "fileData" &&
+                  " (Enhanced mode with file tracking)"}
               </DialogDescription>
             </DialogHeader>
 
@@ -288,7 +307,7 @@ function ImageSelector({
                       <div
                         key={image.id}
                         className="group relative cursor-pointer border rounded-lg overflow-hidden hover:border-primary transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95"
-                        onClick={() => handleImageSelect(image.url)}
+                        onClick={() => handleImageSelect(image)}
                       >
                         <div className="aspect-video relative">
                           <Image
@@ -327,6 +346,14 @@ function ImageSelector({
                             <span className="text-white/60 text-xs">
                               {new Date(image.uploadedAt).toLocaleDateString()}
                             </span>
+                            {returnType === "fileData" && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-white/10 text-white border-white/20"
+                              >
+                                {image.id.slice(0, 6)}...
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -4,8 +4,10 @@ import {
   accounts,
   authenticators,
   authors,
+  awardMedia,
   eventPresenters,
   events,
+  files,
   members,
   partnerProjects,
   partners,
@@ -15,6 +17,7 @@ import {
   projects,
   publicationAuthors,
   publications,
+  recipients,
   researchAreaFindings,
   researchAreaMethods,
   researchAreaPublications,
@@ -24,6 +27,7 @@ import {
   researcherEducation,
   researcherExpertise,
   researchers,
+  scholarships,
   sessions,
   users,
   videoAuthors,
@@ -351,5 +355,37 @@ export const videoAuthorsRelations = relations(videoAuthors, ({ one }) => ({
     fields: [videoAuthors.authorId],
     references: [authors.id],
     relationName: "authorVideos",
+  }),
+}));
+
+export const scholarshipsRelations = relations(scholarships, ({ many }) => ({
+  recipients: many(recipients),
+  media: many(awardMedia),
+}));
+
+export const recipientsRelations = relations(recipients, ({ one, many }) => ({
+  scholarship: one(scholarships, {
+    fields: [recipients.scholarshipId],
+    references: [scholarships.id],
+  }),
+  media: many(awardMedia),
+}));
+
+export const awardMediaRelations = relations(awardMedia, ({ one }) => ({
+  scholarship: one(scholarships, {
+    fields: [awardMedia.scholarshipId],
+    references: [scholarships.id],
+  }),
+  recipient: one(recipients, {
+    fields: [awardMedia.recipientId],
+    references: [recipients.id],
+  }),
+  event: one(events, {
+    fields: [awardMedia.eventId],
+    references: [events.id],
+  }),
+  file: one(files, {
+    fields: [awardMedia.fileId],
+    references: [files.id],
   }),
 }));

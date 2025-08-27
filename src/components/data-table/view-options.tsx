@@ -31,8 +31,8 @@ function DataTableViewOptions<TData>({
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild {...props}>
-        <Tooltip>
+      <Tooltip>
+        <DropdownMenuTrigger asChild {...props}>
           <TooltipTrigger asChild>
             <Button
               aria-label="Toggle columns"
@@ -44,9 +44,9 @@ function DataTableViewOptions<TData>({
               <span className="hidden sm:inline-flex">View</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="sm:hidden">Toggle Views</TooltipContent>
-        </Tooltip>
-      </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
+        <TooltipContent className="sm:hidden">Toggle Views</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />

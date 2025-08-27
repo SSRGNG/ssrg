@@ -7,6 +7,7 @@ export * from "@/db/schema/projects";
 export * from "@/db/schema/publications";
 export * from "@/db/schema/research";
 export * from "@/db/schema/researchers";
+export * from "@/db/schema/scholarships";
 export * from "@/db/schema/videos";
 
 export * from "@/db/schema/relations";

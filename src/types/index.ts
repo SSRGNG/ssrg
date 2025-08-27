@@ -15,6 +15,8 @@ import {
   projectStatus,
   publications as publicationsEnum,
   roles,
+  scholarshipCats,
+  scholarships,
   videoCats,
   videoResearcherRoles,
 } from "@/config/enums";
@@ -49,6 +51,8 @@ export type VideoCategory = typeof videoCats.type;
 export type VideoResearcherRole = typeof videoResearcherRoles.type;
 export type ProjectStatus = typeof projectStatus.type;
 export type ProjectPriority = typeof projectPriority.type;
+export type Scholarship = typeof scholarships.type;
+export type ScholarshipCategory = typeof scholarshipCats.type;
 
 export type Researcher = (typeof researchers)[number];
 
@@ -136,6 +140,13 @@ export type StoredFile = {
   url: string;
 };
 
+export type FileSelectionData = {
+  url: string;
+  fileId?: string;
+  name?: string;
+  mimeType?: string;
+};
+
 export type JournalMetadata = z.infer<typeof journalMetadataSchema>;
 export type ConferenceMetadata = z.infer<typeof conferenceMetadataSchema>;
 export type BookChapterMetadata = z.infer<typeof bookChapterMetadataSchema>;
@@ -170,4 +181,19 @@ export type ImageFilters = {
   customWhere?: SQL<unknown>;
   /** Limit number of results */
   // limit?: number;
+};
+
+export type T_Data = {
+  scholarships: {
+    id: string;
+    title: string;
+  }[];
+  recipients: {
+    id: string;
+    name: string;
+  }[];
+  events: {
+    id: string;
+    title: string;
+  }[];
 };

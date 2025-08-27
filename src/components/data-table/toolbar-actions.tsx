@@ -28,7 +28,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { BarAction } from "@/types";
 import { getTableMeta, type ExtendedTable } from "@/types/table";
 
+import { CreateAwardMedia } from "@/components/forms/create-award-media";
 import { CreatePublication } from "@/components/forms/create-publication";
+import { CreateRecipient } from "@/components/forms/create-recipient";
+import { CreateScholarship } from "@/components/forms/create-scholarship";
 import { CreateVideo } from "@/components/forms/create-video";
 
 type ToolbarActionsProps<TData, TContext> = {
@@ -62,6 +65,9 @@ function ToolbarActions<TData, TContext>({
     publication: CreatePublication,
     project: () => null,
     video: CreateVideo,
+    scholarship: CreateScholarship,
+    recipient: CreateRecipient,
+    award_media: CreateAwardMedia,
   };
 
   const description = `You are creating a new ${barAction}`;

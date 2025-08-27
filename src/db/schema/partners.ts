@@ -45,33 +45,6 @@ export const partners = pgTable(
   ]
 );
 
-export const scholarships = pgTable(
-  "scholarships",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    title: text("title").notNull(),
-    description: text("description").notNull(),
-    eligibility: text("eligibility").notNull(),
-    amount: text("amount"),
-    deadline: timestamp("deadline", { mode: "date" }),
-    applicationLink: text("application_link"),
-    active: boolean("active").default(true).notNull(),
-    created_at: timestamp("created_at").defaultNow().notNull(),
-    updated_at: timestamp("updated_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (t) => [
-    index("scholarships_active_idx").on(t.active),
-    index("scholarships_deadline_idx").on(t.deadline),
-    // Validate application link format if provided
-    // check(
-    //   "valid_application_link",
-    //   sql`${t.applicationLink} IS NULL OR ${t.applicationLink} ~* '^https?://.+$'`
-    // ),
-  ]
-);
-
 export const members = pgTable("members", {
   id: uuid("id").primaryKey().defaultRandom(),
 

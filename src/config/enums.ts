@@ -37,6 +37,20 @@ export const partners = createEnum(
   "international"
 );
 
+export const scholarships = defineEnum(
+  "tuition",
+  "conference_fee_waiver",
+  "presentation_award",
+  "research_grant",
+  "other"
+);
+export const scholarshipCats = defineEnum(
+  "student",
+  "researcher",
+  "faculty",
+  "general"
+);
+
 export const events = createEnum(
   "workshop",
   "seminar",
@@ -71,7 +85,8 @@ export const fileCats = createEnum(
   "research_image",
   "profile_picture",
   "document",
-  "general"
+  "general",
+  "award_media"
 );
 
 export const publications = defineEnum(
@@ -100,7 +115,14 @@ export const videoResearcherRoles = defineEnum(
   "other"
 );
 
-export const barActions = defineEnum("publication", "project", "video");
+export const barActions = defineEnum(
+  "publication",
+  "project",
+  "video",
+  "scholarship",
+  "recipient",
+  "award_media"
+);
 
 export const projectStatus = defineEnum(
   "planning",

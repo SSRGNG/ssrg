@@ -13,7 +13,7 @@ import {
   getResearchMethodologies,
   getVideoCategoryDistribution,
 } from "@/lib/queries/admin";
-import { getResearchImages } from "@/lib/queries/files";
+import { getImages, getResearchImages } from "@/lib/queries/files";
 import { getAllMembers } from "@/lib/queries/members";
 import {
   authResearcher,
@@ -29,6 +29,12 @@ import {
   getLatestPublications,
 } from "@/lib/queries/publications";
 import {
+  getAwardMedia,
+  getAwardMediaWithFiles,
+  getRecipients,
+  getScholarships,
+} from "@/lib/queries/scholarships";
+import {
   getAllProjectTeams,
   getTeamCollaborationInsights,
 } from "@/lib/queries/teams";
@@ -36,6 +42,7 @@ import { getUserProfiles } from "@/lib/queries/user";
 import { getUserVideos, getVideos } from "@/lib/queries/videos";
 
 export type ResearchImages = Awaited<ReturnType<typeof getResearchImages>>;
+export type Images = Awaited<ReturnType<typeof getImages>>;
 
 export type UserProfiles = Awaited<ReturnType<typeof getUserProfiles>>;
 export type ProfileAuthor = UserProfiles["author"];
@@ -121,3 +128,9 @@ export type VideosWithPagination = Awaited<ReturnType<typeof getVideos>>;
 export type Videos = VideosWithPagination["videos"];
 
 export type AllMembers = Awaited<ReturnType<typeof getAllMembers>>;
+export type AllScholarships = Awaited<ReturnType<typeof getScholarships>>;
+export type AllRecipients = Awaited<ReturnType<typeof getRecipients>>;
+export type AllAwardMedia = Awaited<ReturnType<typeof getAwardMedia>>;
+export type AwardMediaWithFile = Awaited<
+  ReturnType<typeof getAwardMediaWithFiles>
+>;

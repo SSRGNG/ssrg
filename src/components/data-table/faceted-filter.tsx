@@ -45,8 +45,8 @@ function DataTableFacetedFilter<TData, TValue>({
 
   return (
     <Popover>
-      <PopoverTrigger asChild {...props}>
-        <Tooltip>
+      <Tooltip>
+        <PopoverTrigger asChild {...props}>
           <TooltipTrigger asChild>
             <Button variant="outline" size="sm" className="h-8 border-dashed">
               <Crosshair className="size-4" />
@@ -89,9 +89,9 @@ function DataTableFacetedFilter<TData, TValue>({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="sm:hidden">{title}</TooltipContent>
-        </Tooltip>
-      </PopoverTrigger>
+        </PopoverTrigger>
+        <TooltipContent className="sm:hidden">{title}</TooltipContent>
+      </Tooltip>
       <PopoverContent className="w-[12.5rem] p-0" align="start">
         <Command>
           <CommandInput placeholder={title} />

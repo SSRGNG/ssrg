@@ -190,6 +190,20 @@
       "when": 1755441942403,
       "tag": "0026_bright_mother_askani",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1756038623270,
+      "tag": "0027_brave_typhoid_mary",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1756205993956,
+      "tag": "0028_broad_gabe_jones",
+      "breakpoints": true
     }
   ]
 }

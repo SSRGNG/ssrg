@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Icons } from "@/components/shared/icons";
 import { Shell } from "@/components/shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alerts } from "@/components/views/admin/teams/alerts";
@@ -18,6 +19,20 @@ export const metadata: Metadata = {
   description: "Manage research project teams and collaboration",
 };
 
+const available_tabs = [
+  { title: "teams", label: "Project Teams", icon: "team" as Icons },
+  {
+    title: "collaborators",
+    label: "Top Collaborators",
+    icon: "people" as Icons,
+  },
+  {
+    title: "network",
+    label: "Collaboration Network",
+    icon: "collaborate" as Icons,
+  },
+];
+
 export default async function TeamManagement() {
   const [teams, insights] = await Promise.all([
     getAllProjectTeams(),
@@ -27,11 +42,19 @@ export default async function TeamManagement() {
     <Shell variant={"portal"} className={cn("space-y-4")}>
       <Stats teams={teams} />
       <Alerts teams={teams} />
-      <Tabs defaultValue="teams">
+      <Tabs defaultValue={available_tabs[0].title}>
         <TabsList className="flex flex-wrap justify-start gap-1.5 w-full">
-          <TabsTrigger value="teams">Project Teams</TabsTrigger>
-          <TabsTrigger value="collaborators">Top Collaborators</TabsTrigger>
-          <TabsTrigger value="network">Collaboration Network</TabsTrigger>
+          {available_tabs.map((tab) => {
+            const Icon = Icons[tab.icon];
+            return (
+              <TabsTrigger key={tab.title} value={tab.title} className="group">
+                <Icon strokeWidth={1.5} />
+                <span className="hidden group-data-[state=active]:inline md:inline">
+                  {tab.label}
+                </span>
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
 
         <TabsContent value="teams" className="space-y-4">

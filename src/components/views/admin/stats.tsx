@@ -19,8 +19,8 @@ async function Stats({ className, ...props }: Props) {
   const {
     totalUsers = 0,
     totalPublications = 0,
-    totalProjects = 0,
-    totalAreas = 0,
+    // totalProjects = 0,
+    // totalAreas = 0,
     activeResearchers = 0,
     totalVideos = 0,
   } = adminStats.success ? adminStats.data : {};
@@ -58,27 +58,28 @@ async function Stats({ className, ...props }: Props) {
       textColor: "text-rose-600",
       bgColor: "bg-rose-600/10",
     },
-    {
-      title: "Projects",
-      count: totalProjects,
-      href: "/admin/core",
-      icon: "projects" as Icons,
-      textColor: "text-purple-600",
-      bgColor: "bg-purple-600/10",
-    },
-    {
-      title: "Research Areas",
-      count: totalAreas,
-      href: "/admin/core",
-      icon: "focusAreas" as Icons,
-      textColor: "text-amber-600",
-      bgColor: "bg-amber-600/10",
-    },
+    // {
+    //   title: "Projects",
+    //   count: totalProjects,
+    //   href: "/admin/core",
+    //   icon: "projects" as Icons,
+    //   textColor: "text-purple-600",
+    //   bgColor: "bg-purple-600/10",
+    // },
+    // {
+    //   title: "Research Areas",
+    //   count: totalAreas,
+    //   href: "/admin/core",
+    //   icon: "focusAreas" as Icons,
+    //   textColor: "text-amber-600",
+    //   bgColor: "bg-amber-600/10",
+    // },
   ];
   return (
     <section
       className={cn(
-        "grid xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4",
+        "grid xs:grid-cols-2 md:grid-cols-4 gap-4",
+        // "grid xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4",
         className
       )}
       {...props}

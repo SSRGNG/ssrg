@@ -25,11 +25,12 @@ import type {
 export const appName = "SSRG";
 export const appFullName = "Dibịa Akwụkwọ: Social Solutions Research Group";
 export const links = {
-  x: "https://x.com/ssrg",
-  facebook: "https://facebook.com/ssrg",
-  gitHub: "https://github.com/ssrg",
-  discord: "https://discord.com/users/ssrg",
-  linkedIn: "https://linkedin.com/company/ssrg",
+  x: "https://x.com/ssrg_ng",
+  facebook: "https://facebook.com/100092166567284",
+  gitHub: "https://github.com/SSRGNG",
+  discord: "https://discord.com/users/ssrgng",
+  linkedIn:
+    "https://www.linkedin.com/company/social-solutions-research-group-ssrg/",
 } as const;
 
 export const PASSWORD_KEY_LENGTH = 64;
@@ -596,6 +597,15 @@ export const actions = {
       },
     },
     {
+      title: "Scholarships & Awards",
+      href: "/admin/scholarships",
+      roles: ["admin"] as Role[],
+      icon: "award" as Icons,
+      options: {
+        scholarship: "Create Scholarship",
+      },
+    },
+    {
       title: "System Settings",
       href: "/admin/settings",
       roles: ["admin"] as Role[],
@@ -611,7 +621,7 @@ export const actions = {
 export const navSecondary: Required<SocialItem>[] = [
   {
     title: "Research Inquiries",
-    href: "mailto:research@ssrg.org",
+    href: "mailto:ssrg@socialsolutionsresearchgroup.org",
     icon: "email",
     external: true,
   },
