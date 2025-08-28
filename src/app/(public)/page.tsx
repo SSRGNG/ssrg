@@ -9,7 +9,6 @@ import {
   Metrics,
   Newsletter,
   ResearchAreas,
-  Testimonials,
 } from "@/components/views/home";
 import { appConfig } from "@/config";
 
@@ -30,7 +29,7 @@ export default function Home() {
       <React.Suspense fallback={<p>Loading...</p>}>
         <LatestPublications />
       </React.Suspense>
-      <Testimonials />
+      {/* <Testimonials /> */}
       <Newsletter />
     </Page>
   );

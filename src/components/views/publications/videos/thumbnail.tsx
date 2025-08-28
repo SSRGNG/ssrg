@@ -34,7 +34,7 @@ function Thumbnail({
 
   return (
     <div
-      className={cn("relative group cursor-pointer", className)}
+      className={cn("relative group cursor-pointer h-full", className)}
       onClick={handleClick}
       {...props}
     >
