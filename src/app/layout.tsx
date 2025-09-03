@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   keywords: appConfig.keywords,
   authors: appConfig.authors,
   creator: appConfig.creator,
-  // icons: [{ rel: "icon", url: "/logo.svg" }],
+  icons: [{ rel: "icon", url: "/logo.jpg" }],
 };
 
 export default function RootLayout({

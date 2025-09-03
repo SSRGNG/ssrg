@@ -37,7 +37,9 @@ function Profile({ profiles, className, ...props }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <Badge className="capitalize">{profiles.user.role}</Badge>
+            {!profileTypes.some(
+              (type) => type.toLowerCase() === profiles.user.role.toLowerCase()
+            ) && <Badge className="capitalize">{profiles.user.role}</Badge>}
             {profileTypes.map((type) => (
               <Badge key={type} variant="brand">
                 {type}

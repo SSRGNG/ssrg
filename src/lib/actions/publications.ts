@@ -17,6 +17,10 @@ import {
 import { getCitationCount } from "@/lib/actions/citations";
 import { isRoleAllowed } from "@/lib/utils";
 import {
+  calculateNameSimilarity,
+  normalizeAuthorName,
+} from "@/lib/utils/fuzzy-name";
+import {
   type CreateAuthorPayload,
   createAuthorSchema,
   type UpdateAuthorPayload,
@@ -542,7 +546,6 @@ export async function createPublication(data: CreatePublicationPayload) {
       }
     }
 
-    // **NEW: Check for duplicate publications**
     let duplicateCheck = null;
 
     // Primary check: DOI (most reliable)
@@ -679,10 +682,13 @@ export async function createPublication(data: CreatePublicationPayload) {
           } else {
             // No author ID provided, find or create the author
             let existingAuthor = null;
+            const isAutoFillEmail = authorData.email === "auto-fill@ssrg.org";
 
-            // Normalize empty strings to null for ORCID
+            // Normalize empty strings to null
             const normalizedOrcid = authorData.orcid?.trim() || null;
-            const normalizedEmail = authorData.email?.trim() || null;
+            const normalizedEmail = isAutoFillEmail
+              ? null
+              : authorData.email?.trim() || null;
             const researcherId = authorData.researcherId || null;
 
             // FIRST: Check by researcherId if provided (internal researcher scenario)
@@ -711,8 +717,8 @@ export async function createPublication(data: CreatePublicationPayload) {
               }
             }
 
-            // THIRD: Check by email if provided and no previous matches
-            if (!existingAuthor && normalizedEmail) {
+            // THIRD: Check by email if provided, not auto-fill, and no previous matches
+            if (!existingAuthor && normalizedEmail && !isAutoFillEmail) {
               const emailResults = await tx
                 .select({ id: authors.id })
                 .from(authors)
@@ -721,6 +727,26 @@ export async function createPublication(data: CreatePublicationPayload) {
 
               if (emailResults.length > 0) {
                 existingAuthor = emailResults[0];
+              }
+            }
+
+            // FOURTH: For auto-fill emails, try to find by name + affiliation combination
+            if (!existingAuthor && isAutoFillEmail) {
+              const nameAffiliationResults = await tx
+                .select({ id: authors.id })
+                .from(authors)
+                .where(
+                  and(
+                    eq(authors.name, authorData.name.trim()),
+                    authorData.affiliation
+                      ? eq(authors.affiliation, authorData.affiliation.trim())
+                      : isNull(authors.affiliation)
+                  )
+                )
+                .limit(1);
+
+              if (nameAffiliationResults.length > 0) {
+                existingAuthor = nameAffiliationResults[0];
               }
             }
 
@@ -744,11 +770,52 @@ export async function createPublication(data: CreatePublicationPayload) {
                 authorId = newAuthor.id;
               } catch (dbError) {
                 // Handle potential race condition where author was created between check and insert
+                // if (
+                //   dbError instanceof Error &&
+                //   dbError.message.includes("duplicate key")
+                // ) {
+                //   // Try one more time to find the author by researcherId first, then ORCID/email
+                //   if (researcherId) {
+                //     const retryResearcher = await tx
+                //       .select({ id: authors.id })
+                //       .from(authors)
+                //       .where(eq(authors.researcherId, researcherId))
+                //       .limit(1);
+                //     if (retryResearcher.length > 0) {
+                //       authorId = retryResearcher[0].id;
+                //     }
+                //   } else if (normalizedOrcid) {
+                //     const retryOrcid = await tx
+                //       .select({ id: authors.id })
+                //       .from(authors)
+                //       .where(eq(authors.orcid, normalizedOrcid))
+                //       .limit(1);
+                //     if (retryOrcid.length > 0) {
+                //       authorId = retryOrcid[0].id;
+                //     }
+                //   } else if (normalizedEmail) {
+                //     const retryEmail = await tx
+                //       .select({ id: authors.id })
+                //       .from(authors)
+                //       .where(eq(authors.email, normalizedEmail))
+                //       .limit(1);
+                //     if (retryEmail.length > 0) {
+                //       authorId = retryEmail[0].id;
+                //     }
+                //   }
+
+                //   if (!authorId) {
+                //     throw dbError; // Re-throw if we still can't find the author
+                //   }
+                // } else {
+                //   throw dbError;
+                // }
+
                 if (
                   dbError instanceof Error &&
                   dbError.message.includes("duplicate key")
                 ) {
-                  // Try one more time to find the author by researcherId first, then ORCID/email
+                  // Try one more time to find the author by researcherId first, then ORCID/name+affiliation
                   if (researcherId) {
                     const retryResearcher = await tx
                       .select({ id: authors.id })
@@ -767,7 +834,7 @@ export async function createPublication(data: CreatePublicationPayload) {
                     if (retryOrcid.length > 0) {
                       authorId = retryOrcid[0].id;
                     }
-                  } else if (normalizedEmail) {
+                  } else if (normalizedEmail && !isAutoFillEmail) {
                     const retryEmail = await tx
                       .select({ id: authors.id })
                       .from(authors)
@@ -775,6 +842,45 @@ export async function createPublication(data: CreatePublicationPayload) {
                       .limit(1);
                     if (retryEmail.length > 0) {
                       authorId = retryEmail[0].id;
+                    }
+                  } else if (isAutoFillEmail) {
+                    // Retry fuzzy matching by name for auto-fill
+                    const normalizedInputName = normalizeAuthorName(
+                      authorData.name.trim()
+                    );
+
+                    // Get potential matches
+                    const potentialRetryMatches = await tx
+                      .select({
+                        id: authors.id,
+                        name: authors.name,
+                      })
+                      .from(authors)
+                      .limit(20);
+
+                    // Find best match
+                    let bestRetryMatch = null;
+                    let bestRetryScore = 0;
+                    const RETRY_SIMILARITY_THRESHOLD = 0.85;
+
+                    for (const author of potentialRetryMatches) {
+                      const normalizedDbName = normalizeAuthorName(author.name);
+                      const similarity = calculateNameSimilarity(
+                        normalizedInputName,
+                        normalizedDbName
+                      );
+
+                      if (
+                        similarity > bestRetryScore &&
+                        similarity >= RETRY_SIMILARITY_THRESHOLD
+                      ) {
+                        bestRetryScore = similarity;
+                        bestRetryMatch = author;
+                      }
+                    }
+
+                    if (bestRetryMatch) {
+                      authorId = bestRetryMatch.id;
                     }
                   }
 

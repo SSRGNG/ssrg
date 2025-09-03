@@ -511,24 +511,7 @@ function CreateVideo<TContext>({
     },
     mode: "onTouched",
   });
-  // (property) authors?: ({
-  //     order?: number | undefined;
-  //     name?: string | undefined;
-  //     isCorresponding?: boolean | undefined;
-  //     id?: string | undefined;
-  //     email?: string | null | undefined;
-  //     affiliation?: string | null | undefined;
-  //     orcid?: string | ... 1 more ... | undefined;
-  //     researcherId?: string | ... 1 more ... | undefined;
-  //     contribution?: string | ... 1 more ... | undefined;
-  // } | undefined)[] | undefined
 
-  // (property) authors?: ({
-  //     videoId?: string | undefined;
-  //     authorId?: string | undefined;
-  //     order?: number | undefined;
-  //     role?: "other" | "presenter" | "interviewer" | "interviewee" | "moderator" | "panelist" | ... 4 more ... | undefined;
-  // } | undefined)[] | undefined
   const {
     fields: authorFields,
     append: appendAuthor,

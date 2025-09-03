@@ -308,14 +308,14 @@ export async function deleteUser(userId: string) {
 
     // const [deletedUser] = await db.delete(users).where(eq(users.id, userId)).returning({id: users.id, name: users.name});
 
-    // if (!deleteUser) throw new Error('Failed to delete user')
+    // if (!deletedUser) throw new Error('Failed to delete user')
 
     const deletedUser = await db
       .delete(users)
       .where(eq(users.id, userId))
       .returning({ id: users.id, name: users.name });
 
-    if (deleteUser.length === 0) throw new Error("Failed to delete user");
+    if (deletedUser.length === 0) throw new Error("Failed to delete user");
 
     const [result] = deletedUser;
 

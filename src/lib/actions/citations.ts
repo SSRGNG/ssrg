@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  doiFetchService,
+  type DOIPublicationData,
+} from "@/lib/services/doi-fetch";
+
 export async function getCitationCount(doi: string): Promise<number | null> {
   try {
     const count = await fetchOpenCitationsCount(doi);
@@ -37,4 +42,28 @@ async function fetchCrossrefCitationCount(doi: string): Promise<number | null> {
   return typeof count === "number" ? count : null;
 }
 
+export async function fetchPublicationByDOI(doi: string): Promise<{
+  success: boolean;
+  data?: DOIPublicationData;
+  error?: string;
+  source?: "crossref" | "datacite";
+}> {
+  try {
+    if (!doi || typeof doi !== "string") {
+      return {
+        success: false,
+        error: "DOI is required",
+      };
+    }
+
+    const result = await doiFetchService.fetchByDOI(doi);
+    return result;
+  } catch (error) {
+    console.error("Server action DOI fetch error:", error);
+    return {
+      success: false,
+      error: "Failed to fetch publication data",
+    };
+  }
+}
 // 10.1177/2333721420986301

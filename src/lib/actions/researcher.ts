@@ -114,7 +114,7 @@ export async function updateResearcher(
       ...researcherData
     } = parsedResult.data;
 
-    if (authUser?.role !== "admin" || authUser?.id !== researcherData.userId) {
+    if (authUser?.role !== "admin" && authUser?.id !== researcherData.userId) {
       return {
         error: "Unauthorized. You cannot update this user account.",
       };

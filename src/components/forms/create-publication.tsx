@@ -24,6 +24,7 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 
+import { DOIAutoFetch } from "@/components/forms/doi-autofetch";
 import { ErrorTitle } from "@/components/forms/error-title";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,11 +78,13 @@ import {
   AuthResearcher,
 } from "@/lib/actions/queries";
 import { searchAuthors } from "@/lib/actions/search";
+import type { DOIPublicationData } from "@/lib/services/doi-fetch";
 import { cn } from "@/lib/utils";
 import {
   createPublicationSchema,
   type CreatePublicationPayload,
 } from "@/lib/validations/publication";
+import { PublicationMetadata } from "@/types";
 
 type FormControl = Control<CreatePublicationPayload>;
 type ControlledInputProps = {
@@ -93,6 +96,7 @@ type ControlledInputProps = {
 };
 
 type Researcher = AuthResearcher;
+
 // type Author = AuthorData
 type AuthorFieldsProps = {
   // field: FieldArrayWithId<CreatePublicationPayload, "authors", "id">;
@@ -1034,6 +1038,118 @@ function CreatePublication<TContext>({
     }
   }, [selectedType, form.control]);
 
+  const handleDOIDataFetched = React.useCallback(
+    (data: DOIPublicationData) => {
+      // Update form with fetched data
+      if (data.title) {
+        form.setValue("title", data.title, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      if (data.abstract) {
+        form.setValue("abstract", data.abstract, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      if (data.doi) {
+        form.setValue("doi", data.doi, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      if (data.venue) {
+        form.setValue("venue", data.venue, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      if (data.type) {
+        form.setValue("type", data.type, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      if (data.publicationDate) {
+        form.setValue("publicationDate", data.publicationDate, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+
+      // Update metadata based on publication type
+      if (data.metadata) {
+        // Clear existing metadata first
+        form.setValue(
+          "metadata",
+          {},
+          { shouldValidate: true, shouldDirty: true }
+        );
+
+        // Set type-specific metadata
+        Object.entries(data.metadata).forEach(([key, value]) => {
+          if (value && key in (form.getValues().metadata || {})) {
+            form.setValue(`metadata.${key as PublicationMetadata}`, value, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }
+        });
+      }
+
+      // Handle authors - replace existing authors if DOI has author data
+      if (data.authors && data.authors.length > 0) {
+        // Clear existing authors first
+        const currentAuthors = form.getValues().authors;
+        currentAuthors.forEach((_, index) => {
+          removeAuthor(index);
+        });
+
+        // Add fetched authors
+        data.authors.forEach((author, index) => {
+          appendAuthor({
+            name: author.name,
+            email: "auto-fill@ssrg.org",
+            affiliation: author.affiliation || "",
+            orcid: author.orcid || "",
+            order: index,
+            contribution: "",
+            isCorresponding: index === 0, // Make first author corresponding by default
+            researcherId: null,
+          });
+        });
+
+        // If researcher should be included, add them as the last author
+        // if (researcher) {
+        //   const researcherIndex = data.authors.length;
+        //   appendAuthor({
+        //     name: researcher.name,
+        //     email: researcher.email,
+        //     affiliation: researcher.affiliation || "",
+        //     orcid: researcher.orcid || "",
+        //     order: researcherIndex,
+        //     contribution: "",
+        //     isCorresponding: false,
+        //     researcherId: researcher.id,
+        //   });
+        // }
+      }
+
+      // Show success toast
+      toast.success("Publication data fetched successfully!", {
+        description:
+          "Form has been auto-populated. Please review and adjust as needed.",
+      });
+    },
+    [form, appendAuthor, removeAuthor]
+  );
+
   const onSubmit = React.useCallback(
     (data: CreatePublicationPayload) => {
       if (Object.keys(form.formState.errors).length > 0) {
@@ -1045,6 +1161,7 @@ function CreatePublication<TContext>({
 
       startTransition(async () => {
         try {
+          // console.log({ data });
           const result = await createPublication(data);
 
           if (!result.success) {
@@ -1107,6 +1224,12 @@ function CreatePublication<TContext>({
         className={cn("space-y-4", className)}
         {...props}
       >
+        {/* NEW: DOI Auto-fetch Section - Add this at the top */}
+        <DOIAutoFetch
+          onDataFetched={handleDOIDataFetched}
+          control={form.control}
+          currentDoi={form.watch("doi")}
+        />
         {/* Publication Type and Title */}
         <div className="grid xs:grid-cols-2 sm:grid-cols-4 gap-4">
           <FormField
