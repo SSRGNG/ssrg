@@ -5,6 +5,7 @@ import {
   asc,
   desc,
   eq,
+  exists,
   getTableColumns,
   ilike,
   isNotNull,
@@ -291,6 +292,263 @@ export async function getResearcherPublications(
     canDelete:
       pub.authors.length > 0 &&
       pub.userAuthorOrder === Math.min(...pub.authors.map((a) => a.order)),
+  }));
+}
+
+export async function getAssociatedPublications(
+  params: PublicationQueryInput = {}
+) {
+  const validatedParams = publicationQuerySchema.parse(params);
+  const {
+    page,
+    limit,
+    search,
+    type,
+    publishedAfter,
+    publishedBefore,
+    sortBy,
+    sortOrder,
+  } = validatedParams;
+
+  const offset = (page - 1) * limit;
+
+  const userId = (await auth())?.user.id;
+  if (!userId) redirect(appConfig.url);
+
+  // Get user's researcher/author info
+  const userResearcherInfo = await db
+    .select({
+      researcherId: researchers.id,
+      authorId: authors.id,
+    })
+    .from(researchers)
+    .leftJoin(authors, eq(authors.researcherId, researchers.id))
+    .where(eq(researchers.userId, userId))
+    .limit(1);
+
+  const authorId = userResearcherInfo[0]?.authorId;
+
+  // Create aliases for joins
+  const allPublicationAuthors = alias(
+    publicationAuthors,
+    "allPublicationAuthors"
+  );
+  const authorProfiles = alias(authors, "authorProfiles");
+  const authorResearchers = alias(researchers, "authorResearchers");
+
+  // Build filter conditions (excluding permission conditions)
+  const filterConditions = [];
+
+  if (search) {
+    const searchPattern = `%${search.trim()}%`;
+    filterConditions.push(
+      or(
+        ilike(publications.title, searchPattern),
+        ilike(publications.abstract, searchPattern),
+        ilike(publications.venue, searchPattern),
+        ilike(publications.doi, searchPattern)
+      )
+    );
+  }
+
+  if (type) {
+    filterConditions.push(eq(publications.type, type));
+  }
+
+  if (publishedAfter) {
+    filterConditions.push(
+      sql`${publications.publicationDate} >= ${publishedAfter}`
+    );
+  }
+
+  if (publishedBefore) {
+    filterConditions.push(
+      sql`${publications.publicationDate} <= ${publishedBefore}`
+    );
+  }
+
+  // Permission condition: user is creator OR author
+  const permissionConditions = [eq(publications.creatorId, userId)];
+  if (authorId) {
+    permissionConditions.push(
+      exists(
+        db
+          .select()
+          .from(publicationAuthors)
+          .where(
+            and(
+              eq(publicationAuthors.publicationId, publications.id),
+              eq(publicationAuthors.authorId, authorId)
+            )
+          )
+      )
+    );
+  }
+
+  const allConditions = [or(...permissionConditions), ...filterConditions];
+
+  // Determine sort column
+  const sortableColumns = {
+    publicationDate: publications.publicationDate,
+    title: publications.title,
+    citationCount: publications.citationCount,
+    createdAt: publications.created_at,
+  } as const;
+
+  const sortColumn =
+    sortableColumns[sortBy as keyof typeof sortableColumns] ||
+    publications.publicationDate;
+  const primaryOrderBy =
+    sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn);
+
+  // Main query - start from publications, not researchers
+  const results = await db
+    .select({
+      // Publication fields
+      ...getTableColumns(publications),
+
+      // Current user's authorship details (if they are an author)
+      userAuthorOrder: publicationAuthors.order,
+      userIsCorresponding: publicationAuthors.isCorresponding,
+
+      // All authors for each publication
+      authorOrder: allPublicationAuthors.order,
+      authorIsCorresponding: allPublicationAuthors.isCorresponding,
+      authorName: authorProfiles.name,
+      authorEmail: authorProfiles.email,
+      authorAffiliation: authorProfiles.affiliation,
+      authorOrcid: authorProfiles.orcid,
+
+      // Author's researcher details (optional)
+      authorResearcherId: authorResearchers.id,
+      authorResearcherTitle: authorResearchers.title,
+    })
+    .from(publications)
+    // Left join user's authorship info (might not exist if they're only creator)
+    .leftJoin(
+      publicationAuthors,
+      and(
+        eq(publicationAuthors.publicationId, publications.id),
+        authorId ? eq(publicationAuthors.authorId, authorId) : sql`false`
+      )
+    )
+    // Get all authors for each publication
+    .leftJoin(
+      allPublicationAuthors,
+      eq(allPublicationAuthors.publicationId, publications.id)
+    )
+    .leftJoin(
+      authorProfiles,
+      eq(authorProfiles.id, allPublicationAuthors.authorId)
+    )
+    .leftJoin(
+      authorResearchers,
+      eq(authorProfiles.researcherId, authorResearchers.id)
+    )
+    .where(and(...allConditions))
+    .orderBy(primaryOrderBy, asc(allPublicationAuthors.order))
+    .limit(limit)
+    .offset(offset);
+
+  if (results.length === 0) return [];
+
+  // Create type for the transformed result
+  type Row = (typeof results)[number];
+  type TransformedPublication = Pick<
+    Row,
+    | "id"
+    | "title"
+    | "type"
+    | "doi"
+    | "publicationDate"
+    | "abstract"
+    | "link"
+    | "venue"
+    | "metadata"
+    | "citationCount"
+    | "lastCitationUpdate"
+    | "creatorId"
+  > & {
+    userAuthorOrder: Row["userAuthorOrder"];
+    isLeadAuthor: boolean;
+    isCreator: boolean;
+    authors: {
+      order: Row["authorOrder"];
+      isCorresponding: Row["authorIsCorresponding"];
+      name: Row["authorName"];
+      email: Row["authorEmail"];
+      affiliation: Row["authorAffiliation"];
+      orcid: Row["authorOrcid"];
+      researcher: {
+        id: Row["authorResearcherId"];
+        title: Row["authorResearcherTitle"];
+      } | null;
+    }[];
+  };
+
+  // Group results by publication
+  const publicationsMap = new Map<string, TransformedPublication>();
+
+  results.forEach((row) => {
+    if (!publicationsMap.has(row.id)) {
+      publicationsMap.set(row.id, {
+        id: row.id,
+        title: row.title,
+        type: row.type,
+        doi: row.doi,
+        publicationDate: row.publicationDate,
+        abstract: row.abstract,
+        link: row.link,
+        venue: row.venue,
+        metadata: row.metadata,
+        citationCount: row.citationCount,
+        lastCitationUpdate: row.lastCitationUpdate,
+        creatorId: row.creatorId,
+        userAuthorOrder: row.userAuthorOrder,
+        isLeadAuthor: row.userAuthorOrder === 0,
+        isCreator: row.creatorId === userId,
+        authors: [],
+      });
+    }
+
+    const publication = publicationsMap.get(row.id)!;
+
+    // Add author info only if we have valid author data
+    if (
+      row.authorOrder !== null &&
+      row.authorName &&
+      !publication.authors.some((a) => a.order === row.authorOrder)
+    ) {
+      publication.authors.push({
+        order: row.authorOrder,
+        isCorresponding: row.authorIsCorresponding,
+        name: row.authorName,
+        email: row.authorEmail,
+        affiliation: row.authorAffiliation,
+        orcid: row.authorOrcid,
+        researcher: row.authorResearcherId
+          ? {
+              id: row.authorResearcherId,
+              title: row.authorResearcherTitle,
+            }
+          : null,
+      });
+    }
+  });
+
+  // Add permission flags and return
+  return Array.from(publicationsMap.values()).map((pub) => ({
+    ...pub,
+    canDelete:
+      pub.isCreator ||
+      (pub.authors.length > 0 &&
+        pub.userAuthorOrder !== null &&
+        pub.userAuthorOrder ===
+          Math.min(
+            ...pub.authors
+              .map((a) => a.order)
+              .filter((order): order is number => order !== null)
+          )),
   }));
 }
 

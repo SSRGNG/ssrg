@@ -1094,7 +1094,8 @@ function CreatePublication<TContext>({
 
         // Set type-specific metadata
         Object.entries(data.metadata).forEach(([key, value]) => {
-          if (value && key in (form.getValues().metadata || {})) {
+          // if (value && key in (form.getValues().metadata || {})) {
+          if (value) {
             form.setValue(`metadata.${key as PublicationMetadata}`, value, {
               shouldValidate: true,
               shouldDirty: true,

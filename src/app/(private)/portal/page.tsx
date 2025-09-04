@@ -20,7 +20,9 @@ export default async function Portal() {
     getCurrentUserResearcher(),
     getResearcherPublications({ limit: 5 }),
     getUserVideos({ limit: 5 }),
+    // getAssociatedPublications({ limit: 5 }),
   ]);
+  // console.log({ associated });
   return (
     <Page variant={"portal"} className={cn("space-y-4")}>
       <Stats userStatsResult={userStatsResult} />
