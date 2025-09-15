@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -8,6 +10,7 @@ import { toast } from "sonner";
 import { ErrorTitle } from "@/components/forms/error-title";
 import { ImageSelector } from "@/components/shared/enhanced-image-selector";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -19,6 +22,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,11 +35,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { createAwardMedia } from "@/lib/actions/events";
+import { createEventMedia } from "@/lib/actions/events";
 import { cn } from "@/lib/utils";
 import {
-  type CreateAwardMediaPayload,
-  createAwardMediaSchema,
+  type CreateEventMediaPayload,
+  createEventMediaSchema,
 } from "@/lib/validations/event";
 import { FileSelectionData, T_Data } from "@/types";
 
@@ -40,18 +48,19 @@ type Props<TContext> = React.ComponentPropsWithoutRef<"form"> & {
   context?: TContext;
 };
 
-const defaultValues: CreateAwardMediaPayload = {
-  scholarshipId: "",
-  recipientId: "",
+const defaultValues: CreateEventMediaPayload = {
   eventId: "",
   fileId: "",
   caption: "",
+  externalEvent: "",
+  externalLocation: "",
+  externalDate: undefined,
   isPublic: true,
   isFeatured: false,
-  sortOrder: 0,
+  sortOrder: undefined,
 };
 
-function CreateAwardMedia<TContext>({
+function CreateEventMedia<TContext>({
   setIsOpen,
   context,
   className,
@@ -63,14 +72,14 @@ function CreateAwardMedia<TContext>({
     fileId: undefined,
   });
 
-  const form = useForm<CreateAwardMediaPayload>({
-    resolver: zodResolver(createAwardMediaSchema),
+  const form = useForm<CreateEventMediaPayload>({
+    resolver: zodResolver(createEventMediaSchema),
     defaultValues,
     mode: "onTouched",
   });
 
   const t_data = context as T_Data;
-  const { events = [], recipients = [], scholarships = [] } = t_data;
+  const { events = [] } = t_data;
 
   const handleFileSelect = (value: string | FileSelectionData) => {
     if (typeof value === "object") {
@@ -84,11 +93,9 @@ function CreateAwardMedia<TContext>({
     }
   };
 
-  function onSubmit(data: CreateAwardMediaPayload) {
+  function onSubmit(data: CreateEventMediaPayload) {
     startTransition(async () => {
       try {
-        // console.log({ data });
-
         // Ensure we have a fileId
         if (!data.fileId) {
           toast.error("Error", {
@@ -97,7 +104,7 @@ function CreateAwardMedia<TContext>({
           return;
         }
 
-        const result = await createAwardMedia(data);
+        const result = await createEventMedia(data);
 
         if (result.error) {
           toast.error("Error", { description: result.error });
@@ -105,7 +112,7 @@ function CreateAwardMedia<TContext>({
         }
 
         toast.success("Success", {
-          description: "Award media uploaded successfully!",
+          description: "Event media uploaded successfully!",
         });
 
         if (setIsOpen) {
@@ -114,10 +121,9 @@ function CreateAwardMedia<TContext>({
 
         // Reset form
         form.reset();
-
         setSelectedFile({ url: "", fileId: undefined });
       } catch (error) {
-        console.error("Failed to upload award media:", error);
+        console.error("Failed to upload event media:", error);
         toast.error("Error", {
           description: "Something went wrong. Please try again.",
         });
@@ -137,99 +143,27 @@ function CreateAwardMedia<TContext>({
       >
         <div className="space-y-4">
           <h3 className="text-base text-muted-foreground font-medium">
-            Link to Content
+            Event Information
           </h3>
           <Separator />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="scholarshipId"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <ErrorTitle
-                    fieldState={fieldState}
-                    title="Scholarship Program"
-                  />
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Link to scholarship" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {scholarships.length === 0 ? (
-                        <SelectItem disabled value="no_scholarship">
-                          No scholarship
-                        </SelectItem>
-                      ) : (
-                        scholarships.map((scholarship) => (
-                          <SelectItem
-                            key={scholarship.id}
-                            value={scholarship.id}
-                          >
-                            {scholarship.title}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Optional: Link to specific scholarship program
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="recipientId"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <ErrorTitle fieldState={fieldState} title="Recipient" />
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Link to recipient" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {recipients.length === 0 ? (
-                        <SelectItem disabled value="no_recipient">
-                          No recipient
-                        </SelectItem>
-                      ) : (
-                        recipients.map((recipient) => (
-                          <SelectItem key={recipient.id} value={recipient.id}>
-                            {recipient.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Optional: Link to specific recipient
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="eventId"
               render={({ field, fieldState }) => (
-                <FormItem className="sm:col-span-2 md:col-span-1">
-                  <ErrorTitle fieldState={fieldState} title="Event" />
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="Internal Event" />
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Link to event" />
+                        <SelectValue placeholder="Link to internal event" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {events.length === 0 ? (
                         <SelectItem disabled value="no_event">
-                          No event
+                          No events available
                         </SelectItem>
                       ) : (
                         events.map((event) => (
@@ -241,18 +175,94 @@ function CreateAwardMedia<TContext>({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Optional: Link to specific event
+                    Optional: Link to a group hosted event
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="externalEvent"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="External Event" />
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., African Social Science Conference 2025"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional: Name of external event or conference
                   </FormDescription>
                 </FormItem>
               )}
             />
           </div>
-          {/* Validation message for required relationship */}
-          {form.formState.errors.scholarshipId && (
-            <p className="text-sm text-destructive mt-2">
-              {form.formState.errors.scholarshipId.message}
-            </p>
-          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="externalLocation"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="Location" />
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., University of Lagos, Nigeria"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional: Event location or venue
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="externalDate"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="Event Date" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        captionLayout="dropdown"
+                        autoFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Optional: Date when the event occurred
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -290,27 +300,27 @@ function CreateAwardMedia<TContext>({
             name="fileId"
             render={({ fieldState }) => (
               <FormItem>
-                <ErrorTitle fieldState={fieldState} title="Award Media" />
+                <ErrorTitle fieldState={fieldState} title="Event Media" />
                 <FormControl>
                   <ImageSelector
                     value={selectedFile}
                     onValueChange={handleFileSelect}
                     returnType="fileData"
-                    endpoint="awardMediaUploader"
+                    endpoint="eventMediaUploader"
                     imageStrategy={{
                       type: "filters",
                       filters: {
-                        categories: ["award_media"],
+                        categories: ["event_media"],
                         includeResearch: false,
                       },
                     }}
                     triggerClassName="w-full"
-                    placeholder="Upload or Select Award Media"
+                    placeholder="Upload or Select Event Media"
                   />
                 </FormControl>
                 <FormDescription>
-                  Upload images, videos, or documents related to awards. Files
-                  will be properly tracked in your media library.
+                  Upload images from events. Files will be properly tracked in
+                  your media library.
                 </FormDescription>
                 {fileIdError && (
                   <p className="text-sm text-destructive mt-1">
@@ -329,7 +339,7 @@ function CreateAwardMedia<TContext>({
                 <ErrorTitle fieldState={fieldState} title="Caption" />
                 <FormControl>
                   <Textarea
-                    placeholder="e.g., Congratulations to Okafor Miracle on winning the Award of Best Oral presentation"
+                    placeholder="e.g., Dr. Okafor presenting keynote at the African Social Science Conference"
                     className="min-h-[100px]"
                     {...field}
                   />
@@ -410,4 +420,4 @@ function CreateAwardMedia<TContext>({
   );
 }
 
-export { CreateAwardMedia };
+export { CreateEventMedia };

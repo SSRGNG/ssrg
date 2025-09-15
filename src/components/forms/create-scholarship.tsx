@@ -34,12 +34,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { scholarshipCats, scholarships } from "@/config/enums";
-import { createScholarship } from "@/lib/actions/scholarships";
+import { createScholarship } from "@/lib/actions/events";
 import { cn } from "@/lib/utils";
 import {
   type CreateScholarshipPayload,
   createScholarshipSchema,
-} from "@/lib/validations/scholarship";
+} from "@/lib/validations/event";
 
 type Props<TContext> = React.ComponentPropsWithoutRef<"form"> & {
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;

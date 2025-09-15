@@ -6,6 +6,7 @@ import {
   BookOpenIcon,
   BoxIcon,
   BriefcaseBusinessIcon,
+  CalendarClock,
   ChartGanttIcon,
   ChartLineIcon,
   ChevronRightIcon,
@@ -34,7 +35,6 @@ import {
   MapIcon,
   MegaphoneIcon,
   Mic2Icon,
-  MicroscopeIcon,
   NetworkIcon,
   QuoteIcon,
   ScaleIcon,
@@ -59,6 +59,7 @@ export const Icons = {
   alert: BadgeAlertIcon,
   award: AwardIcon,
   briefcase: BriefcaseBusinessIcon,
+  calendar: CalendarClock,
   caseStudy: BookOpenIcon,
   chartLine: ChartLineIcon,
   collaborate: GitMergeIcon,
@@ -79,7 +80,7 @@ export const Icons = {
   inclusion: HandHeartIcon,
   info: InfoIcon,
   linkedin: LinkedinIcon,
-  logo: MicroscopeIcon,
+  // logo: MicroscopeIcon,
   media: FileImage,
   megaphone: MegaphoneIcon,
   methods: LayersIcon,
@@ -125,6 +126,42 @@ export const Icons = {
         fillRule="evenodd"
         clipRule="evenodd"
       ></path>
+    </svg>
+  ),
+  logo: (props: LucideProps) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={85.89}
+      height={28}
+      viewBox="0 0 85.89 28"
+      {...props}
+    >
+      <g fill="currentColor">
+        <path
+          d="M20.853 25.617L9.73 36.74H2.816L13.552 26l3.65-3.65-1.8-1.8-3.65 3.65-3.482 3.479a1.011 1.011 0 01-1.417 0l-1.246-1.246-1.8-1.8-.644-.644a3.992 3.992 0 010-5.626l9.62-9.62h6.914L6.423 22.053l1.8 1.8 2.663-2.663 3.614-3.603a2.826 2.826 0 013.951-.043l2.449 2.448a3.992 3.992 0 010 5.626z"
+          transform="translate(-2 -8.74)"
+        />
+        <path
+          data-name="Path 13"
+          d="M24.4 15.751c.558-5.626-8.718-7.816-11.853-3.65a5.936 5.936 0 00-.215 6.4c2.19 3.393 8.245 2.1 8.89 4.681.73 3.951-6.528 3.736-6.613.258-1.2 0-2.4 0-3.564.043.215 5.755 7.043 7.472 11.123 4.81 2.4-1.245 3.779-5.11 2.1-7.644-1.245-1.89-4.337-2.62-5.325-2.834-2.147-.344-4.294-.816-3.693-3.135.9-2.19 5.84-1.89 5.712 1.074h3.521z"
+          transform="translate(-2 -8.74) translate(26.049 12.74) translate(3.733 -9.907)"
+        />
+        <path
+          data-name="Path 14"
+          d="M20.956 15.751c.558-5.626-8.718-7.816-11.853-3.65a5.936 5.936 0 00-.215 6.4c2.19 3.393 8.245 2.1 8.89 4.681.73 3.951-6.528 3.736-6.613.258-1.2 0-2.4 0-3.564.043.215 5.755 7.043 7.472 11.123 4.81 2.4-1.245 3.779-5.11 2.1-7.644-1.245-1.89-4.337-2.62-5.325-2.834-2.147-.344-4.294-.816-3.693-3.135.9-2.19 5.84-1.89 5.712 1.074h3.521z"
+          transform="translate(-2 -8.74) translate(26.049 12.74) translate(-7.6 -9.907)"
+        />
+        <path
+          data-name="Path 15"
+          d="M24.507 21.979c3.693-.644 5.5-6.227 2.834-9.62-2.534-3.736-9.233-1.933-12.712-2.319v19.454h3.564v-7H20.9c1.245 2.362 2.491 4.681 3.693 7.043h4.466c-1.546-2.534-3.049-5.025-4.6-7.558zm-.558-3.479c-1.074 1.2-4.38.6-5.755.73V13.3c1.288.129 4.423-.429 5.5.6a3.236 3.236 0 01.258 4.638z"
+          transform="translate(-2 -8.74) translate(26.049 12.74) translate(15.56 -9.908)"
+        />
+        <path
+          data-name="Path 16"
+          d="M31.253 16.718c-2.276-7.816-13.485-.429-7.773 7.644 2.276 3.049 9.061 2.233 8.074-2.4h-4.037v-2.839h7.344v6.4C31 31.276 21.591 30.975 18.8 23.761c-1.589-4.853-.344-8.933 2.319-11.724 4.209-3.607 12.368-2.706 13.656 3.65-1.16.344-2.319.644-3.479.988z"
+          transform="translate(-2 -8.74) translate(26.049 12.74) translate(26.98 -9.929)"
+        />
+      </g>
     </svg>
   ),
   moon: (props: LucideProps) => (

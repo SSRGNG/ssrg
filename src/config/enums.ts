@@ -86,7 +86,8 @@ export const fileCats = createEnum(
   "profile_picture",
   "document",
   "general",
-  "award_media"
+  "award_media",
+  "event_media"
 );
 
 export const publications = defineEnum(
@@ -121,7 +122,8 @@ export const barActions = defineEnum(
   "video",
   "scholarship",
   "recipient",
-  "award_media"
+  "award_media",
+  "event_media"
 );
 
 export const projectStatus = defineEnum(

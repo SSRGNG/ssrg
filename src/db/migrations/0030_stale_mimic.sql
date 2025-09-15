@@ -1,0 +1,1 @@
+ALTER TABLE "award_media" ADD COLUMN "is_featured" boolean DEFAULT false NOT NULL;

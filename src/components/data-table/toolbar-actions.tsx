@@ -29,6 +29,7 @@ import { BarAction } from "@/types";
 import { getTableMeta, type ExtendedTable } from "@/types/table";
 
 import { CreateAwardMedia } from "@/components/forms/create-award-media";
+import { CreateEventMedia } from "@/components/forms/create-event-media";
 import { CreatePublication } from "@/components/forms/create-publication";
 import { CreateRecipient } from "@/components/forms/create-recipient";
 import { CreateScholarship } from "@/components/forms/create-scholarship";
@@ -68,6 +69,7 @@ function ToolbarActions<TData, TContext>({
     scholarship: CreateScholarship,
     recipient: CreateRecipient,
     award_media: CreateAwardMedia,
+    event_media: CreateEventMedia,
   };
 
   const description = `You are creating a new ${barAction}`;

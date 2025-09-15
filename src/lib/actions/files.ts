@@ -19,11 +19,6 @@ export async function getImages(filters: ImageFilters = {}) {
 }
 const utapi = new UTApi({});
 
-// export async function getResearchImages() {
-//   const { getResearchImages: queryGetResearchImages } = await import("@/lib/queries/files");
-//   return queryGetResearchImages();
-// }
-
 /**
  * Update image metadata (alt text, caption, etc.)
  */

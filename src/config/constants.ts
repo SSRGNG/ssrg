@@ -597,8 +597,8 @@ export const actions = {
       },
     },
     {
-      title: "Scholarships & Awards",
-      href: "/admin/scholarships",
+      title: "Events & Media",
+      href: "/admin/events",
       roles: ["admin"] as Role[],
       icon: "award" as Icons,
       options: {

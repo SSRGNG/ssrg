@@ -3,12 +3,12 @@ import * as React from "react";
 
 import { Page } from "@/components/shell";
 import {
-  // Featured,
-  Hero,
   LatestPublications,
   Metrics,
   Newsletter,
   ResearchAreas,
+  // Featured,
+  Slide,
 } from "@/components/views/home";
 import { appConfig } from "@/config";
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <Page>
-      <Hero />
+      <Slide />
       <Metrics />
       <React.Suspense fallback={<div>Loading...</div>}>
         <ResearchAreas />

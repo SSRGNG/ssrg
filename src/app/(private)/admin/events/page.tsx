@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 import { Icons } from "@/components/shared/icons";
 import { Shell } from "@/components/shell";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AwardMedia } from "@/components/views/admin/scholarshops/award-media";
-import { Recipients } from "@/components/views/admin/scholarshops/recipients";
-import { ScholarAwards } from "@/components/views/admin/scholarshops/scholar-awards";
+import { AwardMedia } from "@/components/views/admin/events/award-media";
+import { EventMedia } from "@/components/views/admin/events/event-media";
+import { Recipients } from "@/components/views/admin/events/recipients";
+import { ScholarAwards } from "@/components/views/admin/events/scholar-awards";
+import { getEventMedia } from "@/lib/queries/events";
 import {
   getAwardMedia,
   getEvents,
@@ -21,13 +23,15 @@ export const metadata: Metadata = {
 const available_tabs = [
   { id: "scholarship", label: "Scholarship", icon: "award" as Icons },
   { id: "recipients", label: "Recipients", icon: "people" as Icons },
-  { id: "media", label: "Media", icon: "media" as Icons },
+  { id: "media", label: "Award Media", icon: "media" as Icons },
+  { id: "event-media", label: "Event Media", icon: "calendar" as Icons },
 ];
 
-export default async function ScholarshipsAwards() {
+export default async function Events() {
   const scholarships = await getScholarships();
   const recipients = await getRecipients();
   const media = await getAwardMedia();
+  const eventMedia = await getEventMedia();
   const events = await getEvents();
 
   const table_data = {
@@ -80,6 +84,11 @@ export default async function ScholarshipsAwards() {
           media={media}
           t_data={table_data}
           value={available_tabs[2].id}
+        />
+        <EventMedia
+          media={eventMedia}
+          t_data={table_data}
+          value={available_tabs[3].id}
         />
       </Tabs>
     </Shell>

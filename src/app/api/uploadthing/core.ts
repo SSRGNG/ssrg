@@ -235,7 +235,7 @@ export const ourFileRouter = {
   // Award media uploader
   awardMediaUploader: f({
     image: {
-      maxFileSize: "2MB",
+      maxFileSize: "1MB",
       maxFileCount: 1,
     },
     video: {
@@ -281,6 +281,53 @@ export const ourFileRouter = {
         };
       } catch (error) {
         console.error("Failed to save award media file to database:", error);
+        return { uploadedBy: metadata.userId, url: file.ufsUrl };
+      }
+    }),
+  eventMediaUploader: f({
+    image: {
+      maxFileSize: "1MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const user = (await auth())?.user;
+      if (!user) throw new UploadThingError("Unauthorized");
+
+      return {
+        userId: user.id,
+        category: "event_media" as FileCategory,
+      };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      try {
+        const [savedFile] = await db
+          .insert(files)
+          .values({
+            filename: file.name,
+            originalName: file.name,
+            mimeType: file.type || "image/*",
+            size: file.size,
+            path: file.key,
+            url: file.ufsUrl,
+            uploadthingKey: file.key,
+            uploadthingUrl: file.ufsUrl,
+            category: metadata.category,
+            uploadedBy: metadata.userId,
+            isPublic: true, // Event media is typically public
+          })
+          .returning();
+
+        console.log("Event media file saved to database:", savedFile.id);
+
+        return {
+          uploadedBy: metadata.userId,
+          fileId: savedFile.id,
+          url: file.ufsUrl,
+          category: metadata.category,
+        };
+      } catch (error) {
+        console.error("Failed to save event media file to database:", error);
         return { uploadedBy: metadata.userId, url: file.ufsUrl };
       }
     }),

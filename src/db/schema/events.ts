@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -10,7 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { users } from "@/db/schema";
+import { files, users } from "@/db/schema";
 import { Event } from "@/types";
 
 export const events = pgTable(
@@ -47,40 +48,41 @@ export const events = pgTable(
   ]
 );
 
-// export const eventPresenters = pgTable(
-//   "event_presenters",
-//   {
-//     id: uuid("id").primaryKey().defaultRandom(),
-//     eventId: uuid("event_id")
-//       .notNull()
-//       .references(() => events.id, { onDelete: "cascade" }),
-//     researcherId: uuid("researcher_id").references(() => researchers.id, {
-//       onDelete: "set null",
-//     }),
-//     externalName: text("external_name"),
-//     externalAffiliation: text("external_affiliation"),
-//     role: varchar("role", { length: 20 }).$type<PresenterRole>().notNull(),
-//     order: integer("order").notNull(),
-//   },
-//   (t) => [
-//     // Create index for event lookup
-//     index("event_presenters_event_idx").on(t.eventId),
-//     // Create index for researcher lookup
-//     index("event_presenters_researcher_idx").on(t.researcherId),
-//     // Create unique index to prevent duplicate ordering per event
-//     // index("event_presenters_order_idx").on(t.eventId, t.order).unique(),
-//     // Ensure we have at least a researcher ID or external name
-//     check(
-//       "valid_presenter",
-//       sql`${t.researcherId} IS NOT NULL OR ${t.externalName} IS NOT NULL`
-//     ),
-//     // Validate presenter role
-//     // check(
-//     //   "valid_presenter_role",
-//     //   sql`${t.role} IN ('keynote', 'panelist', 'presenter', 'moderator', 'organizer')`
-//     // ),
-//   ]
-// );
+export const eventMedia = pgTable(
+  "event_media",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    // Optional: link to an event hosted by the group
+    eventId: uuid("event_id").references(() => events.id, {
+      onDelete: "set null",
+    }),
+
+    fileId: uuid("file_id")
+      .notNull()
+      .references(() => files.id, { onDelete: "cascade" }),
+
+    caption: text("caption"), // e.g., "Dr. Okafor presenting keynote"
+    externalEvent: text("external_event"), // Optional: "African Social Science Conf 2025"
+    externalLocation: text("external_location"),
+    externalDate: timestamp("external_date", { mode: "date" }),
+
+    isPublic: boolean("is_public").default(true).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(), // homepage carousel
+    sortOrder: integer("sort_order").default(0).notNull(),
+
+    created_at: timestamp("created_at").defaultNow().notNull(),
+    updated_at: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (t) => [
+    index("event_media_event_idx").on(t.eventId),
+    index("event_media_file_idx").on(t.fileId),
+    index("event_media_public_idx").on(t.isPublic),
+    index("event_media_featured_idx").on(t.isFeatured),
+  ]
+);
 
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),

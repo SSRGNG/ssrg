@@ -23,12 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createRecipient } from "@/lib/actions/scholarships";
+import { createRecipient } from "@/lib/actions/events";
 import { cn } from "@/lib/utils";
 import {
   type CreateRecipientPayload,
   createRecipientSchema,
-} from "@/lib/validations/scholarship";
+} from "@/lib/validations/event";
 import { T_Data } from "@/types";
 
 type Props<TContext> = React.ComponentPropsWithoutRef<"form"> & {

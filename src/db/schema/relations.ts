@@ -5,6 +5,7 @@ import {
   authenticators,
   authors,
   awardMedia,
+  eventMedia,
   eventPresenters,
   events,
   files,
@@ -387,5 +388,16 @@ export const awardMediaRelations = relations(awardMedia, ({ one }) => ({
   file: one(files, {
     fields: [awardMedia.fileId],
     references: [files.id],
+  }),
+}));
+
+export const eventMediaRelations = relations(eventMedia, ({ one }) => ({
+  file: one(files, {
+    fields: [eventMedia.fileId],
+    references: [files.id],
+  }),
+  event: one(events, {
+    fields: [eventMedia.eventId],
+    references: [events.id],
   }),
 }));

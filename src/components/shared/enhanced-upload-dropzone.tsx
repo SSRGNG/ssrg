@@ -498,7 +498,7 @@ export function EnhancedUploadDropzone({
 
       {/* Upload Complete State */}
       {files.length >= maxFileCount && (
-        <div className="flex items-center justify-center p-4 border-2 border-dashed border-emerald-200 bg-emerald-50/50 rounded-xl">
+        <div className="flex items-center justify-center p-4 border-2 border-dashed border-emerald-200 bg-card rounded-xl">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-emerald-700">
               <Check className="w-5 h-5" />

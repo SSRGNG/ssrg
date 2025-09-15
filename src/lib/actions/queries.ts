@@ -13,6 +13,7 @@ import {
   getResearchMethodologies,
   getVideoCategoryDistribution,
 } from "@/lib/queries/admin";
+import { getCarouselData, getEventMedia } from "@/lib/queries/events";
 import { getImages, getResearchImages } from "@/lib/queries/files";
 import { getAllMembers } from "@/lib/queries/members";
 import {
@@ -106,9 +107,12 @@ type SearchPublicationsSuccess = Extract<
   SearchPublicationsResult,
   { success: true }
 >;
+type CarouselDataResult = Awaited<ReturnType<typeof getCarouselData>>;
+type CarouselDataSuccess = Extract<CarouselDataResult, { success: true }>;
 
 export type AuthorSearchResults = SearchAuthorsSuccess["results"];
 export type PublicationSearchResults = SearchPublicationsSuccess["results"];
+export type CarouselDataResults = CarouselDataSuccess["data"];
 
 // Extract individual result item types
 export type AuthorSearchResult = AuthorSearchResults[number];
@@ -131,6 +135,7 @@ export type AllMembers = Awaited<ReturnType<typeof getAllMembers>>;
 export type AllScholarships = Awaited<ReturnType<typeof getScholarships>>;
 export type AllRecipients = Awaited<ReturnType<typeof getRecipients>>;
 export type AllAwardMedia = Awaited<ReturnType<typeof getAwardMedia>>;
+export type AllEventMedia = Awaited<ReturnType<typeof getEventMedia>>;
 export type AwardMediaWithFile = Awaited<
   ReturnType<typeof getAwardMediaWithFiles>
 >;

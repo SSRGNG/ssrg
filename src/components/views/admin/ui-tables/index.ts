@@ -1,4 +1,5 @@
 export { AwardMediaDataTable } from "@/components/views/admin/ui-tables/award-media-data-table";
+export { EventMediaDataTable } from "@/components/views/admin/ui-tables/event-media-data-table";
 export { ProjectsDataTable } from "@/components/views/admin/ui-tables/projects-data-table";
 export { RAreasDataTable } from "@/components/views/admin/ui-tables/r-areas-data-table";
 export { RFrameworksDataTable } from "@/components/views/admin/ui-tables/r-frameworks-data-table";

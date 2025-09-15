@@ -98,6 +98,7 @@ export const awardMedia = pgTable(
     // Fields for award-specific metadata
     caption: text("caption"), // Description of the photo/media
     isPublic: boolean("is_public").default(true).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(), // homepage carousel
     sortOrder: integer("sort_order").default(0).notNull(),
 
     created_at: timestamp("created_at").defaultNow().notNull(),
