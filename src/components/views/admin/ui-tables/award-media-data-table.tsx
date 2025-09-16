@@ -43,6 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { EditAwardMedia } from "@/components/views/admin/events/edit-award-media";
 import { AllAwardMedia } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 import { T_Data } from "@/types";
@@ -252,6 +253,7 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
             </Badge>
           );
         },
+        meta: { displayName: "Visibility" },
       },
       {
         accessorKey: "sortOrder",
@@ -331,8 +333,9 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
                         className={cn(
                           buttonVariants({
                             variant: "ghost",
+                            size: "sm",
                             className:
-                              "w-full justify-start px-2 has-[>svg]:px-2",
+                              "w-full justify-start px-2 gap-2 has-[>svg]:px-2 font-normal",
                           })
                         )}
                       >
@@ -343,9 +346,20 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
                   </React.Fragment>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
-                  <Edit className="size-4" />
-                  Edit Media
+                <DropdownMenuItem asChild>
+                  <EditAwardMedia awardMedia={mediaItem} context={t_data}>
+                    <Button
+                      aria-label="Toggle Edit"
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-start px-2 has-[>svg]:px-2 gap-2 font-normal"
+                      )}
+                    >
+                      <Edit className="size-4 text-muted-foreground" />
+                      Edit Media
+                    </Button>
+                  </EditAwardMedia>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -353,9 +367,11 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
                   disabled={isPending}
                   className="text-rose-600 focus:text-rose-600"
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-4 text-rose-600" />
                   Delete
-                  <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="text-rose-600">
+                    ⌘⌫
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -365,11 +381,6 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
     ],
     [isPending]
   );
-
-  const visibilityOptions = [
-    { label: "Public", value: "true", withCount: true },
-    { label: "Private", value: "false", withCount: true },
-  ];
 
   return (
     <React.Fragment>
@@ -382,11 +393,6 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
             label: "Caption",
             value: "caption",
             placeholder: "Search by caption...",
-          },
-          {
-            label: "Visibility",
-            value: "isPublic",
-            options: visibilityOptions,
           },
         ]}
         context={t_data}

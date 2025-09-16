@@ -45,6 +45,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { EditEventMedia } from "@/components/views/admin/events/edit-event-media";
 import { AllEventMedia } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 import { T_Data } from "@/types";
@@ -178,6 +179,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             </Tooltip>
           );
         },
+        meta: { displayName: "Type" },
         filterFn: (row, id, value) => {
           console.log(id);
           const fileInfo = getFileInfo(row.original);
@@ -207,6 +209,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             </div>
           );
         },
+        meta: { displayName: "File" },
         filterFn: (row, _, value) => {
           const fileInfo = getFileInfo(row.original);
           return (
@@ -234,7 +237,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
         filterFn: "includesString",
       },
       {
-        id: "eventInfo",
+        accessorKey: "eventId",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Event" />
         ),
@@ -243,10 +246,11 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             row,
             "eventId"
           );
-          const externalEvent = getTypedValue<MediaType, string | null>(
-            row,
-            "externalEvent"
-          );
+          const externalEvent = row.original.externalEvent;
+          // const externalEvent = getTypedValue<MediaType, string | null>(
+          //   row,
+          //   "externalEvent"
+          // );
 
           if (eventId && t_data?.events) {
             const event = t_data.events.find((e) => e.id === eventId);
@@ -273,9 +277,10 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             <span className="text-muted-foreground text-sm">No event</span>
           );
         },
+        meta: { displayName: "Event" },
       },
       {
-        id: "location",
+        accessorKey: "externalLocation",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Location" />
         ),
@@ -292,6 +297,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             <span className="text-muted-foreground text-sm">No location</span>
           );
         },
+        meta: { displayName: "Location" },
       },
       {
         accessorKey: "externalDate",
@@ -331,6 +337,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             </Badge>
           );
         },
+        meta: { displayName: "Visibility" },
       },
       {
         accessorKey: "isFeatured",
@@ -356,6 +363,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             </Badge>
           );
         },
+        meta: { displayName: "Featured" },
       },
       {
         accessorKey: "sortOrder",
@@ -388,6 +396,7 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             <span className="text-muted-foreground text-sm">No alt text</span>
           );
         },
+        meta: { displayName: "Alt Text" },
       },
       {
         accessorKey: "created_at",
@@ -435,8 +444,9 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
                         className={cn(
                           buttonVariants({
                             variant: "ghost",
+                            size: "sm",
                             className:
-                              "w-full justify-start px-2 has-[>svg]:px-2",
+                              "w-full justify-start px-2 gap-2 has-[>svg]:px-2 font-normal",
                           })
                         )}
                       >
@@ -447,9 +457,20 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
                   </React.Fragment>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>
-                  <Edit className="size-4" />
-                  Edit Media
+                <DropdownMenuItem asChild>
+                  <EditEventMedia eventMedia={mediaItem} context={t_data}>
+                    <Button
+                      aria-label="Toggle Edit"
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "w-full justify-start px-2 has-[>svg]:px-2 gap-2 font-normal"
+                      )}
+                    >
+                      <Edit className="size-4 text-muted-foreground" />
+                      Edit Media
+                    </Button>
+                  </EditEventMedia>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -457,9 +478,11 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
                   disabled={isPending}
                   className="text-rose-600 focus:text-rose-600"
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-4 text-rose-600" />
                   Delete
-                  <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="text-rose-600">
+                    ⌘⌫
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -469,16 +492,6 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
     ],
     [isPending, t_data]
   );
-
-  const visibilityOptions = [
-    { label: "Public", value: "true", withCount: true },
-    { label: "Private", value: "false", withCount: true },
-  ];
-
-  const featuredOptions = [
-    { label: "Featured", value: "true", withCount: true },
-    { label: "Regular", value: "false", withCount: true },
-  ];
 
   return (
     <React.Fragment>
@@ -491,16 +504,6 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
             label: "Caption",
             value: "caption",
             placeholder: "Search by caption...",
-          },
-          {
-            label: "Visibility",
-            value: "isPublic",
-            options: visibilityOptions,
-          },
-          {
-            label: "Featured",
-            value: "isFeatured",
-            options: featuredOptions,
           },
         ]}
         context={t_data}

@@ -235,10 +235,6 @@ function UpdateResearchArea({
               <FormItem>
                 <ErrorTitle fieldState={fieldState} title="Image URL" />
                 <FormControl>
-                  {/* <Input
-                    placeholder="e.g., /images/research/communities.webp"
-                    {...field}
-                  /> */}
                   <ImageSelector
                     value={field.value}
                     onValueChange={field.onChange}

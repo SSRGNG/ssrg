@@ -100,7 +100,15 @@ export const updateEventSchema = eventSchema.partial().extend({
 });
 export const updateScholarshipSchema = scholarshipSchema.partial();
 export const updateRecipientSchema = recipientSchema.partial();
-export const updateAwardMediaSchema = awardMediaSchema.partial();
+export const updateAwardMediaSchema = awardMediaSchema.extend({
+  id: z.string().min(1, "ID is required"),
+});
+export const updateEventMediaSchema = eventMediaSchema
+  .omit({ sortOrder: true })
+  .extend({
+    id: z.string().min(1, "ID is required"),
+    sortOrder: z.number().int().min(0),
+  });
 
 export type Event = z.infer<typeof eventSchema>;
 export type EventPresenter = z.infer<typeof eventPresenterSchema>;
@@ -114,3 +122,4 @@ export type CreateAwardMediaPayload = z.infer<typeof createAwardMediaSchema>;
 export type UpdateScholarshipPayload = z.infer<typeof updateScholarshipSchema>;
 export type UpdateRecipientPayload = z.infer<typeof updateRecipientSchema>;
 export type UpdateAwardMediaPayload = z.infer<typeof updateAwardMediaSchema>;
+export type UpdateEventMediaPayload = z.infer<typeof updateEventMediaSchema>;
