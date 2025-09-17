@@ -86,8 +86,8 @@ export async function createEventMedia(data: CreateEventMediaPayload) {
     });
 
     // Revalidate relevant pages
-    revalidatePath("/admin/scholarships");
-    // revalidatePath("/events");
+    revalidatePath("/admin/events");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -146,7 +146,7 @@ export async function createAwardMedia(data: CreateAwardMediaPayload) {
     });
 
     revalidatePath("/admin/events");
-    // revalidatePath("/admin/award-media");
+    revalidatePath("/");
 
     return { success: true, data: result };
   } catch (error) {
@@ -288,8 +288,8 @@ export async function updateEventMedia(data: UpdateEventMediaPayload) {
     });
 
     // Revalidate relevant pages
-    revalidatePath("/admin/scholarships");
-    revalidatePath("/admin/event-media");
+    revalidatePath("/admin/events");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -396,7 +396,7 @@ export async function updateAwardMedia(data: UpdateAwardMediaPayload) {
 
     // Revalidate relevant pages
     revalidatePath("/admin/events");
-    revalidatePath("/admin/award-media");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -453,6 +453,7 @@ export async function deleteEventMedia(id: string) {
 
     // Revalidate relevant pages
     revalidatePath("/admin/events");
+    revalidatePath("/");
 
     return {
       data: { success: true },
@@ -499,6 +500,7 @@ export async function deleteAwardMedia(id: string) {
 
     // Revalidate relevant pages
     revalidatePath("/admin/events");
+    revalidatePath("/");
 
     return {
       data: { success: true },

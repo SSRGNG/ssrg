@@ -289,7 +289,7 @@ function ImageSelector({
                   onClientUploadComplete={handleUploadComplete}
                   onUploadError={handleUploadError}
                   showPreview={true}
-                  autoUpload={true}
+                  autoUpload={false}
                 />
               </TabsContent>
 

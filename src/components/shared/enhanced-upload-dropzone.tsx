@@ -384,14 +384,6 @@ export function EnhancedUploadDropzone({
                 {/* File Preview/Icon */}
                 <div className="flex-shrink-0">
                   {showPreview && fileUpload.preview ? (
-                    // <div className="w-12 h-12 rounded-lg overflow-hidden border">
-                    //   <img
-                    //     src={fileUpload.preview}
-                    //     alt={fileUpload.file.name}
-                    //     className="w-full h-full object-cover"
-                    //   />
-                    // </div>
-
                     <Image
                       src={fileUpload.preview}
                       alt={fileUpload.file.name}
@@ -427,12 +419,14 @@ export function EnhancedUploadDropzone({
 
                 {/* File Info */}
                 <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium truncate pr-2">
+                  <div className="flex items-center justify-between font-medium">
+                    <p className="text-xs leading-tight pr-2 break-all overflow-hidden max-h-8">
                       {fileUpload.file.name}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{(fileUpload.file.size / 1024).toFixed(1)} KB</span>
+                      <span className="whitespace-nowrap">
+                        {(fileUpload.file.size / 1024).toFixed(1)} KB
+                      </span>
                       <Badge
                         variant={
                           fileUpload.status === "success"
