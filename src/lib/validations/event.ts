@@ -75,6 +75,7 @@ const awardMediaSchema = z.object({
   recipientId: z.string().uuid().optional().or(z.literal("")),
   eventId: z.string().uuid().optional().or(z.literal("")),
   fileId: z.string().uuid(),
+  externalEvent: z.string().optional(),
   caption: z.string().optional(),
   isPublic: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -86,13 +87,14 @@ export const createEventSchema = eventSchema.extend({
 });
 export const createScholarshipSchema = scholarshipSchema;
 export const createRecipientSchema = recipientSchema;
-export const createAwardMediaSchema = awardMediaSchema.refine(
-  (data) => data.scholarshipId || data.recipientId,
-  {
-    message: "Either scholarship or recipient must be specified",
-    path: ["scholarshipId"],
-  }
-);
+export const createAwardMediaSchema = awardMediaSchema;
+// export const createAwardMediaSchema = awardMediaSchema.refine(
+//   (data) => data.scholarshipId || data.recipientId,
+//   {
+//     message: "Either scholarship or recipient must be specified",
+//     path: ["scholarshipId"],
+//   }
+// );
 export const createEventMediaSchema = eventMediaSchema;
 
 export const updateEventSchema = eventSchema.partial().extend({

@@ -65,6 +65,7 @@ function UpdateAwardMedia<TContext>({
     eventId: awardMedia.eventId || "",
     fileId: awardMedia.fileId,
     caption: awardMedia.caption || "",
+    externalEvent: awardMedia.externalEvent || "",
     isPublic: awardMedia.isPublic,
     isFeatured: awardMedia.isFeatured,
     sortOrder: awardMedia.sortOrder,
@@ -137,6 +138,7 @@ function UpdateAwardMedia<TContext>({
       currentValues.eventId !== defaultValues.eventId ||
       currentValues.fileId !== defaultValues.fileId ||
       currentValues.caption !== defaultValues.caption ||
+      currentValues.externalEvent !== defaultValues.externalEvent ||
       currentValues.isPublic !== defaultValues.isPublic ||
       currentValues.isFeatured !== defaultValues.isFeatured ||
       currentValues.sortOrder !== defaultValues.sortOrder
@@ -156,7 +158,7 @@ function UpdateAwardMedia<TContext>({
           </h3>
           <Separator />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="scholarshipId"
@@ -228,7 +230,9 @@ function UpdateAwardMedia<TContext>({
                 </FormItem>
               )}
             />
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="eventId"
@@ -257,6 +261,24 @@ function UpdateAwardMedia<TContext>({
                   </Select>
                   <FormDescription>
                     Optional: Link to specific event
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="externalEvent"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="External Event" />
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., African Social Science Conference 2025"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional: Name of external event or conference
                   </FormDescription>
                 </FormItem>
               )}

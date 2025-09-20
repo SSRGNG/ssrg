@@ -42,6 +42,7 @@ export async function createEventMedia(data: CreateEventMediaPayload) {
       externalEvent: validatedData.externalEvent || null,
       externalLocation: validatedData.externalLocation || null,
       externalDate: validatedData.externalDate || null,
+      caption: validatedData.caption || null,
     };
 
     let finalSortOrder: number;
@@ -125,6 +126,7 @@ export async function createAwardMedia(data: CreateAwardMediaPayload) {
       recipientId: validatedData.recipientId || null,
       eventId: validatedData.eventId || null,
       caption: validatedData.caption || null,
+      externalEvent: validatedData.externalEvent || null,
     };
 
     const result = await db.transaction(async (tx) => {
@@ -220,6 +222,7 @@ export async function updateEventMedia(data: UpdateEventMediaPayload) {
       externalEvent: validatedData.externalEvent || null,
       externalLocation: validatedData.externalLocation || null,
       externalDate: validatedData.externalDate || null,
+      caption: validatedData.caption || null,
     };
 
     await db.transaction(async (tx) => {
@@ -326,6 +329,7 @@ export async function updateAwardMedia(data: UpdateAwardMediaPayload) {
       scholarshipId: validatedData.scholarshipId || null,
       recipientId: validatedData.recipientId || null,
       eventId: validatedData.eventId || null,
+      externalEvent: validatedData.externalEvent || null,
       caption: validatedData.caption || null,
     };
 

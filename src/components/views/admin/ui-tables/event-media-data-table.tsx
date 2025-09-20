@@ -46,6 +46,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EditEventMedia } from "@/components/views/admin/events/edit-event-media";
+import { deleteEventMedia } from "@/lib/actions/events";
 import { AllEventMedia } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 import { T_Data } from "@/types";
@@ -74,9 +75,12 @@ function EventMediaDataTable({ media, t_data, className, ...props }: Props) {
 
     startTransition(async () => {
       try {
-        // Replace with your delete action
-        // const result = await deleteEventMedia(mediaToDelete.id);
+        const result = await deleteEventMedia(mediaToDelete.id);
 
+        if (result.error) {
+          toast.error("Error", { description: result.error });
+          return;
+        }
         toast.success("Media deleted successfully", {
           description: "The event media item has been removed.",
         });

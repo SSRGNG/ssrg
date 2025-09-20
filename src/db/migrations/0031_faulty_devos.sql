@@ -1,0 +1,1 @@
+ALTER TABLE "award_media" ADD COLUMN "external_event" text;

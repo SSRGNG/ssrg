@@ -45,6 +45,7 @@ const defaultValues: CreateAwardMediaPayload = {
   recipientId: "",
   eventId: "",
   fileId: "",
+  externalEvent: "",
   caption: "",
   isPublic: true,
   isFeatured: false,
@@ -141,7 +142,7 @@ function CreateAwardMedia<TContext>({
           </h3>
           <Separator />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="scholarshipId"
@@ -180,7 +181,6 @@ function CreateAwardMedia<TContext>({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="recipientId"
@@ -213,12 +213,13 @@ function CreateAwardMedia<TContext>({
                 </FormItem>
               )}
             />
-
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="eventId"
               render={({ field, fieldState }) => (
-                <FormItem className="sm:col-span-2 md:col-span-1">
+                <FormItem>
                   <ErrorTitle fieldState={fieldState} title="Event" />
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
@@ -246,7 +247,26 @@ function CreateAwardMedia<TContext>({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="externalEvent"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <ErrorTitle fieldState={fieldState} title="External Event" />
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., African Social Science Conference 2025"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional: Name of external event or conference
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
           </div>
+
           {/* Validation message for required relationship */}
           {form.formState.errors.scholarshipId && (
             <p className="text-sm text-destructive mt-2">

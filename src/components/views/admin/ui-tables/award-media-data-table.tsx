@@ -44,6 +44,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EditAwardMedia } from "@/components/views/admin/events/edit-award-media";
+import { deleteAwardMedia } from "@/lib/actions/events";
 import { AllAwardMedia } from "@/lib/actions/queries";
 import { cn } from "@/lib/utils";
 import { T_Data } from "@/types";
@@ -72,8 +73,12 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
 
     startTransition(async () => {
       try {
-        // Replace with your delete action
-        // const result = await deleteMedia(mediaToDelete.id);
+        const result = await deleteAwardMedia(mediaToDelete.id);
+
+        if (result.error) {
+          toast.error("Error", { description: result.error });
+          return;
+        }
 
         toast.success("Media deleted successfully", {
           description: "The media item has been removed.",
@@ -231,6 +236,45 @@ function AwardMediaDataTable({ media, t_data, className, ...props }: Props) {
           );
         },
         filterFn: "includesString",
+      },
+      {
+        accessorKey: "eventId",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Event" />
+        ),
+        cell: ({ row }) => {
+          const eventId = getTypedValue<MediaType, string | null>(
+            row,
+            "eventId"
+          );
+          const externalEvent = row.original.externalEvent;
+
+          if (eventId && t_data?.events) {
+            const event = t_data.events.find((e) => e.id === eventId);
+            if (event) {
+              return (
+                <Badge variant="default" className="gap-1">
+                  <Globe className="h-3 w-3" />
+                  {event.title}
+                </Badge>
+              );
+            }
+          }
+
+          if (externalEvent) {
+            return (
+              <Badge variant="secondary" className="gap-1">
+                <ExternalLink className="h-3 w-3" />
+                {externalEvent}
+              </Badge>
+            );
+          }
+
+          return (
+            <span className="text-muted-foreground text-sm">No event</span>
+          );
+        },
+        meta: { displayName: "Event" },
       },
       {
         accessorKey: "isPublic",

@@ -87,6 +87,7 @@ export const awardMedia = pgTable(
     eventId: uuid("event_id").references(() => events.id, {
       onDelete: "set null",
     }), // Optional: link to event if applicable
+    externalEvent: text("external_event"), // Optional: "African Social Science Conf 2025"
 
     // Link to files table instead of storing URL directly
     fileId: uuid("file_id")
