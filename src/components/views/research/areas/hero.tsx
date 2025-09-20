@@ -137,7 +137,7 @@ function Hero({ className, ...props }: Props) {
         }}
         plugins={[autoplayRef.current]}
         setApi={setApi}
-        className="grid gap-2.5"
+        className="grid gap-2.5 [&_[data-slot=carousel-content]]:rounded-xl"
       >
         <CarouselContent>
           {research_areas.map((area, idx) => (
