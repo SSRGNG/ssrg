@@ -49,7 +49,7 @@ function FeaturedResearcherCard({
   return (
     <Card
       className={cn(
-        "gap-0 py-0 sm:py-0 overflow-hidden",
+        "group not-last-of-type:gap-0 py-0 sm:py-0 overflow-hidden",
         idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
@@ -59,7 +59,7 @@ function FeaturedResearcherCard({
           alt={`Image of ${researcher.name}`}
           height={800}
           width={450}
-          className="h-full w-full object-cover aspect-[24/9]"
+          className="h-full w-full object-cover aspect-[24/9] transition-transform duration-300 ease-out group-hover:scale-105"
           loading="lazy"
         />
       </CardHeader>

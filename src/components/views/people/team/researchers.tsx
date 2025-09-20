@@ -43,7 +43,7 @@ function ResearcherCard({
   return (
     <Card
       className={cn(
-        "gap-0 py-0 sm:py-0 overflow-hidden shadow-none h-full",
+        "group gap-0 py-0 sm:py-0 overflow-hidden shadow-none h-full",
         idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
       )}
     >
@@ -54,14 +54,14 @@ function ResearcherCard({
             alt={`Image of ${researcher.user.name}`}
             height={800}
             width={450}
-            className="h-full w-full object-cover aspect-[24/9]"
+            className="h-full w-full object-cover aspect-[24/9] transition-transform duration-300 ease-out group-hover:scale-105"
             loading="lazy"
           />
         ) : (
           <div className="h-full w-full aspect-[24/9] md:aspect-auto md:h-full relative bg-muted">
             <Icons.placeholder
               preserveAspectRatio="xMidYMid slice"
-              className="absolute inset-0 h-full w-full text-light/20"
+              className="absolute inset-0 h-full w-full text-light/20 transition-transform duration-300 ease-out group-hover:scale-105"
             />
           </div>
         )}
