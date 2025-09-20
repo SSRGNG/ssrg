@@ -241,7 +241,7 @@ export async function getCarouselData() {
         imageUrl: item.fileUrl,
         link: item.eventId
           ? `/events/${item.eventId}`
-          : item.type === "award"
+          : item.type === "award" && item.scholarshipId !== null
           ? `/awards/${item.scholarshipId}`
           : null,
         sortOrder: item.sortOrder,

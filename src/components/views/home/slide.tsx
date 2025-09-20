@@ -40,27 +40,12 @@ async function Slide({}: Props) {
   const media = result.success ? result.data : undefined;
 
   // console.log({ media });
-  // If there's no result data or empty array, return fallback Hero
   if (!media || media.length === 0) {
     return <Hero />;
   }
 
   return <HeroCarousel media={media} />;
   // return <HeroCarousel media={mockCarouselData} />;
-  // return (
-  //   <HeroSection className={cn(className)} {...props}>
-  //     <div className="carousel">
-  //       {media.map((item) => (
-  //         <div key={item.id} className="carousel-item">
-  //           <img src={item.imageUrl ?? ""} alt={item.title} />
-  //           <h3>{item.title}</h3>
-  //           {item.date && <p>{new Date(item.date).toLocaleDateString()}</p>}
-  //           {item.link && <a href={item.link}>View More</a>}
-  //         </div>
-  //       ))}
-  //     </div>
-  //   </HeroSection>
-  // );
 }
 
 export { Slide };

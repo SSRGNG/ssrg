@@ -1,0 +1,1 @@
+ALTER TABLE "award_media" DROP CONSTRAINT "valid_media_parent";

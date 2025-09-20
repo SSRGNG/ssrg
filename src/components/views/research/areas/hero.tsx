@@ -144,7 +144,7 @@ function Hero({ className, ...props }: Props) {
             <CarouselItem key={idx} className="xs:basis-2/3">
               <Card
                 className={cn(
-                  "gap-0 py-0 sm:py-0 overflow-hidden text-left md:flex-row h-full",
+                  "group gap-0 py-0 sm:py-0 overflow-hidden text-left md:flex-row h-full",
                   idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                 )}
               >
@@ -154,7 +154,7 @@ function Hero({ className, ...props }: Props) {
                     alt={`Image for ${area.title}`}
                     height={800}
                     width={450}
-                    className="h-full w-full object-cover aspect-[24/9]"
+                    className="h-full w-full object-cover aspect-[24/9] transition-transform duration-300 ease-out group-hover:scale-105"
                     loading="lazy"
                   />
                 </CardHeader>

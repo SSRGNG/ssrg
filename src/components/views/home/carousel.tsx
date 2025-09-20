@@ -22,13 +22,15 @@ type Props = React.ComponentPropsWithoutRef<typeof Section> & {
   media: CarouselDataResults;
 };
 
+const T_D = 20000;
+
 function HeroCarousel({ media, className, ...props }: Props) {
   const [isPaused, setIsPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [api, setApi] = React.useState<CarouselApi | null>(null);
   const progressIntervalRef = React.useRef<number | null>(null);
   const autoplayRef = React.useRef(
-    Autoplay({ delay: 20000, stopOnInteraction: true })
+    Autoplay({ delay: T_D, stopOnInteraction: true })
   );
 
   // Start progress bar animation
@@ -45,7 +47,7 @@ function HeroCarousel({ media, className, ...props }: Props) {
     if (isPaused) return;
 
     const startTime = Date.now();
-    const duration = 20000; // Match autoplay duration
+    const duration = T_D;
 
     progressIntervalRef.current = window.setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -136,8 +138,7 @@ function HeroCarousel({ media, className, ...props }: Props) {
   return (
     <Section className={cn(className)} {...props}>
       <Carousel
-        // className="w-full"
-        className="grid gap-2.5"
+        className="grid gap-2.5 [&_[data-slot=carousel-content]]:rounded-xl"
         opts={{
           align: "center",
           loop: true,
@@ -148,13 +149,13 @@ function HeroCarousel({ media, className, ...props }: Props) {
         <CarouselContent>
           {media.map((item) => (
             <CarouselItem key={item.id} className="xs:basis-2/3">
-              <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden rounded-lg">
+              <div className="group relative h-[40vh] min-h-[300px] w-full overflow-hidden rounded-lg">
                 {/* Background Image with Overlay */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300 ease-out group-hover:scale-105"
                   style={{ backgroundImage: `url(${item.imageUrl})` }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/50 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-background/25 to-transparent" />
                 </div>
 
                 {/* Content Overlay */}
@@ -181,7 +182,7 @@ function HeroCarousel({ media, className, ...props }: Props) {
                       </div>
 
                       {/* Title */}
-                      <h1 className="text-base md:text-lg lg:text-xl font-bold leading-tight">
+                      <h1 className="text-base md:text-lg lg:text-xl font-medium leading-tight">
                         {item.title}
                       </h1>
 

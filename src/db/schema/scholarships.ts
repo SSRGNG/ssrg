@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
-  check,
   index,
   integer,
   pgTable,
@@ -114,9 +113,9 @@ export const awardMedia = pgTable(
     index("award_media_file_idx").on(t.fileId),
     index("award_media_public_idx").on(t.isPublic),
     // Ensure at least one parent reference
-    check(
-      "valid_media_parent",
-      sql`${t.scholarshipId} IS NOT NULL OR ${t.recipientId} IS NOT NULL`
-    ),
+    // check(
+    //   "valid_media_parent",
+    //   sql`${t.scholarshipId} IS NOT NULL OR ${t.recipientId} IS NOT NULL`
+    // ),
   ]
 );

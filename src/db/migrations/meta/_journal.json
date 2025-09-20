@@ -225,6 +225,13 @@
       "when": 1758362506308,
       "tag": "0031_faulty_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1758367798320,
+      "tag": "0032_aromatic_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }
