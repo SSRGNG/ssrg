@@ -39,12 +39,15 @@ import {
   getAllProjectTeams,
   getTeamCollaborationInsights,
 } from "@/lib/queries/teams";
-import { getUserProfiles } from "@/lib/queries/user";
+import { getUserProfileById, getUserProfiles } from "@/lib/queries/user";
 import { getUserVideos, getVideos } from "@/lib/queries/videos";
 
 export type ResearchImages = Awaited<ReturnType<typeof getResearchImages>>;
 export type Images = Awaited<ReturnType<typeof getImages>>;
 
+export type UserProfileById = NonNullable<
+  Awaited<ReturnType<typeof getUserProfileById>>
+>;
 export type UserProfiles = Awaited<ReturnType<typeof getUserProfiles>>;
 export type ProfileAuthor = UserProfiles["author"];
 export type ProfileResearcher = UserProfiles["researcher"];

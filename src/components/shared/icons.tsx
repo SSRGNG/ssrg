@@ -9,10 +9,12 @@ import {
   CalendarClock,
   ChartGanttIcon,
   ChartLineIcon,
+  ChevronDown,
   ChevronRightIcon,
   ChevronsUpDownIcon,
   CpuIcon,
   DatabaseIcon,
+  ExternalLink,
   FileImage,
   FileTextIcon,
   GitMergeIcon,
@@ -44,6 +46,7 @@ import {
   Share2Icon,
   ShieldHalfIcon,
   ShieldIcon,
+  Sparkles,
   SunIcon,
   TargetIcon,
   ThermometerSnowflakeIcon,
@@ -61,6 +64,7 @@ export const Icons = {
   briefcase: BriefcaseBusinessIcon,
   calendar: CalendarClock,
   caseStudy: BookOpenIcon,
+  chevronDown: ChevronDown,
   chartLine: ChartLineIcon,
   collaborate: GitMergeIcon,
   community: HeartHandshakeIcon,
@@ -72,6 +76,7 @@ export const Icons = {
   email: SendIcon,
   engagement: Share2Icon,
   ethics: ScaleIcon,
+  externalLik: ExternalLink,
   focusAreas: ShapesIcon,
   funding: HandCoinsIcon,
   graduationCap: GraduationCapIcon,
@@ -102,6 +107,7 @@ export const Icons = {
   settings: SettingsIcon,
   signout: LogOutIcon,
   social: Share2Icon,
+  sparkles: Sparkles,
   spinner: Loader2,
   sun: SunIcon,
   team: UserCircleIcon,
@@ -179,6 +185,27 @@ export const Icons = {
         fillRule="evenodd"
         clipRule="evenodd"
       ></path>
+    </svg>
+  ),
+  orcid: (props: LucideProps) => (
+    <svg
+      id="Layer_1"
+      xmlns="http://www.w3.org/2000/svg"
+      x="0px"
+      y="0px"
+      viewBox="0 0 256 256"
+      xmlSpace="preserve"
+      {...props}
+    >
+      <style>{".st1{fill:#fff}"}</style>
+      <path
+        d="M256 128c0 70.7-57.3 128-128 128S0 198.7 0 128 57.3 0 128 0s128 57.3 128 128z"
+        fill="#a6ce39"
+      />
+      <path
+        className="st1"
+        d="M86.3 186.2H70.9V79.1h15.4v107.1zM108.9 79.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7C191.7 111.2 178 93 148 93h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1s-10.1-4.6-10.1-10.1c0-5.6 4.5-10.1 10.1-10.1s10.1 4.6 10.1 10.1z"
+      />
     </svg>
   ),
   interconnections: (props: LucideProps) => (

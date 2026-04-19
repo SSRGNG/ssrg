@@ -6,7 +6,6 @@ import {
   Edit,
   Ellipsis,
   ExternalLink,
-  Eye,
   GitBranchPlus,
   GraduationCap,
   Trash2,
@@ -45,7 +44,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UsersTableFloatingBar } from "@/components/views/admin/ui-tables/users-floating-bar";
+import { ChangePassword } from "@/components/views/admin/users/change-password";
 import { MakeAdminResearcher } from "@/components/views/admin/users/make-admin-researcher";
+import { UserDetails } from "@/components/views/admin/users/user-details";
 import { roles } from "@/config/enums";
 import { deleteUser } from "@/lib/actions";
 import type { AdminUsers, AuthResearcher } from "@/lib/actions/queries";
@@ -199,12 +200,12 @@ function UsersDataTable({
                   role === "admin"
                     ? "default"
                     : role === "researcher"
-                    ? "brand"
-                    : role === "affiliate"
-                    ? "secondary"
-                    : role === "partner"
-                    ? "outline"
-                    : "destructive"
+                      ? "brand"
+                      : role === "affiliate"
+                        ? "secondary"
+                        : role === "partner"
+                          ? "outline"
+                          : "destructive"
                 }
               >
                 {roles.getLabel(role)}
@@ -312,9 +313,8 @@ function UsersDataTable({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled>
-                  <Eye />
-                  View Profile
+                <DropdownMenuItem asChild>
+                  <UserDetails user={user} />
                 </DropdownMenuItem>
                 {isResearcher && hasORCID && (
                   <DropdownMenuItem
@@ -349,6 +349,14 @@ function UsersDataTable({
                   <Edit />
                   Edit User
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+
+                {/* Change Password — also accessible from inside the drawer */}
+                <DropdownMenuItem asChild>
+                  <ChangePassword user={user} />
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDeleteClick(user)}
                   disabled={isPending}
@@ -364,7 +372,7 @@ function UsersDataTable({
         },
       },
     ],
-    [isPending]
+    [isPending],
   );
   return (
     <React.Fragment>

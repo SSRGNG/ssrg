@@ -86,3 +86,54 @@ export async function getUserProfiles() {
     }),
   };
 }
+
+/**
+ * Fetches the full profile for any user by ID.
+ * Returns the same shape as getUserProfiles() so components can be shared.
+ * Returns null instead of redirecting — callers decide how to handle missing users.
+ */
+export async function getUserProfileById(userId: string) {
+  const result = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    with: {
+      researcher: {
+        with: {
+          author: true,
+          education: true,
+          expertise: { columns: { expertise: true, order: true } },
+          areas: { with: { area: true } },
+        },
+      },
+    },
+  });
+
+  if (!result) return null;
+
+  return {
+    user: result,
+    ...(result.researcher && {
+      researcher: {
+        ...result.researcher,
+        expertise: result.researcher.expertise
+          .sort((a, b) => a.order - b.order)
+          .map((e) => e.expertise),
+        education: result.researcher.education
+          .sort((a, b) => a.order - b.order)
+          .map((e) => e.education),
+        areas: result.researcher.areas.map((ra) => ({
+          id: ra.area.id,
+          title: ra.area.title,
+          image: ra.area.image,
+          description: ra.area.description,
+          icon: ra.area.icon,
+          detail: ra.area.detail,
+          href: ra.area.href,
+          linkText: ra.area.linkText,
+        })),
+      },
+      ...(result.researcher.author && {
+        author: result.researcher.author,
+      }),
+    }),
+  };
+}

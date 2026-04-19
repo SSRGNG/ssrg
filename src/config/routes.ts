@@ -13,9 +13,12 @@ export const protectedRoutes = ["/portal", "/admin"];
  * @type {string[]}
  */
 export const publicAuthRoutes = [
-  appConfig.auth.signin.href,
-  appConfig.auth.signup.href,
-  appConfig.auth.error.href,
+  appConfig.auth.signin.href, // /auth/sign-in
+  appConfig.auth.signup.href, // /careers/sign-up
+  appConfig.auth.error.href, // /auth/error
+  appConfig.auth.reset.href, // /auth/reset-password  (forgot-password form)
+  appConfig.auth.newPassword.href, // /auth/new-password    (token → new password form)
+  appConfig.auth.verification.href, // /auth/verification    (magic-link check-your-inbox)
 ];
 
 /**

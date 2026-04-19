@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { appConfig } from "@/config";
 import { unAuthenticate } from "@/lib/actions";
-import { catchError, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type Props = React.ComponentPropsWithoutRef<typeof CardContent>;
 
@@ -18,9 +19,21 @@ function SignoutButton({ className, ...props }: Props) {
   const handleSignOut = () => {
     startTransition(async () => {
       try {
-        await unAuthenticate();
+        const result = await unAuthenticate();
+        if (result) toast.error(result);
       } catch (err) {
-        catchError(err);
+        const digest =
+          err instanceof Error
+            ? ((err as { digest?: string }).digest ?? "")
+            : "";
+        if (
+          digest.startsWith("NEXT_REDIRECT") ||
+          (err instanceof Error && err.message === "NEXT_REDIRECT")
+        ) {
+          throw err;
+        }
+        // Anything else is an unexpected server error.
+        toast.error("Something went wrong. Please try again later.");
       }
     });
   };
